@@ -9,6 +9,8 @@ import { LoginPage } from "./components/LoginPage";
 import { CustomerJourneyPage } from "./components/CustomerJourneyPage";
 import { SupplierJourneyPage } from "./components/SupplierJourneyPage";
 
+const basename = import.meta.env.BASE_URL.replace(/\/$/, '') || '/';
+
 export const router = createBrowserRouter([
   {
     path: "/login",
@@ -44,4 +46,4 @@ export const router = createBrowserRouter([
       },
     ],
   },
-]);
+], { basename });

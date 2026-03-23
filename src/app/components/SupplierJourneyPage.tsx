@@ -1,0 +1,837 @@
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router";
+import { Building2, FileText, Upload, CheckCircle, X, Landmark, Info, Check, Mail, Phone, Loader2, ShieldCheck, RefreshCw, AlertCircle } from "lucide-react";
+
+interface SupplierData {
+  name: string;
+  tradeLicenseNumber: string;
+  trnNumber: string;
+  email: string;
+  phone: string;
+  contactPerson: string;
+  address: string;
+  bankName: string;
+  accountName: string;
+  iban: string;
+  swiftCode: string;
+}
+
+export function SupplierJourneyPage() {
+  const navigate = useNavigate();
+  const [currentStep, setCurrentStep] = useState(1);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [redirectCountdown, setRedirectCountdown] = useState(5);
+
+  // Pre-populated supplier data (as entered by the buyer)
+  const [supplierData, setSupplierData] = useState<SupplierData>({
+    name: "Falcon Steel Industries LLC",
+    tradeLicenseNumber: "TL-112233",
+    trnNumber: "TRN-100234567890003",
+    email: "procurement@falconsteel.ae",
+    phone: "+971 4 567 8901",
+    contactPerson: "Omar Al Hashimi",
+    address: "Dubai Investment Park, Dubai, UAE",
+    bankName: "Emirates NBD",
+    accountName: "Falcon Steel Industries LLC",
+    iban: "AE070331234567890123456",
+    swiftCode: "EABORUMAXXX",
+  });
+
+  // Document state
+  const [tradeLicenseFile, setTradeLicenseFile] = useState<File | null>(
+    new File([new ArrayBuffer(524288)], "TradeLicense-FalconSteel-2024.pdf", { type: "application/pdf" })
+  );
+  const [supportingDocs, setSupportingDocs] = useState<File[]>([
+    new File([new ArrayBuffer(312320)], "VAT-Certificate-FalconSteel.pdf", { type: "application/pdf" }),
+  ]);
+  const [additionalDocs, setAdditionalDocs] = useState<File[]>([]);
+
+  // Confirmation
+  const [confirmed, setConfirmed] = useState(false);
+
+  // OTP verification state
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [emailOtp, setEmailOtp] = useState(["", "", "", "", "", ""]);
+  const [phoneOtp, setPhoneOtp] = useState(["", "", "", "", "", ""]);
+  const [emailVerified, setEmailVerified] = useState(false);
+  const [phoneVerified, setPhoneVerified] = useState(false);
+  const [verifyingEmail, setVerifyingEmail] = useState(false);
+  const [verifyingPhone, setVerifyingPhone] = useState(false);
+  const [otpAutoSent, setOtpAutoSent] = useState(false);
+
+  // Penny drop verification state
+  const [pennyDropStatus, setPennyDropStatus] = useState<"idle" | "verifying" | "verified" | "failed">("idle");
+  const [pennyDropRef, setPennyDropRef] = useState("");
+
+  const steps = [
+    { id: 1, name: "Review Details" },
+    { id: 2, name: "Documents" },
+    { id: 3, name: "Bank Account" },
+    { id: 4, name: "Review & Approve" },
+  ];
+
+  const handleNext = () => {
+    if (currentStep === 1 && !emailVerified && !phoneVerified) {
+      setShowOtpModal(true);
+      if (!otpAutoSent) {
+        setOtpAutoSent(true);
+      }
+      return;
+    }
+    if (currentStep === 4) {
+      if (confirmed) {
+        localStorage.setItem("demo_merchant_role", "supplier-only");
+        localStorage.setItem("merchant_underwriting_status", "none");
+        window.dispatchEvent(new Event("demo-role-change"));
+        setShowSuccessModal(true);
+      }
+    } else if (currentStep < steps.length) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStep > 1) setCurrentStep(currentStep - 1);
+  };
+
+  // Countdown and redirect after success
+  useEffect(() => {
+    if (!showSuccessModal) return;
+    if (redirectCountdown <= 0) {
+      navigate("/");
+      return;
+    }
+    const timer = setTimeout(() => setRedirectCountdown(prev => prev - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [showSuccessModal, redirectCountdown, navigate]);
+
+  const updateField = (field: keyof SupplierData, value: string) => {
+    setSupplierData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleAdditionalDocUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) {
+      setAdditionalDocs(prev => [...prev, ...Array.from(files)]);
+    }
+  };
+
+  const removeAdditionalDoc = (index: number) => {
+    setAdditionalDocs(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // OTP helpers
+  const handleOtpChange = (type: "email" | "phone", index: number, value: string) => {
+    if (value.length > 1) return;
+    const setter = type === "email" ? setEmailOtp : setPhoneOtp;
+    const current = type === "email" ? emailOtp : phoneOtp;
+    const updated = [...current];
+    updated[index] = value;
+    setter(updated);
+    if (value && index < 5) {
+      const next = document.getElementById(`${type}-otp-${index + 1}`);
+      next?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (type: "email" | "phone", index: number, e: React.KeyboardEvent) => {
+    if (e.key === "Backspace") {
+      const current = type === "email" ? emailOtp : phoneOtp;
+      if (!current[index] && index > 0) {
+        const prev = document.getElementById(`${type}-otp-${index - 1}`);
+        prev?.focus();
+      }
+    }
+  };
+
+  const verifyEmailOtp = () => {
+    setVerifyingEmail(true);
+    setTimeout(() => { setVerifyingEmail(false); setEmailVerified(true); }, 1500);
+  };
+
+  const verifyPhoneOtp = () => {
+    setVerifyingPhone(true);
+    setTimeout(() => { setVerifyingPhone(false); setPhoneVerified(true); }, 1500);
+  };
+
+  const renderStepContent = () => {
+    switch (currentStep) {
+      // Step 1: Review Details
+      case 1:
+        return (
+          <div className="space-y-6">
+            <div>
+              <h1 className="text-3xl font-semibold text-gray-900">Review Your Details</h1>
+              <p className="text-gray-600 mt-2">
+                The following details were provided by the buyer. Please review and update any information that needs correction.
+              </p>
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex gap-3">
+                <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-blue-900">Pre-filled by Buyer</p>
+                  <p className="text-sm text-blue-700 mt-1">
+                    Al Masraf Industries LLC has added you as a supplier. Please verify the information below and make any necessary corrections.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-5">
+              <h3 className="font-semibold text-gray-900">Company Information</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Company Name</label>
+                  <input
+                    type="text"
+                    value={supplierData.name}
+                    onChange={e => updateField("name", e.target.value)}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Trade License Number</label>
+                  <input
+                    type="text"
+                    value={supplierData.tradeLicenseNumber}
+                    onChange={e => updateField("tradeLicenseNumber", e.target.value)}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">TRN Number</label>
+                  <input
+                    type="text"
+                    value={supplierData.trnNumber}
+                    onChange={e => updateField("trnNumber", e.target.value)}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Contact Person</label>
+                  <input
+                    type="text"
+                    value={supplierData.contactPerson}
+                    onChange={e => updateField("contactPerson", e.target.value)}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Email Address</label>
+                  <input
+                    type="email"
+                    value={supplierData.email}
+                    onChange={e => updateField("email", e.target.value)}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Phone Number</label>
+                  <input
+                    type="tel"
+                    value={supplierData.phone}
+                    onChange={e => updateField("phone", e.target.value)}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Address</label>
+                  <input
+                    type="text"
+                    value={supplierData.address}
+                    onChange={e => updateField("address", e.target.value)}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      // Step 2: Documents
+      case 2:
+        return (
+          <div className="space-y-6">
+            <div>
+              <h1 className="text-3xl font-semibold text-gray-900">Documents</h1>
+              <p className="text-gray-600 mt-2">
+                Review uploaded documents and add any additional documents required for verification.
+              </p>
+            </div>
+
+            {/* Trade License */}
+            <div className="bg-white border border-gray-200 rounded-lg p-5">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="font-medium text-gray-900">Trade License</h3>
+                  <p className="text-sm text-gray-500 mt-1">Your valid trade license issued by the Department of Economic Development</p>
+                </div>
+                <div className="ml-4">
+                  {tradeLicenseFile ? (
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-lg">
+                        <CheckCircle className="w-4 h-4 text-green-600" />
+                        <span className="text-sm text-green-700 max-w-[200px] truncate">{tradeLicenseFile.name}</span>
+                      </div>
+                      <button onClick={() => setTradeLicenseFile(null)} className="p-1 text-gray-400 hover:text-red-600 transition-colors"><X className="w-4 h-4" /></button>
+                    </div>
+                  ) : (
+                    <div
+                      className="border-2 border-dashed border-gray-300 rounded-lg px-6 py-4 text-center hover:border-blue-400 hover:bg-blue-50/30 transition-colors cursor-pointer"
+                      onClick={() => document.getElementById("sup-trade-license")?.click()}
+                    >
+                      <input type="file" id="sup-trade-license" className="hidden" accept=".pdf,.jpg,.jpeg,.png" onChange={e => { if (e.target.files?.[0]) setTradeLicenseFile(e.target.files[0]); }} />
+                      <Upload className="w-5 h-5 text-gray-400 mx-auto mb-1" />
+                      <p className="text-sm text-blue-600 font-medium">Click to upload</p>
+                      <p className="text-xs text-gray-400 mt-0.5">or drag and drop</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Supporting Documents (pre-uploaded by buyer) */}
+            <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
+              <div>
+                <h3 className="font-medium text-gray-900">Supporting Documents</h3>
+                <p className="text-sm text-gray-500 mt-1">Documents uploaded by the buyer during registration</p>
+              </div>
+              {supportingDocs.length > 0 && (
+                <div className="space-y-2">
+                  {supportingDocs.map((doc, i) => (
+                    <div key={i} className="flex items-center gap-3 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg">
+                      <FileText className="w-4 h-4 text-gray-500" />
+                      <span className="text-sm text-gray-700 flex-1 truncate">{doc.name}</span>
+                      <span className="text-xs text-gray-400">{(doc.size / 1024).toFixed(0)} KB</span>
+                      <button onClick={() => setSupportingDocs(prev => prev.filter((_, idx) => idx !== i))} className="p-1 text-gray-400 hover:text-red-600 transition-colors"><X className="w-4 h-4" /></button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Additional Documents */}
+            <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
+              <div>
+                <h3 className="font-medium text-gray-900">Additional Documents</h3>
+                <p className="text-sm text-gray-500 mt-1">Upload any additional documents to support your verification</p>
+              </div>
+              {additionalDocs.length > 0 && (
+                <div className="space-y-2">
+                  {additionalDocs.map((doc, i) => (
+                    <div key={i} className="flex items-center gap-3 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg">
+                      <FileText className="w-4 h-4 text-gray-500" />
+                      <span className="text-sm text-gray-700 flex-1 truncate">{doc.name}</span>
+                      <button onClick={() => removeAdditionalDoc(i)} className="p-1 text-gray-400 hover:text-red-600 transition-colors"><X className="w-4 h-4" /></button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div
+                className="border-2 border-dashed border-gray-300 rounded-lg py-5 text-center hover:border-blue-400 hover:bg-blue-50/30 transition-colors cursor-pointer"
+                onClick={() => document.getElementById("sup-additional-docs")?.click()}
+              >
+                <input type="file" id="sup-additional-docs" className="hidden" accept=".pdf,.jpg,.jpeg,.png" multiple onChange={handleAdditionalDocUpload} />
+                <Upload className="w-5 h-5 text-gray-400 mx-auto mb-1" />
+                <p className="text-sm text-blue-600 font-medium">Click to upload additional documents</p>
+                <p className="text-xs text-gray-400 mt-0.5">PDF, JPG, PNG (max 10MB per file)</p>
+              </div>
+            </div>
+          </div>
+        );
+
+      // Step 3: Bank Account
+      case 3:
+        return (
+          <div className="space-y-6">
+            <div>
+              <h1 className="text-3xl font-semibold text-gray-900">Bank Account Details</h1>
+              <p className="text-gray-600 mt-2">
+                Provide your bank account details for receiving payments. These will be verified via a penny drop transaction.
+              </p>
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex gap-3">
+                <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-blue-700">
+                  Please enter your bank details carefully. A small verification amount will be sent to confirm account ownership.
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-5">
+              <div className="flex items-center gap-3 mb-2">
+                <Landmark className="w-5 h-5 text-gray-600" />
+                <h3 className="font-semibold text-gray-900">Bank Information</h3>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Bank Name *</label>
+                  <input
+                    type="text"
+                    value={supplierData.bankName}
+                    onChange={e => { updateField("bankName", e.target.value); if (pennyDropStatus !== "idle") { setPennyDropStatus("idle"); setPennyDropRef(""); } }}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Account Holder Name *</label>
+                  <input
+                    type="text"
+                    value={supplierData.accountName}
+                    onChange={e => { updateField("accountName", e.target.value); if (pennyDropStatus !== "idle") { setPennyDropStatus("idle"); setPennyDropRef(""); } }}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">IBAN *</label>
+                  <input
+                    type="text"
+                    value={supplierData.iban}
+                    onChange={e => { updateField("iban", e.target.value); if (pennyDropStatus !== "idle") { setPennyDropStatus("idle"); setPennyDropRef(""); } }}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">SWIFT/BIC Code *</label>
+                  <input
+                    type="text"
+                    value={supplierData.swiftCode}
+                    onChange={e => { updateField("swiftCode", e.target.value); if (pennyDropStatus !== "idle") { setPennyDropStatus("idle"); setPennyDropRef(""); } }}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Penny Drop Verification */}
+            <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <ShieldCheck className="w-5 h-5 text-gray-600" />
+                <h3 className="font-semibold text-gray-900">Account Verification</h3>
+              </div>
+
+              {pennyDropStatus === "idle" && (
+                <div>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Click below to initiate a penny drop verification. A small amount (AED 0.01) will be credited to your account to confirm ownership.
+                  </p>
+                  <button
+                    onClick={() => {
+                      setPennyDropStatus("verifying");
+                      setTimeout(() => {
+                        setPennyDropStatus("verified");
+                        setPennyDropRef(`PD-${Date.now().toString(36).toUpperCase()}`);
+                      }, 2500);
+                    }}
+                    disabled={!supplierData.bankName.trim() || !supplierData.accountName.trim() || !supplierData.iban.trim() || !supplierData.swiftCode.trim()}
+                    className="px-5 py-2.5 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    <ShieldCheck className="w-4 h-4" />
+                    Initiate Penny Drop Verification
+                  </button>
+                </div>
+              )}
+
+              {pennyDropStatus === "verifying" && (
+                <div className="flex items-center gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
+                  <div>
+                    <p className="text-sm font-medium text-blue-900">Verifying account...</p>
+                    <p className="text-xs text-blue-700 mt-0.5">Processing penny drop transaction. This may take a moment.</p>
+                  </div>
+                </div>
+              )}
+
+              {pennyDropStatus === "verified" && (
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <CheckCircle className="w-5 h-5 text-green-600" />
+                    <div>
+                      <p className="text-sm font-medium text-green-900">Account Verified Successfully</p>
+                      <p className="text-xs text-green-700 mt-0.5">Reference: {pennyDropRef}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {pennyDropStatus === "failed" && (
+                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <AlertCircle className="w-5 h-5 text-red-600" />
+                      <div>
+                        <p className="text-sm font-medium text-red-900">Verification Failed</p>
+                        <p className="text-xs text-red-700 mt-0.5">Please check your bank details and try again.</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => { setPennyDropStatus("idle"); setPennyDropRef(""); }}
+                      className="px-3 py-1.5 text-sm text-red-700 border border-red-300 rounded-lg hover:bg-red-100 flex items-center gap-1"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      Retry
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
+      // Step 4: Review & Approve
+      case 4:
+        return (
+          <div className="space-y-6">
+            <div>
+              <h1 className="text-3xl font-semibold text-gray-900">Review & Approve</h1>
+              <p className="text-gray-600 mt-2">
+                Review all your information and approve your registration as a supplier.
+              </p>
+            </div>
+
+            {/* Company Details Summary */}
+            <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-3">
+              <div className="flex items-center gap-2 mb-1">
+                <Building2 className="w-5 h-5 text-gray-600" />
+                <h3 className="font-semibold text-gray-900">Company Details</h3>
+              </div>
+              <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
+                <div className="flex justify-between py-1.5 border-b border-gray-100">
+                  <span className="text-gray-500">Company Name</span>
+                  <span className="text-gray-900 font-medium">{supplierData.name}</span>
+                </div>
+                <div className="flex justify-between py-1.5 border-b border-gray-100">
+                  <span className="text-gray-500">Trade License</span>
+                  <span className="text-gray-900 font-medium">{supplierData.tradeLicenseNumber}</span>
+                </div>
+                <div className="flex justify-between py-1.5 border-b border-gray-100">
+                  <span className="text-gray-500">TRN Number</span>
+                  <span className="text-gray-900 font-medium">{supplierData.trnNumber}</span>
+                </div>
+                <div className="flex justify-between py-1.5 border-b border-gray-100">
+                  <span className="text-gray-500">Contact Person</span>
+                  <span className="text-gray-900 font-medium">{supplierData.contactPerson}</span>
+                </div>
+                <div className="flex justify-between py-1.5 border-b border-gray-100">
+                  <span className="text-gray-500">Email</span>
+                  <span className="text-gray-900 font-medium">{supplierData.email}</span>
+                </div>
+                <div className="flex justify-between py-1.5 border-b border-gray-100">
+                  <span className="text-gray-500">Phone</span>
+                  <span className="text-gray-900 font-medium">{supplierData.phone}</span>
+                </div>
+                <div className="flex justify-between py-1.5 border-b border-gray-100">
+                  <span className="text-gray-500">Address</span>
+                  <span className="text-gray-900 font-medium">{supplierData.address}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Documents Summary */}
+            <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-3">
+              <div className="flex items-center gap-2 mb-1">
+                <FileText className="w-5 h-5 text-gray-600" />
+                <h3 className="font-semibold text-gray-900">Documents</h3>
+              </div>
+              <div className="space-y-2">
+                {tradeLicenseFile && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <CheckCircle className="w-4 h-4 text-green-600" />
+                    <span className="text-gray-700">Trade License: {tradeLicenseFile.name}</span>
+                  </div>
+                )}
+                {supportingDocs.map((doc, i) => (
+                  <div key={i} className="flex items-center gap-2 text-sm">
+                    <CheckCircle className="w-4 h-4 text-green-600" />
+                    <span className="text-gray-700">Supporting: {doc.name}</span>
+                  </div>
+                ))}
+                {additionalDocs.map((doc, i) => (
+                  <div key={i} className="flex items-center gap-2 text-sm">
+                    <CheckCircle className="w-4 h-4 text-green-600" />
+                    <span className="text-gray-700">Additional: {doc.name}</span>
+                  </div>
+                ))}
+                {!tradeLicenseFile && supportingDocs.length === 0 && additionalDocs.length === 0 && (
+                  <p className="text-sm text-amber-600">No documents uploaded</p>
+                )}
+              </div>
+            </div>
+
+            {/* Bank Details Summary */}
+            <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-3">
+              <div className="flex items-center gap-2 mb-1">
+                <Landmark className="w-5 h-5 text-gray-600" />
+                <h3 className="font-semibold text-gray-900">Bank Account</h3>
+              </div>
+              <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
+                <div className="flex justify-between py-1.5 border-b border-gray-100">
+                  <span className="text-gray-500">Bank</span>
+                  <span className="text-gray-900 font-medium">{supplierData.bankName}</span>
+                </div>
+                <div className="flex justify-between py-1.5 border-b border-gray-100">
+                  <span className="text-gray-500">Account Holder</span>
+                  <span className="text-gray-900 font-medium">{supplierData.accountName}</span>
+                </div>
+                <div className="flex justify-between py-1.5 border-b border-gray-100">
+                  <span className="text-gray-500">IBAN</span>
+                  <span className="text-gray-900 font-medium">{supplierData.iban}</span>
+                </div>
+                <div className="flex justify-between py-1.5 border-b border-gray-100">
+                  <span className="text-gray-500">SWIFT/BIC</span>
+                  <span className="text-gray-900 font-medium">{supplierData.swiftCode}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Confirmation */}
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-5">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={confirmed}
+                  onChange={e => setConfirmed(e.target.checked)}
+                  className="mt-1 w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-2 focus:ring-blue-500"
+                />
+                <div className="text-sm text-gray-700">
+                  <p className="font-medium text-gray-900 mb-1">I confirm that all the information provided is accurate</p>
+                  <p>I hereby approve my registration as a supplier on the Bank X Supply Chain Finance platform. I confirm that the company details, documents, and bank account information are correct and up to date.</p>
+                </div>
+              </label>
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Sidebar */}
+      <div className="w-72 bg-white border-r border-gray-200 p-6 flex flex-col">
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-1">
+            <Building2 className="w-6 h-6 text-gray-800" />
+            <span className="text-lg font-bold text-gray-900">Bank X</span>
+          </div>
+          <p className="text-xs text-gray-500 ml-8">Supplier Verification</p>
+        </div>
+
+        <nav className="flex-1 space-y-1">
+          {steps.map((step) => {
+            const isActive = step.id === currentStep;
+            const isCompleted = step.id < currentStep;
+            return (
+              <div
+                key={step.id}
+                className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-colors ${
+                  isActive ? "bg-blue-50 border border-blue-200" : isCompleted ? "text-green-700" : "text-gray-500"
+                }`}
+              >
+                <div
+                  className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0 ${
+                    isCompleted
+                      ? "bg-green-100 text-green-700"
+                      : isActive
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-100 text-gray-400"
+                  }`}
+                >
+                  {isCompleted ? <Check className="w-4 h-4" /> : step.id}
+                </div>
+                <span className={`text-sm ${isActive ? "font-semibold text-blue-900" : isCompleted ? "font-medium" : ""}`}>
+                  {step.name}
+                </span>
+              </div>
+            );
+          })}
+        </nav>
+
+        <div className="mt-auto pt-6 border-t border-gray-200">
+          <p className="text-xs text-gray-400">Invited by Al Masraf Industries LLC</p>
+          <p className="text-xs text-gray-400 mt-1">Ref: SUP-REG-2025-001</p>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col">
+        {/* Header */}
+        <div className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
+          <div>
+            <h2 className="text-sm font-medium text-gray-500">Supplier Registration</h2>
+            <p className="text-xs text-gray-400 mt-0.5">Step {currentStep} of {steps.length}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-blue-600 rounded-full transition-all duration-300"
+                style={{ width: `${(currentStep / steps.length) * 100}%` }}
+              />
+            </div>
+            <span className="text-xs text-gray-500">{Math.round((currentStep / steps.length) * 100)}%</span>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto px-8 py-6">
+          <div className="max-w-3xl">
+            {renderStepContent()}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="bg-white border-t border-gray-200 px-8 py-4 flex items-center justify-between">
+          <button
+            onClick={handleBack}
+            disabled={currentStep === 1}
+            className={`px-6 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+              currentStep === 1
+                ? "text-gray-300 cursor-not-allowed"
+                : "text-gray-700 border border-gray-300 hover:bg-gray-50"
+            }`}
+          >
+            Back
+          </button>
+          <button
+            onClick={handleNext}
+            disabled={(currentStep === 4 && !confirmed) || (currentStep === 3 && pennyDropStatus !== "verified")}
+            className={`px-6 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+              currentStep === 4
+                ? confirmed
+                  ? "bg-green-600 text-white hover:bg-green-700"
+                  : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                : (currentStep === 3 && pennyDropStatus !== "verified")
+                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                  : "bg-gray-800 text-white hover:bg-gray-900"
+            }`}
+          >
+            {currentStep === 4 ? "Approve & Submit" : "Next"}
+          </button>
+        </div>
+      </div>
+
+      {/* OTP Verification Modal */}
+      {showOtpModal && (
+        <div className="fixed inset-0 bg-gray-500/30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl max-w-lg w-full mx-4 p-6">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-xl font-semibold text-gray-900">Verify Contact Information</h2>
+              <button onClick={() => setShowOtpModal(false)} className="p-1 text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
+            </div>
+            <p className="text-sm text-gray-600 mb-5">OTPs have been sent to your email and phone number. Please enter them below to verify.</p>
+
+            {/* Email OTP */}
+            <div className="border border-gray-200 rounded-lg p-4 mb-4">
+              <div className="flex items-center gap-3 mb-3">
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center ${emailVerified ? "bg-green-100" : "bg-blue-100"}`}>
+                  {emailVerified ? <CheckCircle className="w-4 h-4 text-green-600" /> : <Mail className="w-4 h-4 text-blue-600" />}
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-900">Email OTP</p>
+                  <p className="text-xs text-gray-500">{supplierData.email}</p>
+                </div>
+                {emailVerified && <span className="px-2.5 py-0.5 bg-green-50 border border-green-200 rounded-full text-xs font-medium text-green-700">Verified</span>}
+              </div>
+              {!emailVerified ? (
+                <div className="flex items-center gap-2">
+                  {emailOtp.map((digit, i) => (
+                    <input key={i} id={`email-otp-${i}`} type="text" inputMode="numeric" maxLength={1} value={digit}
+                      onChange={e => handleOtpChange("email", i, e.target.value.replace(/\D/g, ""))}
+                      onKeyDown={e => handleOtpKeyDown("email", i, e)}
+                      className="w-10 h-10 text-center text-base font-semibold border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+                  ))}
+                  <button onClick={verifyEmailOtp} disabled={emailOtp.some(d => !d) || verifyingEmail}
+                    className="ml-2 px-4 py-2 bg-gray-800 text-white rounded-lg text-sm font-medium hover:bg-gray-900 transition-colors disabled:opacity-50 flex items-center gap-2">
+                    {verifyingEmail ? <><Loader2 className="w-4 h-4 animate-spin" /> Verifying...</> : "Verify"}
+                  </button>
+                </div>
+              ) : (
+                <p className="text-sm text-green-700 flex items-center gap-1.5"><CheckCircle className="w-4 h-4" /> Email verified successfully</p>
+              )}
+            </div>
+
+            {/* Phone OTP */}
+            <div className="border border-gray-200 rounded-lg p-4 mb-5">
+              <div className="flex items-center gap-3 mb-3">
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center ${phoneVerified ? "bg-green-100" : "bg-blue-100"}`}>
+                  {phoneVerified ? <CheckCircle className="w-4 h-4 text-green-600" /> : <Phone className="w-4 h-4 text-blue-600" />}
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-900">Phone OTP</p>
+                  <p className="text-xs text-gray-500">{supplierData.phone}</p>
+                </div>
+                {phoneVerified && <span className="px-2.5 py-0.5 bg-green-50 border border-green-200 rounded-full text-xs font-medium text-green-700">Verified</span>}
+              </div>
+              {!phoneVerified ? (
+                <div className="flex items-center gap-2">
+                  {phoneOtp.map((digit, i) => (
+                    <input key={i} id={`phone-otp-${i}`} type="text" inputMode="numeric" maxLength={1} value={digit}
+                      onChange={e => handleOtpChange("phone", i, e.target.value.replace(/\D/g, ""))}
+                      onKeyDown={e => handleOtpKeyDown("phone", i, e)}
+                      className="w-10 h-10 text-center text-base font-semibold border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+                  ))}
+                  <button onClick={verifyPhoneOtp} disabled={phoneOtp.some(d => !d) || verifyingPhone}
+                    className="ml-2 px-4 py-2 bg-gray-800 text-white rounded-lg text-sm font-medium hover:bg-gray-900 transition-colors disabled:opacity-50 flex items-center gap-2">
+                    {verifyingPhone ? <><Loader2 className="w-4 h-4 animate-spin" /> Verifying...</> : "Verify"}
+                  </button>
+                </div>
+              ) : (
+                <p className="text-sm text-green-700 flex items-center gap-1.5"><CheckCircle className="w-4 h-4" /> Phone verified successfully</p>
+              )}
+            </div>
+
+            {emailVerified && phoneVerified ? (
+              <button onClick={() => { setShowOtpModal(false); setCurrentStep(2); }}
+                className="w-full px-5 py-2.5 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors flex items-center justify-center gap-2">
+                <CheckCircle className="w-4 h-4" /> Continue to Documents
+              </button>
+            ) : (
+              <p className="text-xs text-gray-400 text-center">Verify both to continue</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-gray-500/30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-8 text-center">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CheckCircle className="w-8 h-8 text-green-600" />
+            </div>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-2">Account Activated</h2>
+            <p className="text-gray-600 mb-6">
+              Your supplier account has been activated successfully. You will be redirected to your dashboard shortly.
+            </p>
+            <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Reference</span>
+                <span className="text-gray-900 font-medium">SUP-REG-2025-001</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Status</span>
+                <span className="text-green-600 font-medium">Account Active</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Account Type</span>
+                <span className="text-gray-900 font-medium">Seller (Supply Chain)</span>
+              </div>
+            </div>
+            <p className="text-sm text-gray-500">Redirecting to dashboard in {redirectCountdown}s...</p>
+            <div className="mt-3">
+              <button onClick={() => navigate("/")} className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                Go to Dashboard Now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router";
+import { createHashRouter } from "react-router";
 import { Layout } from "./components/Layout";
 import { MerchantDashboard } from "./components/MerchantDashboard";
 
@@ -9,9 +9,7 @@ import { LoginPage } from "./components/LoginPage";
 import { CustomerJourneyPage } from "./components/CustomerJourneyPage";
 import { SupplierJourneyPage } from "./components/SupplierJourneyPage";
 
-const basename = import.meta.env.BASE_URL.replace(/\/$/, '') || '/';
-
-export const router = createBrowserRouter([
+export const router = createHashRouter([
   {
     path: "/login",
     Component: LoginPage,
@@ -46,4 +44,4 @@ export const router = createBrowserRouter([
       },
     ],
   },
-], { basename });
+]);

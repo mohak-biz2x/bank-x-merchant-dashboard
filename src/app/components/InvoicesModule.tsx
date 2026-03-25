@@ -1,5 +1,6 @@
 import { FileText, Plus, Upload, X, Building2, CheckCircle, Clock, AlertCircle, DollarSign, Eye } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router";
 
 interface InvoiceLineItem {
   invoiceNumber: string;
@@ -27,9 +28,12 @@ interface Invoice {
 }
 
 export function InvoicesModule() {
+  const [searchParams] = useSearchParams();
   const [showAddForm, setShowAddForm] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [showSuccess, setShowSuccess] = useState(false);
+
+  useEffect(() => { if (searchParams.get("add") === "true") setShowAddForm(true); }, [searchParams]);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [selectedInvoiceForTerms, setSelectedInvoiceForTerms] = useState<Invoice | null>(null);
   const [showTermsAccepted, setShowTermsAccepted] = useState(false);

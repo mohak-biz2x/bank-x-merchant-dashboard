@@ -1,5 +1,6 @@
 import { Users, Plus, Building2, Mail, Phone, MapPin, CheckCircle, Clock, Send, X, Upload, FileText } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router";
 
 type SupplierStatus = "verification_pending" | "onboarding_pending" | "active";
 
@@ -17,9 +18,12 @@ interface Supplier {
 }
 
 export function BuyerSuppliersModule() {
+  const [searchParams] = useSearchParams();
   const [showAddModal, setShowAddModal] = useState(false);
   const [addStep, setAddStep] = useState(1);
   const [showAddSuccess, setShowAddSuccess] = useState(false);
+
+  useEffect(() => { if (searchParams.get("add") === "true") setShowAddModal(true); }, [searchParams]);
   const [showOnboardingModal, setShowOnboardingModal] = useState(false);
   const [generatedLink, setGeneratedLink] = useState("");
   const [formData, setFormData] = useState({

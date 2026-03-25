@@ -1,4 +1,4 @@
-import { Wallet, FileText, TrendingUp, Clock, CheckCircle, Building2, Loader2, ShieldCheck, PenTool, Upload, X, CreditCard, Landmark, Zap, DollarSign, Eye, Package } from "lucide-react";
+import { Wallet, FileText, TrendingUp, Clock, CheckCircle, Building2, Loader2, ShieldCheck, PenTool, Upload, X, CreditCard, Landmark, Zap, DollarSign, Eye, Package, Plus } from "lucide-react";
 import { Link } from "react-router";
 import { useState, useEffect } from "react";
 
@@ -829,7 +829,7 @@ export function MerchantDashboard() {
         {/* Module Cards */}
         <div className={`grid grid-cols-1 ${filteredModules.length === 1 ? "md:grid-cols-1 max-w-lg" : filteredModules.length === 2 ? "md:grid-cols-2 max-w-3xl" : "md:grid-cols-2 lg:grid-cols-3"} gap-6 mb-6`}>
           {filteredModules.map((mod) => (
-            <Link key={mod.path} to={mod.path} className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow cursor-pointer">
+            <div key={mod.path} className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
               <div className="p-6">
                 <div className="flex items-center gap-3 mb-4">
                   <div className={`w-12 h-12 ${mod.iconBg} rounded-lg flex items-center justify-center`}>
@@ -848,11 +848,16 @@ export function MerchantDashboard() {
                     </div>
                   ))}
                 </div>
-                <button className={`mt-4 w-full ${mod.btnBg} text-white py-2 px-4 rounded-lg transition-colors font-medium text-sm`}>
-                  View {mod.title}
-                </button>
+                <div className="mt-4 grid grid-cols-2 gap-3">
+                  <Link to={mod.path} className={`${mod.btnBg} text-white py-2 px-4 rounded-lg transition-colors font-medium text-sm text-center flex items-center justify-center gap-1.5`}>
+                    <Eye className="w-4 h-4" /> View
+                  </Link>
+                  <Link to={`${mod.path}?add=true`} className="border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm text-center flex items-center justify-center gap-1.5">
+                    <Plus className="w-4 h-4" /> Add New
+                  </Link>
+                </div>
               </div>
-            </Link>
+            </div>
           ))}
         </div>
 

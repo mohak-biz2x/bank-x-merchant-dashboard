@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { Building2, FileText, Upload, CheckCircle, X, Landmark, Info, Check, Mail, Phone, Loader2, ShieldCheck, RefreshCw, AlertCircle } from "lucide-react";
+import { Building2, FileText, Upload, CheckCircle, X, Landmark, Info, Check, Mail, Phone, Loader2 } from "lucide-react";
 
 interface SupplierData {
   name: string;
@@ -31,20 +31,19 @@ export function SupplierJourneyPage() {
     phone: "+971 4 567 8901",
     contactPerson: "Omar Al Hashimi",
     address: "Dubai Investment Park, Dubai, UAE",
-    bankName: "Emirates NBD",
-    accountName: "Falcon Steel Industries LLC",
-    iban: "AE070331234567890123456",
-    swiftCode: "EABORUMAXXX",
+    bankName: "",
+    accountName: "",
+    iban: "",
+    swiftCode: "",
   });
 
   // Document state
-  const [tradeLicenseFile, setTradeLicenseFile] = useState<File | null>(
-    new File([new ArrayBuffer(524288)], "TradeLicense-FalconSteel-2024.pdf", { type: "application/pdf" })
-  );
+  const [tradeLicenseFiles, setTradeLicenseFiles] = useState<File[]>([
+    new File([new ArrayBuffer(524288)], "TradeLicense-FalconSteel-2024.pdf", { type: "application/pdf" }),
+  ]);
   const [supportingDocs, setSupportingDocs] = useState<File[]>([
     new File([new ArrayBuffer(312320)], "VAT-Certificate-FalconSteel.pdf", { type: "application/pdf" }),
   ]);
-  const [additionalDocs, setAdditionalDocs] = useState<File[]>([]);
 
   // Confirmation
   const [confirmed, setConfirmed] = useState(false);
@@ -59,15 +58,11 @@ export function SupplierJourneyPage() {
   const [verifyingPhone, setVerifyingPhone] = useState(false);
   const [otpAutoSent, setOtpAutoSent] = useState(false);
 
-  // Penny drop verification state
-  const [pennyDropStatus, setPennyDropStatus] = useState<"idle" | "verifying" | "verified" | "failed">("idle");
-  const [pennyDropRef, setPennyDropRef] = useState("");
-
   const steps = [
     { id: 1, name: "Review Details" },
     { id: 2, name: "Documents" },
     { id: 3, name: "Bank Account" },
-    { id: 4, name: "Review & Approve" },
+    { id: 4, name: "Review & Submit" },
   ];
 
   const handleNext = () => {
@@ -109,15 +104,18 @@ export function SupplierJourneyPage() {
     setSupplierData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleAdditionalDocUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleTradeLicenseUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
-      setAdditionalDocs(prev => [...prev, ...Array.from(files)]);
+      setTradeLicenseFiles(prev => [...prev, ...Array.from(files)]);
     }
   };
 
-  const removeAdditionalDoc = (index: number) => {
-    setAdditionalDocs(prev => prev.filter((_, i) => i !== index));
+  const handleSupportingDocUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) {
+      setSupportingDocs(prev => [...prev, ...Array.from(files)]);
+    }
   };
 
   // OTP helpers
@@ -262,41 +260,39 @@ export function SupplierJourneyPage() {
             </div>
 
             {/* Trade License */}
-            <div className="bg-white border border-gray-200 rounded-lg p-5">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="font-medium text-gray-900">Trade License</h3>
-                  <p className="text-sm text-gray-500 mt-1">Your valid trade license issued by the Department of Economic Development</p>
-                </div>
-                <div className="ml-4">
-                  {tradeLicenseFile ? (
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-lg">
-                        <CheckCircle className="w-4 h-4 text-green-600" />
-                        <span className="text-sm text-green-700 max-w-[200px] truncate">{tradeLicenseFile.name}</span>
-                      </div>
-                      <button onClick={() => setTradeLicenseFile(null)} className="p-1 text-gray-400 hover:text-red-600 transition-colors"><X className="w-4 h-4" /></button>
+            <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
+              <div>
+                <h3 className="font-medium text-gray-900">Trade License</h3>
+                <p className="text-sm text-gray-500 mt-1">Your valid trade license issued by the Department of Economic Development</p>
+              </div>
+              {tradeLicenseFiles.length > 0 && (
+                <div className="space-y-2">
+                  {tradeLicenseFiles.map((doc, i) => (
+                    <div key={i} className="flex items-center gap-3 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg">
+                      <FileText className="w-4 h-4 text-gray-500" />
+                      <span className="text-sm text-gray-700 flex-1 truncate">{doc.name}</span>
+                      <span className="text-xs text-gray-400">{(doc.size / 1024).toFixed(0)} KB</span>
+                      <button onClick={() => setTradeLicenseFiles(prev => prev.filter((_, idx) => idx !== i))} className="p-1 text-gray-400 hover:text-red-600 transition-colors"><X className="w-4 h-4" /></button>
                     </div>
-                  ) : (
-                    <div
-                      className="border-2 border-dashed border-gray-300 rounded-lg px-6 py-4 text-center hover:border-blue-400 hover:bg-blue-50/30 transition-colors cursor-pointer"
-                      onClick={() => document.getElementById("sup-trade-license")?.click()}
-                    >
-                      <input type="file" id="sup-trade-license" className="hidden" accept=".pdf,.jpg,.jpeg,.png" onChange={e => { if (e.target.files?.[0]) setTradeLicenseFile(e.target.files[0]); }} />
-                      <Upload className="w-5 h-5 text-gray-400 mx-auto mb-1" />
-                      <p className="text-sm text-blue-600 font-medium">Click to upload</p>
-                      <p className="text-xs text-gray-400 mt-0.5">or drag and drop</p>
-                    </div>
-                  )}
+                  ))}
                 </div>
+              )}
+              <div
+                className="border-2 border-dashed border-gray-300 rounded-lg py-5 text-center hover:border-blue-400 hover:bg-blue-50/30 transition-colors cursor-pointer"
+                onClick={() => document.getElementById("sup-trade-license")?.click()}
+              >
+                <input type="file" id="sup-trade-license" className="hidden" accept=".pdf,.jpg,.jpeg,.png" multiple onChange={handleTradeLicenseUpload} />
+                <Upload className="w-5 h-5 text-gray-400 mx-auto mb-1" />
+                <p className="text-sm text-blue-600 font-medium">Click to upload</p>
+                <p className="text-xs text-gray-400 mt-0.5">PDF, JPG, PNG (max 10MB per file)</p>
               </div>
             </div>
 
-            {/* Supporting Documents (pre-uploaded by buyer) */}
+            {/* Supporting Documents */}
             <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
               <div>
                 <h3 className="font-medium text-gray-900">Supporting Documents</h3>
-                <p className="text-sm text-gray-500 mt-1">Documents uploaded by the buyer during registration</p>
+                <p className="text-sm text-gray-500 mt-1">VAT certificates, registration documents, and other supporting files</p>
               </div>
               {supportingDocs.length > 0 && (
                 <div className="space-y-2">
@@ -310,32 +306,13 @@ export function SupplierJourneyPage() {
                   ))}
                 </div>
               )}
-            </div>
-
-            {/* Additional Documents */}
-            <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
-              <div>
-                <h3 className="font-medium text-gray-900">Additional Documents</h3>
-                <p className="text-sm text-gray-500 mt-1">Upload any additional documents to support your verification</p>
-              </div>
-              {additionalDocs.length > 0 && (
-                <div className="space-y-2">
-                  {additionalDocs.map((doc, i) => (
-                    <div key={i} className="flex items-center gap-3 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg">
-                      <FileText className="w-4 h-4 text-gray-500" />
-                      <span className="text-sm text-gray-700 flex-1 truncate">{doc.name}</span>
-                      <button onClick={() => removeAdditionalDoc(i)} className="p-1 text-gray-400 hover:text-red-600 transition-colors"><X className="w-4 h-4" /></button>
-                    </div>
-                  ))}
-                </div>
-              )}
               <div
                 className="border-2 border-dashed border-gray-300 rounded-lg py-5 text-center hover:border-blue-400 hover:bg-blue-50/30 transition-colors cursor-pointer"
-                onClick={() => document.getElementById("sup-additional-docs")?.click()}
+                onClick={() => document.getElementById("sup-supporting-docs")?.click()}
               >
-                <input type="file" id="sup-additional-docs" className="hidden" accept=".pdf,.jpg,.jpeg,.png" multiple onChange={handleAdditionalDocUpload} />
+                <input type="file" id="sup-supporting-docs" className="hidden" accept=".pdf,.jpg,.jpeg,.png" multiple onChange={handleSupportingDocUpload} />
                 <Upload className="w-5 h-5 text-gray-400 mx-auto mb-1" />
-                <p className="text-sm text-blue-600 font-medium">Click to upload additional documents</p>
+                <p className="text-sm text-blue-600 font-medium">Click to upload</p>
                 <p className="text-xs text-gray-400 mt-0.5">PDF, JPG, PNG (max 10MB per file)</p>
               </div>
             </div>
@@ -349,7 +326,7 @@ export function SupplierJourneyPage() {
             <div>
               <h1 className="text-3xl font-semibold text-gray-900">Bank Account Details</h1>
               <p className="text-gray-600 mt-2">
-                Provide your bank account details for receiving payments. These will be verified via a penny drop transaction.
+                Provide your bank account details for receiving payments.
               </p>
             </div>
 
@@ -357,7 +334,7 @@ export function SupplierJourneyPage() {
               <div className="flex gap-3">
                 <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-blue-700">
-                  Please enter your bank details carefully. A small verification amount will be sent to confirm account ownership.
+                  Please enter your bank details carefully. These will be used for processing payments.
                 </p>
               </div>
             </div>
@@ -373,7 +350,7 @@ export function SupplierJourneyPage() {
                   <input
                     type="text"
                     value={supplierData.bankName}
-                    onChange={e => { updateField("bankName", e.target.value); if (pennyDropStatus !== "idle") { setPennyDropStatus("idle"); setPennyDropRef(""); } }}
+                    onChange={e => updateField("bankName", e.target.value)}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
@@ -382,7 +359,7 @@ export function SupplierJourneyPage() {
                   <input
                     type="text"
                     value={supplierData.accountName}
-                    onChange={e => { updateField("accountName", e.target.value); if (pennyDropStatus !== "idle") { setPennyDropStatus("idle"); setPennyDropRef(""); } }}
+                    onChange={e => updateField("accountName", e.target.value)}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
@@ -391,7 +368,7 @@ export function SupplierJourneyPage() {
                   <input
                     type="text"
                     value={supplierData.iban}
-                    onChange={e => { updateField("iban", e.target.value); if (pennyDropStatus !== "idle") { setPennyDropStatus("idle"); setPennyDropRef(""); } }}
+                    onChange={e => updateField("iban", e.target.value)}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
@@ -400,85 +377,13 @@ export function SupplierJourneyPage() {
                   <input
                     type="text"
                     value={supplierData.swiftCode}
-                    onChange={e => { updateField("swiftCode", e.target.value); if (pennyDropStatus !== "idle") { setPennyDropStatus("idle"); setPennyDropRef(""); } }}
+                    onChange={e => updateField("swiftCode", e.target.value)}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
               </div>
             </div>
 
-            {/* Penny Drop Verification */}
-            <div className="bg-white border border-gray-200 rounded-lg p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <ShieldCheck className="w-5 h-5 text-gray-600" />
-                <h3 className="font-semibold text-gray-900">Account Verification</h3>
-              </div>
-
-              {pennyDropStatus === "idle" && (
-                <div>
-                  <p className="text-sm text-gray-600 mb-4">
-                    Click below to initiate a penny drop verification. A small amount (AED 0.01) will be credited to your account to confirm ownership.
-                  </p>
-                  <button
-                    onClick={() => {
-                      setPennyDropStatus("verifying");
-                      setTimeout(() => {
-                        setPennyDropStatus("verified");
-                        setPennyDropRef(`PD-${Date.now().toString(36).toUpperCase()}`);
-                      }, 2500);
-                    }}
-                    disabled={!supplierData.bankName.trim() || !supplierData.accountName.trim() || !supplierData.iban.trim() || !supplierData.swiftCode.trim()}
-                    className="px-5 py-2.5 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                  >
-                    <ShieldCheck className="w-4 h-4" />
-                    Initiate Penny Drop Verification
-                  </button>
-                </div>
-              )}
-
-              {pennyDropStatus === "verifying" && (
-                <div className="flex items-center gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
-                  <div>
-                    <p className="text-sm font-medium text-blue-900">Verifying account...</p>
-                    <p className="text-xs text-blue-700 mt-0.5">Processing penny drop transaction. This may take a moment.</p>
-                  </div>
-                </div>
-              )}
-
-              {pennyDropStatus === "verified" && (
-                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-600" />
-                    <div>
-                      <p className="text-sm font-medium text-green-900">Account Verified Successfully</p>
-                      <p className="text-xs text-green-700 mt-0.5">Reference: {pennyDropRef}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {pennyDropStatus === "failed" && (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <AlertCircle className="w-5 h-5 text-red-600" />
-                      <div>
-                        <p className="text-sm font-medium text-red-900">Verification Failed</p>
-                        <p className="text-xs text-red-700 mt-0.5">Please check your bank details and try again.</p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => { setPennyDropStatus("idle"); setPennyDropRef(""); }}
-                      className="px-3 py-1.5 text-sm text-red-700 border border-red-300 rounded-lg hover:bg-red-100 flex items-center gap-1"
-                    >
-                      <RefreshCw className="w-3.5 h-3.5" />
-                      Retry
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
           </div>
         );
 
@@ -487,9 +392,9 @@ export function SupplierJourneyPage() {
         return (
           <div className="space-y-6">
             <div>
-              <h1 className="text-3xl font-semibold text-gray-900">Review & Approve</h1>
+              <h1 className="text-3xl font-semibold text-gray-900">Review & Submit</h1>
               <p className="text-gray-600 mt-2">
-                Review all your information and approve your registration as a supplier.
+                Review all your information and submit your registration as a supplier.
               </p>
             </div>
 
@@ -538,25 +443,19 @@ export function SupplierJourneyPage() {
                 <h3 className="font-semibold text-gray-900">Documents</h3>
               </div>
               <div className="space-y-2">
-                {tradeLicenseFile && (
-                  <div className="flex items-center gap-2 text-sm">
+                {tradeLicenseFiles.map((doc, i) => (
+                  <div key={`tl-${i}`} className="flex items-center gap-2 text-sm">
                     <CheckCircle className="w-4 h-4 text-green-600" />
-                    <span className="text-gray-700">Trade License: {tradeLicenseFile.name}</span>
+                    <span className="text-gray-700">Trade License: {doc.name}</span>
                   </div>
-                )}
+                ))}
                 {supportingDocs.map((doc, i) => (
-                  <div key={i} className="flex items-center gap-2 text-sm">
+                  <div key={`sd-${i}`} className="flex items-center gap-2 text-sm">
                     <CheckCircle className="w-4 h-4 text-green-600" />
                     <span className="text-gray-700">Supporting: {doc.name}</span>
                   </div>
                 ))}
-                {additionalDocs.map((doc, i) => (
-                  <div key={i} className="flex items-center gap-2 text-sm">
-                    <CheckCircle className="w-4 h-4 text-green-600" />
-                    <span className="text-gray-700">Additional: {doc.name}</span>
-                  </div>
-                ))}
-                {!tradeLicenseFile && supportingDocs.length === 0 && additionalDocs.length === 0 && (
+                {tradeLicenseFiles.length === 0 && supportingDocs.length === 0 && (
                   <p className="text-sm text-amber-600">No documents uploaded</p>
                 )}
               </div>
@@ -700,18 +599,16 @@ export function SupplierJourneyPage() {
           </button>
           <button
             onClick={handleNext}
-            disabled={(currentStep === 4 && !confirmed) || (currentStep === 3 && pennyDropStatus !== "verified")}
+            disabled={(currentStep === 4 && !confirmed)}
             className={`px-6 py-2.5 rounded-lg text-sm font-medium transition-colors ${
               currentStep === 4
                 ? confirmed
                   ? "bg-green-600 text-white hover:bg-green-700"
                   : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                : (currentStep === 3 && pennyDropStatus !== "verified")
-                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  : "bg-gray-800 text-white hover:bg-gray-900"
+                : "bg-gray-800 text-white hover:bg-gray-900"
             }`}
           >
-            {currentStep === 4 ? "Approve & Submit" : "Next"}
+            {currentStep === 4 ? "Review & Submit" : "Next"}
           </button>
         </div>
       </div>

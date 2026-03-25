@@ -29,7 +29,6 @@ export function MerchantDashboard() {
   const [postApprovalStep, setPostApprovalStep] = useState(1); // 1=eSign, 2=security
   const [signedAgreements, setSignedAgreements] = useState<Record<string, boolean>>({
     financing: false,
-    directDebit: false,
     assignmentReceivables: false,
   });
   const [securityMethod, setSecurityMethod] = useState<"cheque" | "mandate" | null>(null);
@@ -59,7 +58,7 @@ export function MerchantDashboard() {
 
   useEffect(() => {
     const onCompleteEsign = () => {
-      setSignedAgreements({ financing: true, directDebit: true, assignmentReceivables: true });
+      setSignedAgreements({ financing: true, assignmentReceivables: true });
       setDocuSignDoc(null);
     };
     window.addEventListener("demo-complete-esign", onCompleteEsign);
@@ -198,7 +197,7 @@ export function MerchantDashboard() {
 
   // Financing choice screen (after underwriting approved) — multi-step
   if (uwStatus === "approved") {
-    const allSigned = signedAgreements.financing && signedAgreements.directDebit && signedAgreements.assignmentReceivables;
+    const allSigned = signedAgreements.financing && signedAgreements.assignmentReceivables;
     const securityComplete = securityMethod === "cheque" ? !!securityChequeFile : securityMethod === "mandate" ? mandateConfirmed : false;
 
     const openMandateFlow = () => {
@@ -254,7 +253,6 @@ export function MerchantDashboard() {
               <div className="space-y-4">
                 {[
                   { key: "financing", label: "Financing Agreement", desc: "Master financing agreement covering terms, rates, and conditions of the credit facility" },
-                  { key: "directDebit", label: "Direct Debit Authorization", desc: "Authorization for Bank X to debit repayments from your designated account" },
                   { key: "assignmentReceivables", label: "Assignment of Receivables", desc: "Agreement to assign eligible receivables as collateral for the financing facility" },
                 ].map((agreement) => (
                   <div key={agreement.key} className={`border rounded-lg p-5 transition-all ${signedAgreements[agreement.key] ? "border-green-300 bg-green-50" : "border-gray-200"}`}>

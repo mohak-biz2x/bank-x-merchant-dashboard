@@ -5,6 +5,7 @@ import { MerchantDashboard } from "./components/MerchantDashboard";
 import { BuyerSuppliersModule } from "./components/BuyerSuppliersModule";
 import { InvoicesModule } from "./components/InvoicesModule";
 import { BuyerInvoicesModule } from "./components/BuyerInvoicesModule";
+import { ApplicationsModule } from "./components/ApplicationsModule";
 import { LoginPage } from "./components/LoginPage";
 import { CustomerJourneyPage } from "./components/CustomerJourneyPage";
 import { SupplierJourneyPage } from "./components/SupplierJourneyPage";
@@ -43,5 +44,9 @@ export const router = createHashRouter([
         Component: BuyerInvoicesModule,
       },
     ],
+  },
+  {
+    path: "/applications",
+    Component: ApplicationsModule,
   },
 ]);

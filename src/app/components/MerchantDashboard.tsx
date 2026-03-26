@@ -1,6 +1,7 @@
 import { Wallet, FileText, TrendingUp, Clock, CheckCircle, Building2, Loader2, ShieldCheck, PenTool, Upload, X, CreditCard, Landmark, Zap, DollarSign, Eye, Package, Plus } from "lucide-react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { useState, useEffect } from "react";
+import { ApplicationsModule } from "./ApplicationsModule";
 
 export type MerchantRole = "both" | "receivable" | "payable" | "supplier-only";
 
@@ -145,52 +146,23 @@ export function MerchantDashboard() {
     return <SupplierOnlyDashboard />;
   }
 
-  // Pending underwriting screen
+  // Pending underwriting screen — show Applications module
   if (uwStatus === "pending") {
     return (
       <div className="min-h-screen bg-gray-50">
-        <div className="p-6 max-w-2xl mx-auto pt-20">
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-10 text-center">
-            <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Loader2 className="w-10 h-10 text-amber-600 animate-spin" />
-            </div>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-3">Credit Underwriting in Progress</h2>
-            <p className="text-gray-600 mb-6 max-w-md mx-auto">
-              Your application has been submitted and our credit team is currently reviewing it. This process typically takes 2–3 business days.
-            </p>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <p className="text-sm text-blue-800">
-                You will be notified once the underwriting is complete and your credit facility is approved.
-              </p>
-            </div>
-            <div className="text-xs text-gray-400">Application under review</div>
-          </div>
-        </div>
+        <ApplicationsModule embedded />
       </div>
     );
   }
 
-  // Security verification pending screen
+  // Security verification pending screen — show Applications module
   if (uwStatus === "security-pending") {
     return (
       <div className="min-h-screen bg-gray-50">
-        <div className="p-6 max-w-2xl mx-auto pt-20">
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-10 text-center">
-            <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <ShieldCheck className="w-10 h-10 text-blue-600" />
-            </div>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-3">Security Verification Pending</h2>
-            <p className="text-gray-600 mb-6 max-w-md mx-auto">
-              Your security documents are being verified by our team. Once the verification is completed, you will be notified and will be able to access your dashboard.
-            </p>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <p className="text-sm text-blue-800">
-                You will receive a notification once your security verification is complete and your financing services are activated.
-              </p>
-            </div>
-            <div className="text-xs text-gray-400">Verification in progress</div>
-          </div>
-        </div>
+        <ApplicationsModule embedded onSecurityOnboarding={(appId) => {
+          localStorage.setItem("merchant_underwriting_status", "approved");
+          window.dispatchEvent(new Event("demo-role-change"));
+        }} />
       </div>
     );
   }

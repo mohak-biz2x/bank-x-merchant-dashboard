@@ -757,6 +757,8 @@ export function MerchantDashboard() {
                 <div className="flex items-center gap-2 mb-1">
                   <Wallet className="w-4 h-4 text-blue-600" />
                   <p className="text-gray-500 text-xs font-medium uppercase tracking-wide">Credit Limit</p>
+                  <span className="text-xs text-gray-400">·</span>
+                  <span className="text-xs text-blue-600 font-medium">APP-2025-001</span>
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900">{formatCurrency(approvedLimit)}</h2>
               </div>

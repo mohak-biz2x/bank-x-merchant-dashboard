@@ -18,7 +18,8 @@ export function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen">
+    <div className="min-h-screen flex flex-col">
+    <div className="flex flex-1">
       {/* Left Side - Branding */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 px-28 py-12 flex-col justify-between text-white">
         {/* Logo */}
@@ -161,6 +162,19 @@ export function LoginPage() {
           </div>
         </div>
       </div>
+      </div>
+
+      {/* Footer */}
+      <footer className="bg-white border-t border-gray-200 px-6 py-5">
+        <div className="flex items-center justify-between max-w-7xl mx-auto">
+          <div className="flex items-center gap-4">
+            <a href="#/privacy" target="_blank" className="text-xs text-gray-500 hover:text-gray-700">Privacy policy</a>
+            <a href="#/disclaimer" target="_blank" className="text-xs text-gray-500 hover:text-gray-700">Disclaimer</a>
+            <a href="#/tnc" target="_blank" className="text-xs text-gray-500 hover:text-gray-700">Terms & conditions</a>
+          </div>
+          <p className="text-xs text-gray-400">&copy; Biz2X 2026. All rights reserved.</p>
+        </div>
+      </footer>
     </div>
   );
 }

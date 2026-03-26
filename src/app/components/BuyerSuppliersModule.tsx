@@ -1,4 +1,4 @@
-import { Users, Plus, Building2, Mail, Phone, MapPin, CheckCircle, Clock, Send, X, Upload, FileText } from "lucide-react";
+import { Users, Plus, CheckCircle, Clock, Send, X, Upload, FileText } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router";
 
@@ -96,7 +96,7 @@ export function BuyerSuppliersModule() {
       address: "Al Ain Industrial City, Al Ain, UAE",
       tradeLicenseNumber: "TL-654987",
       contactPerson: "Khalid Rahman",
-      status: "verification_pending",
+      status: "active",
       addedDate: "2024-03-15",
     },
   ]);
@@ -319,13 +319,10 @@ export function BuyerSuppliersModule() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Company Name *</label>
-                      <div className="relative">
-                        <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                        <input type="text" required value={formData.name}
-                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          placeholder="Enter company name" />
-                      </div>
+                      <input type="text" required value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Enter company name" />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Trade License Number *</label>
@@ -336,23 +333,17 @@ export function BuyerSuppliersModule() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                        <input type="email" required value={formData.email}
-                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          placeholder="supplier@example.ae" />
-                      </div>
+                      <input type="email" required value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="supplier@example.ae" />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
-                      <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                        <input type="tel" required value={formData.phone}
-                          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          placeholder="+971 X XXXX XXXX" />
-                      </div>
+                      <input type="tel" required value={formData.phone}
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="+971 X XXXX XXXX" />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Contact Person *</label>
@@ -363,13 +354,10 @@ export function BuyerSuppliersModule() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Address *</label>
-                      <div className="relative">
-                        <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                        <input type="text" required value={formData.address}
-                          onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          placeholder="Enter full address" />
-                      </div>
+                      <input type="text" required value={formData.address}
+                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Enter full address" />
                     </div>
                   </div>
                 </div>

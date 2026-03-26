@@ -34,6 +34,7 @@ export function InvoicesModule() {
   const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => { if (searchParams.get("add") === "true") setShowAddForm(true); }, [searchParams]);
+  const [viewInvoice, setViewInvoice] = useState<Invoice | null>(null);
   const [buyerName, setBuyerName] = useState("Gulf Trading Enterprises LLC");
   const [repaymentStructure, setRepaymentStructure] = useState<"installments" | "bullet">("bullet");
   const [lineItems, setLineItems] = useState<InvoiceLineItem[]>([
@@ -400,11 +401,8 @@ export function InvoicesModule() {
                     {getStatusBadge(invoice.status)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <button
-                      className="text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
-                    >
-                      <Eye className="w-4 h-4" />
-                      View
+                    <button onClick={() => setViewInvoice(invoice)} className="text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1">
+                      <Eye className="w-4 h-4" /> View
                     </button>
                   </td>
                 </tr>
@@ -742,6 +740,41 @@ export function InvoicesModule() {
             </div>
             </>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* View Invoice Modal */}
+      {viewInvoice && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div className="px-5 py-3 flex items-center justify-between bg-[#312B6B] text-white rounded-t">
+              <div>
+                <h3 className="text-base font-semibold text-white">Invoice Request Details</h3>
+                <p className="text-xs text-white/60 mt-0.5">{viewInvoice.id}</p>
+              </div>
+              <button onClick={() => setViewInvoice(null)} className="text-white/60 hover:text-white"><X className="w-5 h-5" /></button>
+            </div>
+            <div className="p-5 space-y-4">
+              <div className="flex items-center gap-2 mb-2">{getStatusBadge(viewInvoice.status)}</div>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div><p className="text-xs text-gray-500">Buyer</p><p className="font-medium text-gray-900">{viewInvoice.buyerName}</p></div>
+                <div><p className="text-xs text-gray-500">Amount</p><p className="font-medium text-gray-900">{formatCurrency(viewInvoice.totalAmount)}</p></div>
+                <div><p className="text-xs text-gray-500">Invoice Numbers</p><p className="font-medium text-gray-900">{viewInvoice.invoiceNumbers.join(", ")}</p></div>
+                <div><p className="text-xs text-gray-500">Bank Fee Covered By</p><p className="font-medium text-gray-900 capitalize">{viewInvoice.bankFeeCoveredBy}</p></div>
+                <div><p className="text-xs text-gray-500">Submitted</p><p className="font-medium text-gray-900">{viewInvoice.submittedDate}</p></div>
+                {viewInvoice.approvedDate && <div><p className="text-xs text-gray-500">Approved</p><p className="font-medium text-gray-900">{viewInvoice.approvedDate}</p></div>}
+                {viewInvoice.disbursedDate && <div><p className="text-xs text-gray-500">Disbursed</p><p className="font-medium text-gray-900">{viewInvoice.disbursedDate}</p></div>}
+                <div><p className="text-xs text-gray-500">Invoice Files</p><p className="font-medium text-gray-900">{viewInvoice.invoiceFiles} file(s)</p></div>
+                <div><p className="text-xs text-gray-500">Supporting Docs</p><p className="font-medium text-gray-900">{viewInvoice.supportingDocs} doc(s)</p></div>
+              </div>
+              {viewInvoice.rejectionReason && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3"><p className="text-xs text-red-700">Rejection Reason: {viewInvoice.rejectionReason}</p></div>
+              )}
+            </div>
+            <div className="px-5 py-3 border-t border-gray-200">
+              <button onClick={() => setViewInvoice(null)} className="w-full py-2 bg-[#0066B8] text-white rounded hover:bg-[#005299] text-sm font-medium">Close</button>
+            </div>
           </div>
         </div>
       )}

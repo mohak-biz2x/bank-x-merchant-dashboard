@@ -44,9 +44,7 @@ export function BuyerInvoicesModule() {
   useEffect(() => { if (searchParams.get("add") === "true") setShowAddForm(true); }, [searchParams]);
   const [verifying, setVerifying] = useState(false);
   const [verificationResult, setVerificationResult] = useState<"pending_disbursement" | "pending_risk_validation" | null>(null);
-  const [showTermsModal, setShowTermsModal] = useState(false);
-  const [selectedInvoiceForTerms, setSelectedInvoiceForTerms] = useState<InvoiceRequest | null>(null);
-  const [showTermsAccepted, setShowTermsAccepted] = useState(false);
+  const [viewRequest, setViewRequest] = useState<InvoiceRequest | null>(null);
   const [selectedSupplier, setSelectedSupplier] = useState("SUP-001");
   const [financingTenor, setFinancingTenor] = useState("60");
   const [repaymentStructure, setRepaymentStructure] = useState<"bullet" | "installment">("bullet");
@@ -393,18 +391,8 @@ export function BuyerInvoicesModule() {
                     {getStatusBadge(request.status)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <button
-                      onClick={() => {
-                        if (request.status === "approved") {
-                          setSelectedInvoiceForTerms(request);
-                          setShowTermsAccepted(false);
-                          setShowTermsModal(true);
-                        }
-                      }}
-                      className="text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
-                    >
-                      <Eye className="w-4 h-4" />
-                      {request.status === "approved" ? "View Terms" : "View"}
+                    <button onClick={() => setViewRequest(request)} className="text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1">
+                      <Eye className="w-4 h-4" /> View
                     </button>
                   </td>
                 </tr>
@@ -868,117 +856,42 @@ export function BuyerInvoicesModule() {
         </div>
       )}
 
-      {/* Terms Modal */}
-      {showTermsModal && selectedInvoiceForTerms && (
+      {/* View Invoice Request Modal */}
+      {viewRequest && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded max-w-lg w-full max-h-[90vh] overflow-y-auto">
             <div className="px-5 py-3 flex items-center justify-between bg-[#312B6B] text-white rounded-t">
               <div>
-                <h3 className="text-base font-semibold text-white">Approval Terms</h3>
-                <p className="text-xs text-white/60 mt-0.5">{selectedInvoiceForTerms.id} — {selectedInvoiceForTerms.supplierName}</p>
+                <h3 className="text-base font-semibold text-white">Invoice Request Details</h3>
+                <p className="text-xs text-white/60 mt-0.5">{viewRequest.id}</p>
               </div>
-              <button onClick={() => setShowTermsModal(false)} className="text-white/60 hover:text-white"><X className="w-5 h-5" /></button>
+              <button onClick={() => setViewRequest(null)} className="text-white/60 hover:text-white"><X className="w-5 h-5" /></button>
             </div>
-
-            {showTermsAccepted ? (
-              <div className="p-8 text-center">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle className="w-8 h-8 text-green-600" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">Terms Accepted</h3>
-                <p className="text-sm text-gray-600 mb-6 max-w-sm mx-auto">
-                  Your invoice is now pending disbursement. The funds will be disbursed to the supplier and you will be notified.
-                </p>
-                <button
-                  onClick={() => { setShowTermsModal(false); setSelectedInvoiceForTerms(null); setShowTermsAccepted(false); }}
-                  className="px-6 py-2 bg-[#0066B8] text-white rounded-lg hover:bg-[#00549a] transition-colors font-medium"
-                >
-                  Done
-                </button>
+            <div className="p-5 space-y-4">
+              <div className="flex items-center gap-2 mb-2">{getStatusBadge(viewRequest.status)}</div>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div><p className="text-xs text-gray-500">Supplier</p><p className="font-medium text-gray-900">{viewRequest.supplierName}</p></div>
+                <div><p className="text-xs text-gray-500">Amount</p><p className="font-medium text-gray-900">{formatCurrency(viewRequest.totalAmount)}</p></div>
+                <div><p className="text-xs text-gray-500">Invoice Numbers</p><p className="font-medium text-gray-900">{viewRequest.invoiceNumbers.join(", ")}</p></div>
+                <div><p className="text-xs text-gray-500">Financing Tenor</p><p className="font-medium text-gray-900">{viewRequest.financingTenor} days</p></div>
+                <div><p className="text-xs text-gray-500">Repayment</p><p className="font-medium text-gray-900 capitalize">{viewRequest.repaymentStructure}</p></div>
+                <div><p className="text-xs text-gray-500">Submitted</p><p className="font-medium text-gray-900">{viewRequest.submittedDate}</p></div>
+                {viewRequest.approvedDate && <div><p className="text-xs text-gray-500">Approved</p><p className="font-medium text-gray-900">{viewRequest.approvedDate}</p></div>}
+                {viewRequest.disbursedDate && <div><p className="text-xs text-gray-500">Disbursed</p><p className="font-medium text-gray-900">{viewRequest.disbursedDate}</p></div>}
+                <div><p className="text-xs text-gray-500">Invoice Files</p><p className="font-medium text-gray-900">{viewRequest.invoiceFiles} file(s)</p></div>
+                {viewRequest.deliveryNotes !== undefined && <div><p className="text-xs text-gray-500">Delivery Notes</p><p className="font-medium text-gray-900">{viewRequest.deliveryNotes} doc(s)</p></div>}
               </div>
-            ) : (
-              <>
-                <div className="p-6 space-y-4">
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                    <p className="text-sm font-medium text-green-800 mb-1">Financing Approved</p>
-                    <p className="text-xs text-green-700">Your invoice financing request has been approved by the underwriting team. Please review the terms below.</p>
-                  </div>
-
-                  <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-                    <h4 className="font-medium text-gray-900 text-sm">Financing Terms</h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Invoice Amount</span>
-                        <span className="font-medium text-gray-900">{formatCurrency(selectedInvoiceForTerms.totalAmount)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Advance Ratio</span>
-                        <span className="font-medium text-gray-900">85%</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Advance Amount</span>
-                        <span className="font-medium text-gray-900">{formatCurrency(Math.round(selectedInvoiceForTerms.totalAmount * 0.85))}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Financing Rate</span>
-                        <span className="font-medium text-gray-900">3.5% flat</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Processing Fee</span>
-                        <span className="font-medium text-gray-900">{formatCurrency(Math.round(selectedInvoiceForTerms.totalAmount * 0.85 * 0.01))}</span>
-                      </div>
-                      <div className="border-t border-gray-200 pt-2 flex justify-between">
-                        <span className="text-gray-600 font-medium">Disbursement Amount</span>
-                        <span className="font-semibold text-gray-900">{formatCurrency(Math.round(selectedInvoiceForTerms.totalAmount * 0.85 * 0.955))}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Tenure</span>
-                        <span className="font-medium text-gray-900">{selectedInvoiceForTerms.financingTenor} days</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Repayment Date</span>
-                        <span className="font-medium text-gray-900">
-                          {new Date(Date.now() + selectedInvoiceForTerms.financingTenor * 24 * 60 * 60 * 1000).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Total Repayment</span>
-                        <span className="font-medium text-gray-900">{formatCurrency(Math.round(selectedInvoiceForTerms.totalAmount * 0.85))}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-blue-50 rounded-lg p-4">
-                    <p className="text-xs text-blue-700">
-                      By accepting these terms, you agree to the financing arrangement. The disbursement amount will be credited to the supplier's registered bank account within 1-2 business days.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="p-6 border-t border-gray-200 flex gap-3">
-                  <button
-                    onClick={() => setShowTermsModal(false)}
-                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={() => {
-                      setInvoiceRequests(prev => prev.map(inv =>
-                        inv.id === selectedInvoiceForTerms.id ? { ...inv, status: "pending_disbursement" as const } : inv
-                      ));
-                      setShowTermsAccepted(true);
-                    }}
-                    className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
-                  >
-                    Accept Terms
-                  </button>
-                </div>
-              </>
-            )}
+              {viewRequest.rejectionReason && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3"><p className="text-xs text-red-700">Rejection Reason: {viewRequest.rejectionReason}</p></div>
+              )}
+            </div>
+            <div className="px-5 py-3 border-t border-gray-200">
+              <button onClick={() => setViewRequest(null)} className="w-full py-2 bg-[#0066B8] text-white rounded hover:bg-[#005299] text-sm font-medium">Close</button>
+            </div>
           </div>
         </div>
       )}
+
     </div>
   );
 }

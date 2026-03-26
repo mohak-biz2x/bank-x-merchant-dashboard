@@ -829,7 +829,7 @@ export function CustomerJourneyPage() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
       {/* Header */}
       <header className="bg-[#312B6B] px-6 py-3">
         <div className="flex items-center justify-between">
@@ -896,7 +896,7 @@ export function CustomerJourneyPage() {
                     <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0 ${isActive ? 'bg-[#0066B8] text-white' : isCompleted ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
                       {isCompleted ? <Check className="w-3 h-3" /> : index + 1}
                     </div>
-                    <span className="text-xs">{step.name}</span>
+                    <span className="text-sm">{step.name}</span>
                   </button>
                 );
               })}

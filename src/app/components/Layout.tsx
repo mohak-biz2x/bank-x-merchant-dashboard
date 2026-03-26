@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
-import { LayoutDashboard, FileText, Settings, LogOut, Building2, FlaskConical, X, Zap } from "lucide-react";
+import { LayoutDashboard, FileText, LogOut, Building2, FlaskConical, X, Zap } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { getMerchantRole, getUnderwritingStatus, getStpEligibility } from "./MerchantDashboard";
 import type { MerchantRole } from "./MerchantDashboard";
@@ -90,7 +90,6 @@ export function Layout() {
                 <button onClick={() => setShowProfileMenu(!showProfileMenu)} className="w-9 h-9 rounded-full bg-teal-500 flex items-center justify-center text-white font-medium hover:bg-teal-600 transition-colors">{role === "supplier-only" ? "R" : "A"}</button>
                 {showProfileMenu && (
                   <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                    <button onClick={() => { setShowProfileMenu(false); }} className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3"><Settings className="w-4 h-4 text-gray-500" />Account Settings</button>
                     <button onClick={() => { setShowProfileMenu(false); navigate('/applications'); }} className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3"><FileText className="w-4 h-4 text-blue-500" />My Applications</button>
                     <div className="border-t border-gray-200 my-2"></div>
                     <button onClick={() => { setShowProfileMenu(false); navigate('/login'); }} className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-3"><LogOut className="w-4 h-4" />Logout</button>
@@ -115,6 +114,19 @@ export function Layout() {
       </header>
 
       <main><Outlet /></main>
+
+      {/* Footer */}
+      <footer className="bg-white border-t border-gray-200 px-6 py-5">
+        <div className="flex items-center justify-between max-w-7xl mx-auto">
+          <div className="flex items-center gap-4">
+            <a href="#/privacy" target="_blank" className="text-xs text-gray-500 hover:text-gray-700">Privacy policy</a>
+            <a href="#/disclaimer" target="_blank" className="text-xs text-gray-500 hover:text-gray-700">Disclaimer</a>
+            <a href="#/tnc" target="_blank" className="text-xs text-gray-500 hover:text-gray-700">Terms & conditions</a>
+          </div>
+          <p className="text-xs text-gray-400">&copy; Biz2X 2026. All rights reserved.</p>
+        </div>
+      </footer>
+
       <div className="fixed bottom-5 right-5 z-50" ref={demoPanelRef}>
         {showDemoPanel && (
           <div className="absolute bottom-14 right-0 w-72 bg-white rounded-lg shadow-xl border border-gray-200 p-4 mb-2">

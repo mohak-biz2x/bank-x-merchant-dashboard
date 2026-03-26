@@ -69,7 +69,7 @@ export function Layout() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <header className="sticky top-0 z-50">
         {/* Dark header bar */}
         <div className="bg-[#312B6B] px-6 py-3">
@@ -113,7 +113,7 @@ export function Layout() {
         )}
       </header>
 
-      <main><Outlet /></main>
+      <main className="flex-1"><Outlet /></main>
 
       {/* Footer */}
       <footer className="bg-white border-t border-gray-200 px-6 py-5">

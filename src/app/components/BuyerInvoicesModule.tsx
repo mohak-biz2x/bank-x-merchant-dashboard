@@ -1,6 +1,7 @@
 import { FileText, Plus, Upload, X, Building2, CheckCircle, Clock, DollarSign, Eye, Calendar, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router";
+import { showToast } from "./Toast";
 
 interface InvoiceLineItem {
   invoiceNumber: string;
@@ -263,6 +264,7 @@ export function BuyerInvoicesModule() {
   };
 
   const resetForm = () => {
+    showToast("success", "Invoice request submitted successfully.");
     setShowAddForm(false);
     setCurrentStep(1);
     setShowSuccess(false);

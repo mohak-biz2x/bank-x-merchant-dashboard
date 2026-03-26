@@ -1,6 +1,7 @@
 import { useState, Fragment, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { FileText, ChevronDown, ChevronUp, Upload, CheckCircle, Clock, AlertCircle, MoreVertical, X, ShieldCheck, ArrowLeft, PenTool, CreditCard, Landmark, Loader2, Zap } from "lucide-react";
+import { showToast } from "./Toast";
 
 type AppStatus = "under_review" | "in_progress" | "kyc_verification" | "analysis" | "credit_decisioning" | "invoice_processing" | "security_onboarding" | "security_verification" | "limit_approved" | "rejected";
 
@@ -176,6 +177,7 @@ export function ApplicationsModule({ onSecurityOnboarding, embedded }: Applicati
     setApplications(prev => prev.map(app =>
       app.id === appId ? { ...app, documents: app.documents.map(d => d.id === docId ? { ...d, uploaded: true, fileName: file.name } : d) } : app
     ));
+    showToast("success", `Document "${file.name}" uploaded successfully.`);
   };
 
   return (
@@ -307,12 +309,13 @@ export function ApplicationsModule({ onSecurityOnboarding, embedded }: Applicati
 
       {/* Security Onboarding Modal */}
       {showSecurityModal && (
-        <div className="fixed inset-0 bg-gray-500/30 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4 max-h-[85vh] overflow-y-auto p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-gray-900">Security Onboarding</h3>
-              <button onClick={() => setShowSecurityModal(false)} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded max-w-2xl w-full max-h-[85vh] overflow-y-auto">
+            <div className="px-5 py-3 flex items-center justify-between bg-[#312B6B] text-white rounded-t">
+              <h3 className="text-base font-semibold text-white">{isStp ? "E-sign Agreements" : "Security Onboarding"}</h3>
+              <button onClick={() => setShowSecurityModal(false)} className="text-white/60 hover:text-white"><X className="w-5 h-5" /></button>
             </div>
+            <div className="p-5">
 
             {/* Step indicators */}
             {!isStp && (
@@ -348,7 +351,7 @@ export function ApplicationsModule({ onSecurityOnboarding, embedded }: Applicati
                         {signedAgreements[ag.key] ? (
                           <span className="flex items-center gap-1 px-2.5 py-1 bg-green-100 text-green-700 rounded-lg text-xs font-medium"><CheckCircle className="w-3.5 h-3.5" /> Signed</span>
                         ) : (
-                          <button onClick={() => setSignedAgreements(prev => ({ ...prev, [ag.key]: true }))} className="flex items-center gap-1 px-3 py-1.5 bg-[#0066B8] text-white rounded-lg hover:bg-[#00549a] text-xs"><PenTool className="w-3.5 h-3.5" /> Sign</button>
+                          <button onClick={() => { setSignedAgreements(prev => ({ ...prev, [ag.key]: true })); showToast("success", `${ag.label} signed successfully.`); }} className="flex items-center gap-1 px-3 py-1.5 bg-[#0066B8] text-white rounded-lg hover:bg-[#00549a] text-xs"><PenTool className="w-3.5 h-3.5" /> Sign</button>
                         )}
                       </div>
                     </div>
@@ -421,6 +424,7 @@ export function ApplicationsModule({ onSecurityOnboarding, embedded }: Applicati
                       localStorage.setItem("merchant_underwriting_status", "security-pending");
                       window.dispatchEvent(new Event("demo-role-change"));
                       setShowSecurityModal(false);
+                      showToast("success", "Security documents submitted successfully. Verification in progress.");
                     }}
                     disabled={!(securityMethod === "cheque" ? !!securityChequeFile : mandateConfirmed)}
                     className={`px-5 py-2 rounded-lg text-sm font-medium ${(securityMethod === "cheque" ? !!securityChequeFile : mandateConfirmed) ? "bg-[#0066B8] text-white hover:bg-[#00549a]" : "bg-gray-200 text-gray-400 cursor-not-allowed"}`}
@@ -441,6 +445,7 @@ export function ApplicationsModule({ onSecurityOnboarding, embedded }: Applicati
                 <div className="flex items-center justify-center gap-2 text-green-600"><Loader2 className="w-4 h-4 animate-spin" /><span className="text-sm font-medium">Activating...</span></div>
               </div>
             )}
+          </div>
           </div>
         </div>
       )}

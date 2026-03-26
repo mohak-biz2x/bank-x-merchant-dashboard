@@ -456,23 +456,24 @@ export function CustomerJourneyPage() {
       </div>
       <p className="text-sm text-gray-500 mb-8 ml-4">Select loan options without commitment. Our specialists will follow up after application submission.</p>
       <div className="flex justify-center">
-        <div className="grid grid-cols-2 gap-6 max-w-lg w-full">
-          <button onClick={() => setSelectedProduct("receivable")} className={`relative bg-white border rounded-xl px-5 pt-6 pb-5 transition-all text-center ${selectedProduct === "receivable" ? "border-blue-600 ring-2 ring-blue-100" : "border-gray-200 hover:border-gray-300"}`}>
+        <div className="grid grid-cols-2 gap-6 max-w-xl w-full">
+          <button onClick={() => setSelectedProduct("receivable")} className={`relative bg-white border rounded-xl px-6 pt-8 pb-8 transition-all text-center ${selectedProduct === "receivable" ? "border-blue-600 ring-2 ring-blue-100" : "border-gray-200 hover:border-gray-300"}`}>
             <div className="absolute top-3 right-3"><div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedProduct === "receivable" ? "border-blue-600" : "border-gray-300"}`}>{selectedProduct === "receivable" && <div className="w-2.5 h-2.5 rounded-full bg-blue-600"></div>}</div></div>
-            <div className="flex justify-center mb-4"><ReceiptText className="w-12 h-12 text-blue-400" /></div>
-            <h3 className="text-base font-semibold text-gray-900 mb-2">Receivable Invoice Financing</h3>
-            <p className="text-xs text-gray-500 leading-relaxed">Get early payment on your outstanding invoices to improve cash flow.</p>
+            <div className="flex justify-center mb-5"><ReceiptText className="w-14 h-14 text-blue-400" /></div>
+            <h3 className="text-base font-semibold text-gray-900 mb-3">Receivable Invoice Financing</h3>
+            <p className="text-sm text-gray-500 leading-relaxed">Get early payment on your outstanding invoices to improve cash flow.</p>
           </button>
-          <button onClick={() => setSelectedProduct("payable")} className={`relative bg-white border rounded-xl px-5 pt-6 pb-5 transition-all text-center ${selectedProduct === "payable" ? "border-blue-600 ring-2 ring-blue-100" : "border-gray-200 hover:border-gray-300"}`}>
+          <button onClick={() => setSelectedProduct("payable")} className={`relative bg-white border rounded-xl px-6 pt-8 pb-8 transition-all text-center ${selectedProduct === "payable" ? "border-blue-600 ring-2 ring-blue-100" : "border-gray-200 hover:border-gray-300"}`}>
             <div className="absolute top-3 right-3"><div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedProduct === "payable" ? "border-blue-600" : "border-gray-300"}`}>{selectedProduct === "payable" && <div className="w-2.5 h-2.5 rounded-full bg-blue-600"></div>}</div></div>
-            <div className="flex justify-center mb-4"><Building2 className="w-12 h-12 text-purple-400" /></div>
-            <h3 className="text-base font-semibold text-gray-900 mb-2">Payable Invoice Financing</h3>
-            <p className="text-xs text-gray-500 leading-relaxed">Extend payment terms with suppliers while they get paid early.</p>
+            <div className="flex justify-center mb-5"><Building2 className="w-14 h-14 text-purple-400" /></div>
+            <h3 className="text-base font-semibold text-gray-900 mb-3">Payable Invoice Financing</h3>
+            <p className="text-sm text-gray-500 leading-relaxed">Extend payment terms with suppliers while they get paid early.</p>
           </button>
         </div>
       </div>
       <div className="mt-10 pt-6 border-t border-gray-200">
-        <p className="text-xs text-gray-400 leading-relaxed">This financing application is for business purposes only. Credit approval is subject to verification of information.</p>
+        <p className="text-sm text-gray-400 leading-relaxed">This financing application is for business purposes only. Financing for personal, family, and/or household purposes is prohibited under business credit lines.</p>
+        <p className="text-sm text-gray-400 leading-relaxed mt-2 uppercase font-medium">Credit approval is subject to verification of information and may require receipt of additional documentation at the sole discretion of Bank X.</p>
       </div>
     </div>
   );
@@ -908,13 +909,14 @@ export function CustomerJourneyPage() {
       {/* OTP Verification Modal */}
       {showOtpModal && (
         <div className="fixed inset-0 bg-gray-500/30 flex items-center justify-center z-50">
-          <div ref={otpModalRef} className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
+          <div ref={otpModalRef} className="bg-white rounded shadow-xl w-full max-w-lg">
             {!profileCreated ? (
               <>
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg font-semibold text-gray-900">Verify Your Identity</h3>
-                  <button onClick={() => setShowOtpModal(false)} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
+                <div className="px-5 py-3 flex items-center justify-between bg-[#312B6B] text-white rounded-t">
+                  <h3 className="text-base font-semibold text-white">Verify Your Identity</h3>
+                  <button onClick={() => setShowOtpModal(false)} className="text-white/60 hover:text-white"><X className="w-5 h-5" /></button>
                 </div>
+                <div className="p-5">
                 <div className="mb-6">
                   <div className="flex items-center gap-2 mb-3"><Mail className="w-4 h-4 text-blue-600" /><span className="text-sm font-medium text-gray-700">Email Verification</span>{emailVerified && <CheckCircle className="w-4 h-4 text-green-500" />}</div>
                   <p className="text-xs text-gray-500 mb-3">Enter the 6-digit code sent to {profileData.email}</p>
@@ -943,7 +945,8 @@ export function CustomerJourneyPage() {
                   </div>
                   {!mobileVerified && <div className="mt-2">{mobileResendTimer > 0 ? <p className="text-xs text-gray-400">Resend code in {mobileResendTimer}s</p> : <button onClick={resendMobileOtp} className="text-xs text-blue-600 hover:text-blue-700 font-medium">Resend Code</button>}</div>}
                 </div>
-                <button onClick={handleOtpComplete} disabled={!emailVerified || !mobileVerified} className="w-full py-2.5 bg-[#0066B8] text-white rounded-lg hover:bg-[#005299] text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors">Complete Verification</button>
+                <button onClick={handleOtpComplete} disabled={!emailVerified || !mobileVerified} className="w-full py-2.5 bg-[#0066B8] text-white rounded hover:bg-[#005299] text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors">Complete Verification</button>
+                </div>
               </>
             ) : (
               <div className="text-center py-6">
@@ -964,11 +967,12 @@ export function CustomerJourneyPage() {
       {/* Connect Bank (Lean) Modal */}
       {showConnectModal && (
         <div className="fixed inset-0 bg-gray-500/30 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">{connectStep === 'bank-select' ? 'Connect via Lean' : connectStep === 'auth' ? 'Authenticate' : 'Connected'}</h3>
-              <button onClick={closeConnectModal} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
+          <div className="bg-white rounded shadow-xl w-full max-w-md">
+            <div className="px-5 py-3 flex items-center justify-between bg-[#312B6B] text-white rounded-t">
+              <h3 className="text-base font-semibold text-white">{connectStep === 'bank-select' ? 'Connect via Lean' : connectStep === 'auth' ? 'Authenticate' : 'Connected'}</h3>
+              <button onClick={closeConnectModal} className="text-white/60 hover:text-white"><X className="w-5 h-5" /></button>
             </div>
+            <div className="p-5">
             {connectStep === 'bank-select' && (
               <div className="space-y-2">
                 {['Emirates NBD', 'ADCB', 'FAB', 'Mashreq', 'DIB', 'RAKBANK'].map(bank => (
@@ -992,28 +996,33 @@ export function CustomerJourneyPage() {
                 <button onClick={closeConnectModal} className="px-6 py-2.5 bg-[#0066B8] text-white rounded-lg hover:bg-[#005299] text-sm font-medium">Done</button>
               </div>
             )}
+            </div>
           </div>
         </div>
       )}
 
       {/* Terms Modal */}
       {showTermsModal && (
-        <div className="fixed inset-0 bg-gray-500/30 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6 max-h-[80vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4"><h3 className="text-lg font-semibold text-gray-900">Terms and Conditions</h3><button onClick={() => setShowTermsModal(false)} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button></div>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded max-w-lg w-full max-h-[80vh] overflow-y-auto">
+            <div className="px-5 py-3 flex items-center justify-between bg-[#312B6B] text-white rounded-t"><h3 className="text-base font-semibold text-white">Terms and Conditions</h3><button onClick={() => setShowTermsModal(false)} className="text-white/60 hover:text-white"><X className="w-5 h-5" /></button></div>
+            <div className="p-5">
             <p className="text-sm text-gray-600 leading-relaxed">These Terms and Conditions govern your use of the Bank X Supply Chain Finance platform. By submitting your application, you agree to provide accurate information and authorize Bank X to verify your business details through third-party services.</p>
-            <button onClick={() => setShowTermsModal(false)} className="mt-6 w-full py-2.5 bg-[#0066B8] text-white rounded-lg hover:bg-[#005299] text-sm font-medium">Close</button>
+            <button onClick={() => setShowTermsModal(false)} className="mt-6 w-full py-2.5 bg-[#0066B8] text-white rounded hover:bg-[#005299] text-sm font-medium">Close</button>
+            </div>
           </div>
         </div>
       )}
 
       {/* Privacy Modal */}
       {showPrivacyModal && (
-        <div className="fixed inset-0 bg-gray-500/30 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6 max-h-[80vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4"><h3 className="text-lg font-semibold text-gray-900">Privacy Policy</h3><button onClick={() => setShowPrivacyModal(false)} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button></div>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded max-w-lg w-full max-h-[80vh] overflow-y-auto">
+            <div className="px-5 py-3 flex items-center justify-between bg-[#312B6B] text-white rounded-t"><h3 className="text-base font-semibold text-white">Privacy Policy</h3><button onClick={() => setShowPrivacyModal(false)} className="text-white/60 hover:text-white"><X className="w-5 h-5" /></button></div>
+            <div className="p-5">
             <p className="text-sm text-gray-600 leading-relaxed">Bank X is committed to protecting your privacy. We collect and process your business information solely for the purpose of evaluating your supply chain financing application. Your data is stored securely and shared only with authorized verification partners.</p>
-            <button onClick={() => setShowPrivacyModal(false)} className="mt-6 w-full py-2.5 bg-[#0066B8] text-white rounded-lg hover:bg-[#005299] text-sm font-medium">Close</button>
+            <button onClick={() => setShowPrivacyModal(false)} className="mt-6 w-full py-2.5 bg-[#0066B8] text-white rounded hover:bg-[#005299] text-sm font-medium">Close</button>
+            </div>
           </div>
         </div>
       )}
@@ -1021,7 +1030,7 @@ export function CustomerJourneyPage() {
       {/* Application Submitted Success Modal */}
       {showSubmitSuccess && (
         <div className="fixed inset-0 bg-gray-500/30 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg p-8 text-center">
+          <div className="bg-white rounded shadow-xl w-full max-w-lg p-8 text-center">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5">
               <CheckCircle className="w-8 h-8 text-green-600" />
             </div>

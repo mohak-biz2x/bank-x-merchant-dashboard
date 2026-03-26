@@ -1,6 +1,7 @@
 import { Users, Plus, CheckCircle, Clock, Send, X, Upload, FileText } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router";
+import { showToast } from "./Toast";
 
 type SupplierStatus = "verification_pending" | "onboarding_pending" | "active";
 
@@ -136,6 +137,7 @@ export function BuyerSuppliersModule() {
     };
     setSuppliers([...suppliers, newSupplier]);
     setShowAddSuccess(true);
+    showToast("success", "Supplier submitted for verification successfully.");
   };
 
   const resetAddForm = () => {
@@ -281,7 +283,7 @@ export function BuyerSuppliersModule() {
                 <p className="text-sm text-gray-600 mb-6 max-w-md mx-auto">
                   The supplier details have been submitted to the bank for verification. Once verified, the supplier will receive an onboarding link via email.
                 </p>
-                <button onClick={resetAddForm} className="px-6 py-2 bg-[#0066B8] text-white rounded-lg hover:bg-[#00549a] transition-colors font-medium">
+                <button onClick={() => resetAddForm()} className="px-6 py-2 bg-[#0066B8] text-white rounded-lg hover:bg-[#00549a] transition-colors font-medium">
                   Done
                 </button>
               </div>

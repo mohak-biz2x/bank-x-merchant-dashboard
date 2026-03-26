@@ -1,6 +1,7 @@
 import { FileText, Plus, Upload, X, Building2, CheckCircle, Clock, AlertCircle, DollarSign, Eye } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router";
+import { showToast } from "./Toast";
 
 interface InvoiceLineItem {
   invoiceNumber: string;
@@ -255,6 +256,7 @@ export function InvoicesModule() {
   };
 
   const resetForm = () => {
+    showToast("success", "Invoice request submitted successfully.");
     setShowAddForm(false);
     setCurrentStep(1);
     setShowSuccess(false);
@@ -435,7 +437,7 @@ export function InvoicesModule() {
                   Your invoice(s) have been submitted to the Underwriting team for risk validation. After the validation, your funds will be disbursed and you will be notified.
                 </p>
                 <button
-                  onClick={resetForm}
+                  onClick={() => resetForm()}
                   className="px-6 py-2 bg-[#0066B8] text-white rounded-lg hover:bg-[#00549a] transition-colors font-medium"
                 >
                   Done
@@ -778,7 +780,6 @@ export function InvoicesModule() {
           </div>
         </div>
       )}
-
     </div>
   );
 }

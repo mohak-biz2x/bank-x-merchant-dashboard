@@ -605,11 +605,12 @@ export function SupplierJourneyPage() {
       {/* OTP Verification Modal */}
       {showOtpModal && (
         <div className="fixed inset-0 bg-gray-500/30 flex items-center justify-center z-50">
-          <div className="bg-white rounded shadow-xl max-w-lg w-full mx-4 p-6">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-semibold text-gray-900">Verify Contact Information</h2>
-              <button onClick={() => setShowOtpModal(false)} className="p-1 text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
+          <div className="bg-white rounded shadow-xl max-w-lg w-full mx-4">
+            <div className="px-5 py-3 flex items-center justify-between bg-[#312B6B] text-white rounded-t">
+              <h2 className="text-base font-semibold text-white">Verify Contact Information</h2>
+              <button onClick={() => setShowOtpModal(false)} className="text-white/60 hover:text-white"><X className="w-5 h-5" /></button>
             </div>
+            <div className="p-5">
             <p className="text-sm text-gray-600 mb-5">OTPs have been sent to your email and phone number. Please enter them below to verify.</p>
 
             {/* Email OTP */}
@@ -680,6 +681,7 @@ export function SupplierJourneyPage() {
             ) : (
               <p className="text-xs text-gray-400 text-center">Verify both to continue</p>
             )}
+            </div>
           </div>
         </div>
       )}

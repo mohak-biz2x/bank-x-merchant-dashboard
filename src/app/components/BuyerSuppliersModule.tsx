@@ -194,7 +194,7 @@ export function BuyerSuppliersModule() {
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          className="flex items-center gap-2 px-4 py-2 bg-[#0066B8] text-white rounded-lg hover:bg-[#00549a]"
         >
           <Plus className="w-4 h-4" />
           Add Supplier
@@ -262,16 +262,14 @@ export function BuyerSuppliersModule() {
       {/* Add Supplier Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded max-w-3xl w-full max-h-[90vh] overflow-y-auto">
             {/* Header */}
-            <div className="p-6 border-b border-gray-200 flex items-center justify-between sticky top-0 bg-white">
+            <div className="px-5 py-3 flex items-center justify-between sticky top-0 bg-[#312B6B] text-white rounded-t">
               <div>
-                <h3 className="text-xl font-semibold text-gray-900">Add Supplier</h3>
-                <p className="text-sm text-gray-500 mt-1">Step {addStep} of 3</p>
+                <h3 className="text-base font-semibold text-white">Add Supplier</h3>
+                <p className="text-xs text-white/60 mt-0.5">Step {addStep} of 3</p>
               </div>
-              <button onClick={resetAddForm} className="text-gray-400 hover:text-gray-600">
-                <X className="w-5 h-5" />
-              </button>
+              <button onClick={resetAddForm} className="text-white/60 hover:text-white"><X className="w-5 h-5" /></button>
             </div>
 
             {showAddSuccess ? (
@@ -283,7 +281,7 @@ export function BuyerSuppliersModule() {
                 <p className="text-sm text-gray-600 mb-6 max-w-md mx-auto">
                   The supplier details have been submitted to the bank for verification. Once verified, the supplier will receive an onboarding link via email.
                 </p>
-                <button onClick={resetAddForm} className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                <button onClick={resetAddForm} className="px-6 py-2 bg-[#0066B8] text-white rounded-lg hover:bg-[#00549a] transition-colors font-medium">
                   Done
                 </button>
               </div>
@@ -300,7 +298,7 @@ export function BuyerSuppliersModule() {
                   <div key={item.step} className="flex items-center flex-1">
                     <div className="flex flex-col items-center flex-1">
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                        addStep >= item.step ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-600"
+                        addStep >= item.step ? "bg-[#0066B8] text-white" : "bg-gray-200 text-gray-600"
                       }`}>
                         {item.step}
                       </div>
@@ -387,7 +385,7 @@ export function BuyerSuppliersModule() {
                       <p className="text-sm text-gray-600 mb-2">Click to upload or drag and drop</p>
                       <p className="text-xs text-gray-500 mb-3">PDF, JPG, PNG up to 10MB</p>
                       <input type="file" multiple accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => handleFileUpload(e, "license")} className="hidden" id="license-upload" />
-                      <label htmlFor="license-upload" className="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer">Choose Files</label>
+                      <label htmlFor="license-upload" className="inline-block px-4 py-2 bg-[#0066B8] text-white rounded-lg hover:bg-[#00549a] cursor-pointer">Choose Files</label>
                     </div>
                     {tradeLicenseFile.length > 0 && (
                       <div className="mt-3 space-y-2">
@@ -498,7 +496,7 @@ export function BuyerSuppliersModule() {
                     (addStep === 1 && !canProceedStep1) ||
                     (addStep === 2 && !canProceedStep2)
                   }
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+                  className="flex-1 px-4 py-2 bg-[#0066B8] text-white rounded-lg hover:bg-[#00549a] transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed">
                   Continue
                 </button>
               ) : (
@@ -531,7 +529,7 @@ export function BuyerSuppliersModule() {
               <p className="text-sm text-gray-900 font-mono break-all">{generatedLink}</p>
             </div>
             <div className="flex gap-3">
-              <button onClick={() => copyToClipboard(generatedLink)} className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">Copy Link</button>
+              <button onClick={() => copyToClipboard(generatedLink)} className="flex-1 px-4 py-2 bg-[#0066B8] text-white rounded-lg hover:bg-[#00549a] font-medium">Copy Link</button>
               <button onClick={() => setShowOnboardingModal(false)} className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium">Close</button>
             </div>
           </div>

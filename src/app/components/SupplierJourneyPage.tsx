@@ -159,7 +159,7 @@ export function SupplierJourneyPage() {
         return (
           <div className="space-y-6">
             <div>
-              <h1 className="text-3xl font-semibold text-gray-900">Review Your Details</h1>
+              <h1 className="text-lg font-semibold text-gray-900">Review Your Details</h1>
               <p className="text-gray-600 mt-2">
                 The following details were provided by the buyer. Please review and update any information that needs correction.
               </p>
@@ -253,7 +253,7 @@ export function SupplierJourneyPage() {
         return (
           <div className="space-y-6">
             <div>
-              <h1 className="text-3xl font-semibold text-gray-900">Documents</h1>
+              <h1 className="text-lg font-semibold text-gray-900">Documents</h1>
               <p className="text-gray-600 mt-2">
                 Review uploaded documents and add any additional documents required for verification.
               </p>
@@ -324,7 +324,7 @@ export function SupplierJourneyPage() {
         return (
           <div className="space-y-6">
             <div>
-              <h1 className="text-3xl font-semibold text-gray-900">Bank Account Details</h1>
+              <h1 className="text-lg font-semibold text-gray-900">Bank Account Details</h1>
               <p className="text-gray-600 mt-2">
                 Provide your bank account details for receiving payments.
               </p>
@@ -392,7 +392,7 @@ export function SupplierJourneyPage() {
         return (
           <div className="space-y-6">
             <div>
-              <h1 className="text-3xl font-semibold text-gray-900">Review & Submit</h1>
+              <h1 className="text-lg font-semibold text-gray-900">Review & Submit</h1>
               <p className="text-gray-600 mt-2">
                 Review all your information and submit your registration as a supplier.
               </p>
@@ -511,67 +511,33 @@ export function SupplierJourneyPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar */}
-      <div className="w-72 bg-white border-r border-gray-200 p-6 flex flex-col">
-        <div className="mb-8">
-          <div className="flex items-center gap-2 mb-1">
-            <Building2 className="w-6 h-6 text-gray-800" />
-            <span className="text-lg font-bold text-gray-900">Bank X</span>
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Header */}
+      <header className="bg-[#312B6B] px-6 py-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-5">
+            <h1 className="text-xl font-bold text-white tracking-tight">BANK<span className="text-blue-400">X</span></h1>
+            <div className="h-6 w-px bg-white/20"></div>
+            <p className="text-sm text-white/90">Supplier Verification</p>
           </div>
-          <p className="text-xs text-gray-500 ml-8">Supplier Verification</p>
+          <div className="flex items-center gap-3">
+            <p className="text-xs text-white/60">Invited by Al Masraf Industries LLC</p>
+          </div>
         </div>
+      </header>
 
-        <nav className="flex-1 space-y-1">
-          {steps.map((step) => {
-            const isActive = step.id === currentStep;
-            const isCompleted = step.id < currentStep;
-            return (
-              <div
-                key={step.id}
-                className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-colors ${
-                  isActive ? "bg-blue-50 border border-blue-200" : isCompleted ? "text-green-700" : "text-gray-500"
-                }`}
-              >
-                <div
-                  className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0 ${
-                    isCompleted
-                      ? "bg-green-100 text-green-700"
-                      : isActive
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-100 text-gray-400"
-                  }`}
-                >
-                  {isCompleted ? <Check className="w-4 h-4" /> : step.id}
-                </div>
-                <span className={`text-sm ${isActive ? "font-semibold text-blue-900" : isCompleted ? "font-medium" : ""}`}>
-                  {step.name}
-                </span>
-              </div>
-            );
-          })}
-        </nav>
-
-        <div className="mt-auto pt-6 border-t border-gray-200">
-          <p className="text-xs text-gray-400">Invited by Al Masraf Industries LLC</p>
-          <p className="text-xs text-gray-400 mt-1">Ref: SUP-REG-2025-001</p>
-        </div>
-      </div>
-
+      <div className="flex flex-1 overflow-hidden">
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <div className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
+        <div className="bg-white border-b border-gray-200 px-8 py-3 flex items-center justify-between">
           <div>
-            <h2 className="text-sm font-medium text-gray-500">Supplier Registration</h2>
+            <h2 className="text-sm font-medium text-gray-700">Supplier Registration</h2>
             <p className="text-xs text-gray-400 mt-0.5">Step {currentStep} of {steps.length}</p>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-blue-600 rounded-full transition-all duration-300"
-                style={{ width: `${(currentStep / steps.length) * 100}%` }}
-              />
+              <div className="h-full bg-[#0066B8] rounded-full transition-all duration-300" style={{ width: `${(currentStep / steps.length) * 100}%` }} />
             </div>
             <span className="text-xs text-gray-500">{Math.round((currentStep / steps.length) * 100)}%</span>
           </div>
@@ -579,7 +545,7 @@ export function SupplierJourneyPage() {
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-8 py-6">
-          <div className="max-w-3xl">
+          <div className="max-w-2xl mx-auto">
             {renderStepContent()}
           </div>
         </div>
@@ -605,7 +571,7 @@ export function SupplierJourneyPage() {
                 ? confirmed
                   ? "bg-green-600 text-white hover:bg-green-700"
                   : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                : "bg-gray-800 text-white hover:bg-gray-900"
+                : "bg-[#0066B8] text-white hover:bg-[#005299]"
             }`}
           >
             {currentStep === 4 ? "Review & Submit" : "Next"}
@@ -613,12 +579,35 @@ export function SupplierJourneyPage() {
         </div>
       </div>
 
+      {/* Sidebar - Right */}
+      <div className="w-80 bg-white border-l border-gray-200 p-5 flex flex-col">
+        <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Registration Steps</h3>
+        <nav className="flex-1 space-y-3">
+          {steps.map((step) => {
+            const isActive = step.id === currentStep;
+            const isCompleted = step.id < currentStep;
+            return (
+              <div key={step.id} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${isActive ? "bg-blue-50 border border-blue-200" : isCompleted ? "text-green-700" : "text-gray-500"}`}>
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0 ${isCompleted ? "bg-green-100 text-green-700" : isActive ? "bg-[#0066B8] text-white" : "bg-gray-100 text-gray-400"}`}>
+                  {isCompleted ? <Check className="w-3.5 h-3.5" /> : step.id}
+                </div>
+                <span className={`text-xs ${isActive ? "font-semibold text-blue-900" : isCompleted ? "font-medium" : ""}`}>{step.name}</span>
+              </div>
+            );
+          })}
+        </nav>
+        <div className="mt-auto pt-4 border-t border-gray-200">
+          <p className="text-xs text-gray-400">Ref: SUP-REG-2025-001</p>
+        </div>
+      </div>
+      </div>
+
       {/* OTP Verification Modal */}
       {showOtpModal && (
         <div className="fixed inset-0 bg-gray-500/30 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl max-w-lg w-full mx-4 p-6">
+          <div className="bg-white rounded shadow-xl max-w-lg w-full mx-4 p-6">
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-xl font-semibold text-gray-900">Verify Contact Information</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Verify Contact Information</h2>
               <button onClick={() => setShowOtpModal(false)} className="p-1 text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
             </div>
             <p className="text-sm text-gray-600 mb-5">OTPs have been sent to your email and phone number. Please enter them below to verify.</p>
@@ -644,7 +633,7 @@ export function SupplierJourneyPage() {
                       className="w-10 h-10 text-center text-base font-semibold border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
                   ))}
                   <button onClick={verifyEmailOtp} disabled={emailOtp.some(d => !d) || verifyingEmail}
-                    className="ml-2 px-4 py-2 bg-gray-800 text-white rounded-lg text-sm font-medium hover:bg-gray-900 transition-colors disabled:opacity-50 flex items-center gap-2">
+                    className="ml-2 px-4 py-2 bg-[#0066B8] text-white rounded-lg text-sm font-medium hover:bg-[#005299] transition-colors disabled:opacity-50 flex items-center gap-2">
                     {verifyingEmail ? <><Loader2 className="w-4 h-4 animate-spin" /> Verifying...</> : "Verify"}
                   </button>
                 </div>
@@ -674,7 +663,7 @@ export function SupplierJourneyPage() {
                       className="w-10 h-10 text-center text-base font-semibold border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
                   ))}
                   <button onClick={verifyPhoneOtp} disabled={phoneOtp.some(d => !d) || verifyingPhone}
-                    className="ml-2 px-4 py-2 bg-gray-800 text-white rounded-lg text-sm font-medium hover:bg-gray-900 transition-colors disabled:opacity-50 flex items-center gap-2">
+                    className="ml-2 px-4 py-2 bg-[#0066B8] text-white rounded-lg text-sm font-medium hover:bg-[#005299] transition-colors disabled:opacity-50 flex items-center gap-2">
                     {verifyingPhone ? <><Loader2 className="w-4 h-4 animate-spin" /> Verifying...</> : "Verify"}
                   </button>
                 </div>
@@ -698,7 +687,7 @@ export function SupplierJourneyPage() {
       {/* Success Modal */}
       {showSuccessModal && (
         <div className="fixed inset-0 bg-gray-500/30 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-8 text-center">
+          <div className="bg-white rounded shadow-xl max-w-md w-full mx-4 p-8 text-center">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <CheckCircle className="w-8 h-8 text-green-600" />
             </div>

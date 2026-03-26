@@ -82,7 +82,7 @@ export function LoginPage() {
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
           <div className="lg:hidden flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-[#0066B8] rounded-lg flex items-center justify-center">
               <Wallet className="w-6 h-6 text-white" />
             </div>
             <div>
@@ -142,7 +142,7 @@ export function LoginPage() {
 
               <button
                 type="submit"
-                className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors mt-6"
+                className="w-full bg-[#0066B8] text-white py-3 rounded-lg font-medium hover:bg-[#005299] transition-colors mt-6"
               >
                 Log in
               </button>

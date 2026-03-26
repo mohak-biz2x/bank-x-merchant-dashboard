@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
-import { LayoutDashboard, FileText, Wallet, Settings, LogOut, Building2, FlaskConical, X, Zap } from "lucide-react";
+import { LayoutDashboard, FileText, Settings, LogOut, Building2, FlaskConical, X, Zap } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { getMerchantRole, getUnderwritingStatus, getStpEligibility } from "./MerchantDashboard";
 import type { MerchantRole } from "./MerchantDashboard";
@@ -12,7 +12,6 @@ const allNavItems = [
 ];
 
 const roleOptions: { key: MerchantRole; label: string }[] = [
-  { key: "both", label: "Both" },
   { key: "receivable", label: "Receivable Financing Only" },
   { key: "payable", label: "Buyer / Payable Only" },
   { key: "supplier-only", label: "Supplier Only (No Financing)" },
@@ -71,31 +70,24 @@ export function Layout() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div className="px-6 py-3 border-b border-gray-100">
+      <header className="sticky top-0 z-50">
+        {/* Dark header bar */}
+        <div className="bg-[#312B6B] px-6 py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-5">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <Wallet className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-lg font-semibold text-gray-900">Bank X</h1>
-                  <p className="text-xs text-gray-500">Merchant Dashboard</p>
-                </div>
+                <h1 className="text-xl font-bold text-white tracking-tight">BANK<span className="text-blue-400">X</span></h1>
               </div>
-              <div className="h-8 w-px bg-gray-300"></div>
+              <div className="h-6 w-px bg-white/20"></div>
               <div className="flex items-center gap-2">
-                <Building2 className="w-4 h-4 text-gray-500" />
-                <p className="text-sm font-medium text-gray-900">{role === "supplier-only" ? "Falcon Steel Industries LLC" : "Al Masraf Industries LLC"}</p>
+                <Building2 className="w-4 h-4 text-white/60" />
+                <p className="text-sm text-white/90">{role === "supplier-only" ? "Falcon Steel Industries LLC" : "Al Masraf Industries LLC"}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <div className="text-right">
-                <p className="text-sm font-medium text-gray-900">{role === "supplier-only" ? "Rashid Al Farsi" : "Ahmed Al Mansouri"}</p>
-              </div>
+              <p className="text-sm text-white/90">Logged in as <span className="font-medium text-white">{role === "supplier-only" ? "Rashid Al Farsi" : "Ahmed Al Mansouri"}</span></p>
               <div className="relative" ref={profileMenuRef}>
-                <button onClick={() => setShowProfileMenu(!showProfileMenu)} className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white font-medium hover:bg-blue-700 transition-colors">{role === "supplier-only" ? "R" : "A"}</button>
+                <button onClick={() => setShowProfileMenu(!showProfileMenu)} className="w-9 h-9 rounded-full bg-teal-500 flex items-center justify-center text-white font-medium hover:bg-teal-600 transition-colors">{role === "supplier-only" ? "R" : "A"}</button>
                 {showProfileMenu && (
                   <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
                     <button onClick={() => { setShowProfileMenu(false); }} className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3"><Settings className="w-4 h-4 text-gray-500" />Account Settings</button>
@@ -108,13 +100,14 @@ export function Layout() {
             </div>
           </div>
         </div>
-        {navItems.length > 0 && (
-        <div className="px-6 py-2">
-          <nav className="flex items-center gap-1">
+        {/* Nav tabs */}
+        {navItems.length > 0 && location.pathname !== "/applications" && (
+        <div className="bg-white border-b border-gray-200 px-6">
+          <nav className="flex items-center gap-0">
             {navItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.path);
-              return (<Link key={item.path} to={item.path} className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${active ? "bg-blue-50 text-blue-600 font-medium" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}`}><Icon className="w-4 h-4" /><span className="text-sm">{item.name}</span></Link>);
+              return (<Link key={item.path} to={item.path} className={`flex items-center gap-2 px-4 py-3 text-sm border-b-2 transition-colors ${active ? "border-blue-600 text-blue-600 font-medium" : "border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300"}`}><Icon className="w-4 h-4" />{item.name}</Link>);
             })}
           </nav>
         </div>
@@ -132,7 +125,7 @@ export function Layout() {
               </div>
               <button onClick={() => setShowDemoPanel(false)} className="text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button>
             </div>
-            <p className="text-xs text-gray-500 mb-3">Switch merchant profile role</p>
+            <p className="text-xs text-gray-500 mb-3">Demo controls</p>
             <div className="flex flex-col gap-1.5">
               {(uwStatus === "pending" || uwStatus === "approved" || uwStatus === "security-pending") && (
                 <>
@@ -170,6 +163,27 @@ export function Layout() {
                   </button>
                 </div>
               </div>
+              {/* Applications Dataset Toggle */}
+              <div className="mb-1">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <FileText className="w-3 h-3 text-blue-600" />
+                  <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Applications Data</span>
+                </div>
+                <div className="flex gap-1.5">
+                  <button
+                    onClick={() => { localStorage.setItem("demo_app_dataset", "single"); window.dispatchEvent(new Event("demo-role-change")); }}
+                    className={`flex-1 px-2 py-1.5 rounded-md text-xs font-medium text-center transition-colors ${(localStorage.getItem("demo_app_dataset") || "single") === "single" ? "bg-blue-100 text-blue-800 border border-blue-300" : "bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100"}`}
+                  >
+                    Single App
+                  </button>
+                  <button
+                    onClick={() => { localStorage.setItem("demo_app_dataset", "multi"); window.dispatchEvent(new Event("demo-role-change")); }}
+                    className={`flex-1 px-2 py-1.5 rounded-md text-xs font-medium text-center transition-colors ${localStorage.getItem("demo_app_dataset") === "multi" ? "bg-purple-100 text-purple-800 border border-purple-300" : "bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100"}`}
+                  >
+                    Multi (4 Apps)
+                  </button>
+                </div>
+              </div>
               {/* Payable Invoice Flow Toggle */}
               <div className="mb-1">
                 <div className="flex items-center gap-1.5 mb-1.5">
@@ -192,6 +206,7 @@ export function Layout() {
                 </div>
               </div>
               <div className="border-t border-gray-200 my-1"></div>
+              <p className="text-xs text-gray-500 mb-1">Switch merchant profile role</p>
               {roleOptions.map((opt) => (
                 <button key={opt.key} onClick={() => handleRoleChange(opt.key)} className={`px-3 py-2 rounded-md text-xs font-medium text-left transition-colors ${role === opt.key ? "bg-amber-100 text-amber-800 border border-amber-300" : "bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100"}`}>{opt.label}</button>
               ))}

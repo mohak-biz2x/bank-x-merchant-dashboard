@@ -24,6 +24,7 @@ export function MerchantDashboard() {
   // STP state
   const [stpEligibility, setStpEligibility] = useState(getStpEligibility);
   const [showStpBanner, setShowStpBanner] = useState(false);
+  const [stpRedirectTimer, setStpRedirectTimer] = useState(10);
   const isStp = stpEligibility === "approved";
 
   // Post-approval multi-step state
@@ -65,6 +66,24 @@ export function MerchantDashboard() {
     window.addEventListener("demo-complete-esign", onCompleteEsign);
     return () => window.removeEventListener("demo-complete-esign", onCompleteEsign);
   }, []);
+
+  // STP auto-redirect countdown
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (!showStpBanner) return;
+    if (stpRedirectTimer <= 0) {
+      const product = localStorage.getItem("selected_product") || "receivable";
+      localStorage.setItem("demo_merchant_role", product);
+      localStorage.setItem("merchant_underwriting_status", "none");
+      localStorage.removeItem("pending_financing_choice");
+      window.dispatchEvent(new Event("demo-role-change"));
+      setShowStpBanner(false);
+      return;
+    }
+    const t = setTimeout(() => setStpRedirectTimer(prev => prev - 1), 1000);
+    return () => clearTimeout(t);
+  }, [showStpBanner, stpRedirectTimer]);
+
   // Credit limit
   const utilised = 5100000;
   const receivableUtilised = 3200000;
@@ -99,7 +118,7 @@ export function MerchantDashboard() {
       icon: Building2,
       iconBg: "bg-indigo-100",
       iconColor: "text-indigo-600",
-      btnBg: "bg-indigo-600 hover:bg-indigo-700",
+      btnBg: "bg-[#0066B8] hover:bg-[#00549a]",
       roles: ["both", "payable"] as MerchantRole[],
       rows: [
         { label: "Total Suppliers", value: "6" },
@@ -114,7 +133,7 @@ export function MerchantDashboard() {
       icon: FileText,
       iconBg: "bg-green-100",
       iconColor: "text-green-600",
-      btnBg: "bg-green-600 hover:bg-green-700",
+      btnBg: "bg-[#0066B8] hover:bg-[#00549a]",
       roles: ["both", "receivable"] as MerchantRole[],
       rows: [
         { label: "Total Invoices", value: "50" },
@@ -129,7 +148,7 @@ export function MerchantDashboard() {
       icon: FileText,
       iconBg: "bg-amber-100",
       iconColor: "text-amber-600",
-      btnBg: "bg-amber-600 hover:bg-amber-700",
+      btnBg: "bg-[#0066B8] hover:bg-[#00549a]",
       roles: ["both", "payable"] as MerchantRole[],
       rows: [
         { label: "Total Invoices", value: "33" },
@@ -241,7 +260,7 @@ export function MerchantDashboard() {
                         ) : (
                           <button
                             onClick={() => { setDocuSignDoc({ key: agreement.key, label: agreement.label }); setDocuSignStep("review"); setDocuSignChecked(false); }}
-                            className="flex items-center gap-1.5 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors text-sm"
+                            className="flex items-center gap-1.5 px-4 py-2 bg-[#0066B8] text-white rounded-lg hover:bg-[#00549a] transition-colors text-sm"
                           >
                             <PenTool className="w-4 h-4" /> Sign
                           </button>
@@ -257,18 +276,13 @@ export function MerchantDashboard() {
                     if (isStp) {
                       const product = localStorage.getItem("selected_product") || "receivable";
                       setShowStpBanner(true);
-                      setTimeout(() => {
-                        localStorage.setItem("demo_merchant_role", product);
-                        localStorage.setItem("merchant_underwriting_status", "none");
-                        localStorage.removeItem("pending_financing_choice");
-                        window.dispatchEvent(new Event("demo-role-change"));
-                      }, 2000);
+                      setStpRedirectTimer(10);
                     } else {
                       setPostApprovalStep(2);
                     }
                   }}
                   disabled={!allSigned}
-                  className={`px-6 py-2.5 rounded-lg transition-colors text-sm font-medium ${allSigned ? "bg-gray-800 text-white hover:bg-gray-900" : "bg-gray-200 text-gray-400 cursor-not-allowed"}`}
+                  className={`px-6 py-2.5 rounded-lg transition-colors text-sm font-medium ${allSigned ? "bg-[#0066B8] text-white hover:bg-[#00549a]" : "bg-gray-200 text-gray-400 cursor-not-allowed"}`}
                 >
                   Continue
                 </button>
@@ -369,9 +383,10 @@ export function MerchantDashboard() {
                     localStorage.setItem("pending_financing_choice", product);
                     localStorage.setItem("merchant_underwriting_status", "security-pending");
                     window.dispatchEvent(new Event("demo-role-change"));
+                    navigate('/applications');
                   }}
                   disabled={!securityComplete}
-                  className={`px-6 py-2.5 rounded-lg transition-colors text-sm font-medium ${securityComplete ? "bg-gray-800 text-white hover:bg-gray-900" : "bg-gray-200 text-gray-400 cursor-not-allowed"}`}
+                  className={`px-6 py-2.5 rounded-lg transition-colors text-sm font-medium ${securityComplete ? "bg-[#0066B8] text-white hover:bg-[#00549a]" : "bg-gray-200 text-gray-400 cursor-not-allowed"}`}
                 >
                   Continue
                 </button>
@@ -388,8 +403,11 @@ export function MerchantDashboard() {
                 <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                   <Zap className="w-10 h-10 text-green-600" />
                 </div>
-                <h2 className="text-2xl font-semibold text-gray-900 mb-2">STP Approved</h2>
-                <p className="text-gray-600 text-sm mb-4">Your account is being activated via Straight Through Processing. You will be redirected to your dashboard momentarily.</p>
+                <h2 className="text-2xl font-semibold text-gray-900 mb-2">STP Auto-Approved</h2>
+                <p className="text-gray-600 text-sm mb-4">You're auto-approved for security. Your dashboard is being enabled.</p>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                  <p className="text-sm text-blue-800">Enabling dashboard in <span className="font-semibold">{stpRedirectTimer}</span> seconds...</p>
+                </div>
                 <div className="flex items-center justify-center gap-2 text-green-600">
                   <Loader2 className="w-4 h-4 animate-spin" />
                   <span className="text-sm font-medium">Activating your account...</span>
@@ -833,65 +851,6 @@ export function MerchantDashboard() {
           ))}
         </div>
 
-        {/* Recent Activity - Merged */}
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
-          <div className="space-y-4">
-            {role !== "payable" && (
-            <div className="flex items-start gap-4 pb-4 border-b border-gray-100">
-              <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
-              <div className="flex-1">
-                <p className="text-sm text-gray-900 font-medium">Invoice #INV-2024-0142 approved</p>
-                <p className="text-xs text-gray-500 mt-1">Buyer: Al Futtaim Group · Amount: AED 125,000</p>
-                <p className="text-xs text-gray-400 mt-1">2 hours ago</p>
-              </div>
-              <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">Receivable</span>
-            </div>
-            )}
-            {role !== "receivable" && (
-            <div className="flex items-start gap-4 pb-4 border-b border-gray-100">
-              <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
-              <div className="flex-1">
-                <p className="text-sm text-gray-900 font-medium">New invoice submitted for validation</p>
-                <p className="text-xs text-gray-500 mt-1">Supplier: Tech Suppliers LLC · Amount: AED 234,000</p>
-                <p className="text-xs text-gray-400 mt-1">1 hour ago</p>
-              </div>
-              <span className="text-xs bg-green-50 text-green-700 px-2 py-0.5 rounded-full">Payable</span>
-            </div>
-            )}
-            {role !== "payable" && (
-            <div className="flex items-start gap-4 pb-4 border-b border-gray-100">
-              <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-              <div className="flex-1">
-                <p className="text-sm text-gray-900 font-medium">New buyer request received</p>
-                <p className="text-xs text-gray-500 mt-1">Buyer: Emirates Trading LLC</p>
-                <p className="text-xs text-gray-400 mt-1">5 hours ago</p>
-              </div>
-              <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">Receivable</span>
-            </div>
-            )}
-            {role !== "receivable" && (
-            <div className="flex items-start gap-4 pb-4 border-b border-gray-100">
-              <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
-              <div className="flex-1">
-                <p className="text-sm text-gray-900 font-medium">Invoice validated</p>
-                <p className="text-xs text-gray-500 mt-1">Invoice #INV-2024-0143 · Supplier: Industrial Parts Co.</p>
-                <p className="text-xs text-gray-400 mt-1">3 hours ago</p>
-              </div>
-              <span className="text-xs bg-green-50 text-green-700 px-2 py-0.5 rounded-full">Payable</span>
-            </div>
-            )}
-            <div className="flex items-start gap-4">
-              <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
-              <div className="flex-1">
-                <p className="text-sm text-gray-900 font-medium">Payment received</p>
-                <p className="text-xs text-gray-500 mt-1">Invoice #INV-2024-0138 · Amount: AED 89,500</p>
-                <p className="text-xs text-gray-400 mt-1">1 day ago</p>
-              </div>
-              <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">Receivable</span>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );
@@ -1160,7 +1119,7 @@ function SupplierOnlyDashboard() {
                 </div>
               </div>
               <div className="mt-6 flex justify-end">
-                <button onClick={() => setSelectedRequest(null)} className="px-5 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors text-sm font-medium">Close</button>
+                <button onClick={() => setSelectedRequest(null)} className="px-5 py-2 bg-[#0066B8] text-white rounded-lg hover:bg-[#00549a] transition-colors text-sm font-medium">Close</button>
               </div>
             </div>
           </div>

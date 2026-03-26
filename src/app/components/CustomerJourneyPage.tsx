@@ -86,6 +86,8 @@ export function CustomerJourneyPage() {
   const [creditCheckConsent, setCreditCheckConsent] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+  const [showSubmitSuccess, setShowSubmitSuccess] = useState(false);
+  const [submitRedirectTimer, setSubmitRedirectTimer] = useState(10);
 
   const otpModalRef = useRef<HTMLDivElement>(null);
 
@@ -175,6 +177,14 @@ export function CustomerJourneyPage() {
   useEffect(() => { if (profileCreated && profileRedirectTimer > 0) { const t = setTimeout(() => setProfileRedirectTimer(profileRedirectTimer - 1), 1000); return () => clearTimeout(t); } if (profileCreated && profileRedirectTimer === 0) { handleProfileSuccessContinue(); } }, [profileCreated, profileRedirectTimer]);
   useEffect(() => { const h = (e: MouseEvent) => { if (profileMenuRef.current && !profileMenuRef.current.contains(e.target as Node)) setShowProfileMenu(false); }; document.addEventListener("mousedown", h); return () => document.removeEventListener("mousedown", h); }, []);
 
+  // Submit success countdown
+  useEffect(() => {
+    if (!showSubmitSuccess) return;
+    if (submitRedirectTimer <= 0) { navigate('/applications'); return; }
+    const t = setTimeout(() => setSubmitRedirectTimer(prev => prev - 1), 1000);
+    return () => clearTimeout(t);
+  }, [showSubmitSuccess, submitRedirectTimer, navigate]);
+
   const handleProfileSuccessContinue = () => { setShowOtpModal(false); setProfileCreated(false); setCurrentStep(2); };
 
   const handleNext = () => {
@@ -186,8 +196,10 @@ export function CustomerJourneyPage() {
         localStorage.setItem("merchant_underwriting_status", "pending");
         localStorage.setItem("selected_product", selectedProduct || "receivable");
         localStorage.setItem("demo_merchant_role", selectedProduct || "receivable");
+        localStorage.setItem("demo_app_dataset", "single");
         window.dispatchEvent(new Event("demo-role-change"));
-        navigate('/');
+        setShowSubmitSuccess(true);
+        setSubmitRedirectTimer(10);
         return;
       }
     } else if (currentStep < steps.length) { setCurrentStep(currentStep + 1); }
@@ -260,7 +272,7 @@ export function CustomerJourneyPage() {
     <div>
       <div className="flex items-center gap-3 mb-1">
         <div className="w-1 h-7 bg-blue-600 rounded-full"></div>
-        <h2 className="text-3xl font-semibold text-gray-900">Create Your Profile</h2>
+        <h2 className="text-lg font-semibold text-gray-900">Create Your Profile</h2>
       </div>
       <p className="text-sm text-gray-500 mb-8 ml-4">Tell us about your company and verify your identity to get started</p>
       <div className="space-y-4">
@@ -287,7 +299,7 @@ export function CustomerJourneyPage() {
     <div>
       <div className="flex items-center gap-3 mb-1">
         <div className="w-1 h-7 bg-blue-600 rounded-full"></div>
-        <h2 className="text-3xl font-semibold text-gray-900">KYB Verification</h2>
+        <h2 className="text-lg font-semibold text-gray-900">KYB Verification</h2>
       </div>
       <p className="text-sm text-gray-500 mb-6 ml-4">Enter your Trade License number to verify your business via Oscilar</p>
 
@@ -303,7 +315,7 @@ export function CustomerJourneyPage() {
             <label className="block text-sm font-medium text-gray-700 mb-2">Trade License Number</label>
             <div className="flex gap-3">
               <input type="text" value={tlNumber} onChange={e => setTlNumber(e.target.value)} placeholder="e.g. TL-345678" className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm" />
-              <button onClick={startKybVerification} disabled={!tlNumber.trim()} className="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium flex items-center gap-2">
+              <button onClick={startKybVerification} disabled={!tlNumber.trim()} className="px-5 py-2.5 bg-[#0066B8] text-white rounded-lg hover:bg-[#005299] transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4" /> Verify Business
               </button>
             </div>
@@ -406,7 +418,7 @@ export function CustomerJourneyPage() {
     <div>
       <div className="flex items-center gap-3 mb-1">
         <div className="w-1 h-7 bg-blue-600 rounded-full"></div>
-        <h2 className="text-3xl font-semibold text-gray-900">AECB Credit Consent</h2>
+        <h2 className="text-lg font-semibold text-gray-900">AECB Credit Consent</h2>
       </div>
       <p className="text-sm text-gray-500 mb-6 ml-4">Authorize a credit check through the Al Etihad Credit Bureau (AECB)</p>
 
@@ -440,7 +452,7 @@ export function CustomerJourneyPage() {
     <div>
       <div className="flex items-center gap-3 mb-1">
         <div className="w-1 h-7 bg-blue-600 rounded-full"></div>
-        <h2 className="text-3xl font-semibold text-gray-900">Select a Loan Product</h2>
+        <h2 className="text-lg font-semibold text-gray-900">Select a Loan Product</h2>
       </div>
       <p className="text-sm text-gray-500 mb-8 ml-4">Select loan options without commitment. Our specialists will follow up after application submission.</p>
       <div className="flex justify-center">
@@ -469,7 +481,7 @@ export function CustomerJourneyPage() {
     <div>
       <div className="flex items-center gap-3 mb-1">
         <div className="w-1 h-7 bg-blue-600 rounded-full"></div>
-        <h2 className="text-3xl font-semibold text-gray-900">Business Documents</h2>
+        <h2 className="text-lg font-semibold text-gray-900">Business Documents</h2>
       </div>
       <p className="text-sm text-gray-500 mb-6 ml-4">Upload your business financial documents for assessment</p>
 
@@ -528,7 +540,7 @@ export function CustomerJourneyPage() {
                 <button onClick={() => setBusinessDocs(prev => ({ ...prev, lastSixInvoices: null }))} className="text-gray-400 hover:text-red-500"><X className="w-4 h-4" /></button>
               </div>
             ) : (
-              <label className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer text-sm">
+              <label className="flex items-center gap-2 px-4 py-2 bg-[#0066B8] text-white rounded-lg hover:bg-[#005299] cursor-pointer text-sm">
                 <Upload className="w-4 h-4" /> Upload
                 <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png,.zip" onChange={e => { if (e.target.files?.[0]) setBusinessDocs(prev => ({ ...prev, lastSixInvoices: e.target.files![0] })); }} />
               </label>
@@ -551,7 +563,7 @@ export function CustomerJourneyPage() {
                   <button onClick={() => setBusinessDocs(prev => ({ ...prev, auditedPnl: null }))} className="text-gray-400 hover:text-red-500"><X className="w-4 h-4" /></button>
                 </div>
               ) : (
-                <label className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer text-sm">
+                <label className="flex items-center gap-2 px-4 py-2 bg-[#0066B8] text-white rounded-lg hover:bg-[#005299] cursor-pointer text-sm">
                   <Upload className="w-4 h-4" /> Upload
                   <input type="file" className="hidden" accept=".pdf" onChange={e => { if (e.target.files?.[0]) setBusinessDocs(prev => ({ ...prev, auditedPnl: e.target.files![0] })); }} />
                 </label>
@@ -571,7 +583,7 @@ export function CustomerJourneyPage() {
     <div>
       <div className="flex items-center gap-3 mb-1">
         <div className="w-1 h-7 bg-blue-600 rounded-full"></div>
-        <h2 className="text-3xl font-semibold text-gray-900">KYC Documents</h2>
+        <h2 className="text-lg font-semibold text-gray-900">KYC Documents</h2>
       </div>
       <p className="text-sm text-gray-500 mb-6 ml-4">Upload identity documents for each shareholder</p>
       <div className="space-y-4">
@@ -637,7 +649,7 @@ export function CustomerJourneyPage() {
     <div>
       <div className="flex items-center gap-3 mb-1">
         <div className="w-1 h-7 bg-blue-600 rounded-full"></div>
-        <h2 className="text-3xl font-semibold text-gray-900">Authorized Signatory</h2>
+        <h2 className="text-lg font-semibold text-gray-900">Authorized Signatory</h2>
       </div>
       <p className="text-sm text-gray-500 mb-6 ml-4">Select the person authorized to sign on behalf of the company</p>
 
@@ -682,7 +694,7 @@ export function CustomerJourneyPage() {
               <div><label className="block text-xs font-medium text-gray-500 mb-1">Emirates ID</label><input type="text" value={customSignatory.emiratesId} onChange={e => setCustomSignatory({ ...customSignatory, emiratesId: e.target.value })} placeholder="784-XXXX-XXXXXXX-X" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500" /></div>
             </div>
             <div className="flex gap-2">
-              <button onClick={addCustomSignatory} disabled={!customSignatory.name.trim()} className="px-4 py-1.5 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50">Add</button>
+              <button onClick={addCustomSignatory} disabled={!customSignatory.name.trim()} className="px-4 py-1.5 bg-[#0066B8] text-white rounded-lg text-sm hover:bg-[#005299] disabled:opacity-50">Add</button>
               <button onClick={() => setShowAddSignatory(false)} className="px-4 py-1.5 border border-gray-300 rounded-lg text-sm hover:bg-gray-50">Cancel</button>
             </div>
           </div>
@@ -697,7 +709,7 @@ export function CustomerJourneyPage() {
     <div>
       <div className="flex items-center gap-3 mb-1">
         <div className="w-1 h-7 bg-blue-600 rounded-full"></div>
-        <h2 className="text-3xl font-semibold text-gray-900">Review & Submit</h2>
+        <h2 className="text-lg font-semibold text-gray-900">Review & Submit</h2>
       </div>
       <p className="text-sm text-gray-500 mb-6 ml-4">Review all information before submitting your application</p>
       <div className="space-y-4">
@@ -819,19 +831,16 @@ export function CustomerJourneyPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <header className="bg-white border-b-2 border-blue-600 px-6 py-3">
+      <header className="bg-[#312B6B] px-6 py-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center"><Building2 className="w-5 h-5 text-white" /></div>
-              <div><h1 className="text-lg font-semibold text-gray-900">Bank X</h1><p className="text-xs text-gray-500">Supply Chain Finance</p></div>
-            </div>
-            {currentStep > 1 && (<><div className="h-8 w-px bg-gray-300"></div><div className="flex items-center gap-2"><Building2 className="w-4 h-4 text-gray-500" /><p className="text-sm font-medium text-gray-900">{profileData.companyLegalName}</p></div></>)}
+          <div className="flex items-center gap-5">
+            <h1 className="text-xl font-bold text-white tracking-tight">BANK<span className="text-blue-400">X</span></h1>
+            {currentStep > 1 && (<><div className="h-6 w-px bg-white/20"></div><div className="flex items-center gap-2"><Building2 className="w-4 h-4 text-white/60" /><p className="text-sm text-white/90">{profileData.companyLegalName}</p></div></>)}
           </div>
           <div className="flex items-center gap-3">
-            <div className="text-right"><p className="text-sm font-medium text-gray-900">{currentStep > 1 ? profileData.contactFullName : "New Merchant"}</p></div>
+            <p className="text-sm text-white/90">{currentStep > 1 ? profileData.contactFullName : "New Merchant"}</p>
             <div className="relative" ref={profileMenuRef}>
-              <button onClick={() => setShowProfileMenu(!showProfileMenu)} className={`w-9 h-9 rounded-full flex items-center justify-center text-white font-medium transition-colors ${currentStep > 1 ? "bg-blue-600 hover:bg-blue-700" : "bg-gray-400 hover:bg-gray-500"}`}>
+              <button onClick={() => setShowProfileMenu(!showProfileMenu)} className="w-9 h-9 rounded-full bg-teal-500 flex items-center justify-center text-white font-medium hover:bg-teal-600 transition-colors">
                 {currentStep > 1 ? profileData.contactFullName.charAt(0) : "N"}
               </button>
               {showProfileMenu && (
@@ -847,29 +856,6 @@ export function CustomerJourneyPage() {
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar - hidden on Profile Creation */}
-        {currentStep > 1 && (
-          <div className="w-72 bg-white border-r border-gray-200 p-6 overflow-y-auto">
-            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Application Steps</h3>
-            <div className="space-y-1">
-              {visibleSteps.map((step, index) => {
-                const isActive = currentStep === step.id;
-                const isCompleted = currentStep > step.id;
-                const isClickable = step.id <= currentStep;
-                return (
-                  <button key={step.id} onClick={() => { if (isClickable) setCurrentStep(step.id); }} disabled={!isClickable}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors ${isActive ? 'bg-blue-50 border-l-2 border-blue-600 text-blue-700' : isCompleted ? 'text-gray-700 hover:bg-gray-50' : 'text-gray-400 cursor-not-allowed'}`}>
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0 ${isActive ? 'bg-blue-600 text-white' : isCompleted ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
-                      {isCompleted ? <Check className="w-3 h-3" /> : index + 1}
-                    </div>
-                    <span className="text-sm">{step.name}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
         {/* Content */}
         <div className="flex-1 flex flex-col overflow-hidden">
           <div className="flex-1 overflow-y-auto p-8">
@@ -888,12 +874,35 @@ export function CustomerJourneyPage() {
                 currentStep === 8 ? acceptedAgreements ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 : (currentStep === 4 && !selectedProduct) ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 : (currentStep === 3 && !aecbConsent) ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                : 'bg-blue-600 text-white hover:bg-blue-700'
+                : 'bg-[#0066B8] text-white hover:bg-[#005299]'
               }`}>
               {currentStep === 8 ? 'Submit Application' : currentStep === 1 ? 'Create Profile' : 'Continue'}
             </button>
           </div>
         </div>
+
+        {/* Sidebar - Right, hidden on Profile Creation */}
+        {currentStep > 1 && (
+          <div className="w-80 bg-white border-l border-gray-200 p-5 overflow-y-auto">
+            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Application Steps</h3>
+            <div className="space-y-3">
+              {visibleSteps.map((step, index) => {
+                const isActive = currentStep === step.id;
+                const isCompleted = currentStep > step.id;
+                const isClickable = step.id <= currentStep;
+                return (
+                  <button key={step.id} onClick={() => { if (isClickable) setCurrentStep(step.id); }} disabled={!isClickable}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors ${isActive ? 'bg-blue-50 border-l-2 border-blue-600 text-blue-700' : isCompleted ? 'text-gray-700 hover:bg-gray-50' : 'text-gray-400 cursor-not-allowed'}`}>
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0 ${isActive ? 'bg-[#0066B8] text-white' : isCompleted ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
+                      {isCompleted ? <Check className="w-3 h-3" /> : index + 1}
+                    </div>
+                    <span className="text-xs">{step.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* OTP Verification Modal */}
@@ -916,7 +925,7 @@ export function CustomerJourneyPage() {
                           className={`w-10 h-10 text-center border rounded-lg text-sm font-medium focus:ring-2 focus:ring-blue-500 ${emailVerified ? 'border-green-300 bg-green-50 text-green-700' : 'border-gray-300'}`} disabled={emailVerified} />
                       ))}
                     </div>
-                    {!emailVerified && <button onClick={verifyEmailOtp} disabled={verifyingEmail} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm disabled:opacity-50 flex items-center gap-2">{verifyingEmail ? <Loader2 className="w-4 h-4 animate-spin" /> : null}{verifyingEmail ? 'Verifying...' : 'Verify'}</button>}
+                    {!emailVerified && <button onClick={verifyEmailOtp} disabled={verifyingEmail} className="px-4 py-2 bg-[#0066B8] text-white rounded-lg hover:bg-[#005299] text-sm disabled:opacity-50 flex items-center gap-2">{verifyingEmail ? <Loader2 className="w-4 h-4 animate-spin" /> : null}{verifyingEmail ? 'Verifying...' : 'Verify'}</button>}
                   </div>
                   {!emailVerified && <div className="mt-2">{emailResendTimer > 0 ? <p className="text-xs text-gray-400">Resend code in {emailResendTimer}s</p> : <button onClick={resendEmailOtp} className="text-xs text-blue-600 hover:text-blue-700 font-medium">Resend Code</button>}</div>}
                 </div>
@@ -930,11 +939,11 @@ export function CustomerJourneyPage() {
                           className={`w-10 h-10 text-center border rounded-lg text-sm font-medium focus:ring-2 focus:ring-blue-500 ${mobileVerified ? 'border-green-300 bg-green-50 text-green-700' : 'border-gray-300'}`} disabled={mobileVerified} />
                       ))}
                     </div>
-                    {!mobileVerified && <button onClick={verifyMobileOtp} disabled={verifyingMobile} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm disabled:opacity-50 flex items-center gap-2">{verifyingMobile ? <Loader2 className="w-4 h-4 animate-spin" /> : null}{verifyingMobile ? 'Verifying...' : 'Verify'}</button>}
+                    {!mobileVerified && <button onClick={verifyMobileOtp} disabled={verifyingMobile} className="px-4 py-2 bg-[#0066B8] text-white rounded-lg hover:bg-[#005299] text-sm disabled:opacity-50 flex items-center gap-2">{verifyingMobile ? <Loader2 className="w-4 h-4 animate-spin" /> : null}{verifyingMobile ? 'Verifying...' : 'Verify'}</button>}
                   </div>
                   {!mobileVerified && <div className="mt-2">{mobileResendTimer > 0 ? <p className="text-xs text-gray-400">Resend code in {mobileResendTimer}s</p> : <button onClick={resendMobileOtp} className="text-xs text-blue-600 hover:text-blue-700 font-medium">Resend Code</button>}</div>}
                 </div>
-                <button onClick={handleOtpComplete} disabled={!emailVerified || !mobileVerified} className="w-full py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors">Complete Verification</button>
+                <button onClick={handleOtpComplete} disabled={!emailVerified || !mobileVerified} className="w-full py-2.5 bg-[#0066B8] text-white rounded-lg hover:bg-[#005299] text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors">Complete Verification</button>
               </>
             ) : (
               <div className="text-center py-6">
@@ -944,7 +953,7 @@ export function CustomerJourneyPage() {
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
                   <div className="flex items-start gap-2"><Mail className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" /><p className="text-sm text-blue-800">We have sent you a welcome email at <span className="font-medium">{profileData.email}</span> with a temporary password.</p></div>
                 </div>
-                <button onClick={handleProfileSuccessContinue} className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium transition-colors">Continue</button>
+                <button onClick={handleProfileSuccessContinue} className="px-6 py-2.5 bg-[#0066B8] text-white rounded-lg hover:bg-[#005299] text-sm font-medium transition-colors">Continue</button>
                 <p className="text-xs text-gray-400 mt-3">Auto-redirecting in {profileRedirectTimer}s</p>
               </div>
             )}
@@ -967,12 +976,12 @@ export function CustomerJourneyPage() {
                     <Building2 className="w-5 h-5 text-gray-400" /><span className="text-sm font-medium text-gray-900">{bank}</span>{selectedBank === bank && <CheckCircle className="w-4 h-4 text-blue-600 ml-auto" />}
                   </button>
                 ))}
-                <button onClick={handleConnectBank} disabled={!selectedBank} className="w-full mt-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium disabled:opacity-50 transition-colors">Connect to {selectedBank || 'Bank'}</button>
+                <button onClick={handleConnectBank} disabled={!selectedBank} className="w-full mt-4 py-2.5 bg-[#0066B8] text-white rounded-lg hover:bg-[#005299] text-sm font-medium disabled:opacity-50 transition-colors">Connect to {selectedBank || 'Bank'}</button>
               </div>
             )}
             {connectStep === 'auth' && (
               <div className="text-center py-6">
-                {isConnecting ? (<><Loader2 className="w-10 h-10 text-blue-600 animate-spin mx-auto mb-4" /><p className="text-sm text-gray-600">Connecting to {selectedBank}...</p></>) : (<><Building2 className="w-10 h-10 text-blue-600 mx-auto mb-4" /><p className="text-sm text-gray-600 mb-4">You will be redirected to {selectedBank}'s secure portal.</p><button onClick={handleAuthenticate} className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">Authenticate with {selectedBank}</button></>)}
+                {isConnecting ? (<><Loader2 className="w-10 h-10 text-blue-600 animate-spin mx-auto mb-4" /><p className="text-sm text-gray-600">Connecting to {selectedBank}...</p></>) : (<><Building2 className="w-10 h-10 text-blue-600 mx-auto mb-4" /><p className="text-sm text-gray-600 mb-4">You will be redirected to {selectedBank}'s secure portal.</p><button onClick={handleAuthenticate} className="px-6 py-2.5 bg-[#0066B8] text-white rounded-lg hover:bg-[#005299] text-sm font-medium">Authenticate with {selectedBank}</button></>)}
               </div>
             )}
             {connectStep === 'success' && (
@@ -980,7 +989,7 @@ export function CustomerJourneyPage() {
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4"><CheckCircle className="w-8 h-8 text-green-600" /></div>
                 <h4 className="text-lg font-semibold text-gray-900 mb-2">Bank Connected</h4>
                 <p className="text-sm text-gray-500 mb-4">Your {selectedBank} statements have been fetched successfully.</p>
-                <button onClick={closeConnectModal} className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">Done</button>
+                <button onClick={closeConnectModal} className="px-6 py-2.5 bg-[#0066B8] text-white rounded-lg hover:bg-[#005299] text-sm font-medium">Done</button>
               </div>
             )}
           </div>
@@ -993,7 +1002,7 @@ export function CustomerJourneyPage() {
           <div className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6 max-h-[80vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4"><h3 className="text-lg font-semibold text-gray-900">Terms and Conditions</h3><button onClick={() => setShowTermsModal(false)} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button></div>
             <p className="text-sm text-gray-600 leading-relaxed">These Terms and Conditions govern your use of the Bank X Supply Chain Finance platform. By submitting your application, you agree to provide accurate information and authorize Bank X to verify your business details through third-party services.</p>
-            <button onClick={() => setShowTermsModal(false)} className="mt-6 w-full py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">Close</button>
+            <button onClick={() => setShowTermsModal(false)} className="mt-6 w-full py-2.5 bg-[#0066B8] text-white rounded-lg hover:bg-[#005299] text-sm font-medium">Close</button>
           </div>
         </div>
       )}
@@ -1004,7 +1013,28 @@ export function CustomerJourneyPage() {
           <div className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6 max-h-[80vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4"><h3 className="text-lg font-semibold text-gray-900">Privacy Policy</h3><button onClick={() => setShowPrivacyModal(false)} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button></div>
             <p className="text-sm text-gray-600 leading-relaxed">Bank X is committed to protecting your privacy. We collect and process your business information solely for the purpose of evaluating your supply chain financing application. Your data is stored securely and shared only with authorized verification partners.</p>
-            <button onClick={() => setShowPrivacyModal(false)} className="mt-6 w-full py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">Close</button>
+            <button onClick={() => setShowPrivacyModal(false)} className="mt-6 w-full py-2.5 bg-[#0066B8] text-white rounded-lg hover:bg-[#005299] text-sm font-medium">Close</button>
+          </div>
+        </div>
+      )}
+
+      {/* Application Submitted Success Modal */}
+      {showSubmitSuccess && (
+        <div className="fixed inset-0 bg-gray-500/30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg p-8 text-center">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5">
+              <CheckCircle className="w-8 h-8 text-green-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">Application Submitted Successfully</h3>
+            <p className="text-sm text-gray-600 mb-6 max-w-sm mx-auto">
+              Your application is submitted and is under review. You can check for the latest updates to your application from your Bank X Merchant Portal.
+            </p>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <p className="text-sm text-blue-800">Redirecting you to portal in <span className="font-semibold">{submitRedirectTimer}</span> seconds...</p>
+            </div>
+            <button onClick={() => navigate('/applications')} className="px-6 py-2.5 bg-[#0066B8] text-white rounded-lg hover:bg-[#005299] text-sm font-medium transition-colors">
+              Go to Portal Now
+            </button>
           </div>
         </div>
       )}

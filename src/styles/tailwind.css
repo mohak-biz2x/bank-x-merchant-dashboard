@@ -2,3 +2,93 @@
 @source '../**/*.{js,ts,jsx,tsx}';
 
 @import 'tw-animate-css';
+
+/* Bank X Theme - Global overrides */
+@layer base {
+  html {
+    font-size: 13px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Compact buttons globally — exclude rounded-full (avatars, FABs) */
+  button:not([class*="rounded-full"]), a[class*="rounded"]:not([class*="rounded-full"]) {
+    border-radius: 4px !important;
+  }
+
+  /* Smaller button padding */
+  button[class*="py-2.5"] {
+    padding-top: 0.4rem !important;
+    padding-bottom: 0.4rem !important;
+  }
+
+  button[class*="py-2"] {
+    padding-top: 0.35rem !important;
+    padding-bottom: 0.35rem !important;
+  }
+
+  button[class*="px-6"] {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  button[class*="px-5"] {
+    padding-left: 0.875rem !important;
+    padding-right: 0.875rem !important;
+  }
+
+  /* Modal headers - dark blue like Bank X */
+  div[class*="rounded-xl"][class*="shadow-xl"] > div:first-child {
+    border-radius: 0.5rem 0.5rem 0 0;
+  }
+}
+
+/* Bank X modal header style */
+.bankx-modal-header {
+  background: #312B6B;
+  color: white;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.5rem 0.5rem 0 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+/* Compact form inputs globally */
+input[type="text"], input[type="email"], input[type="tel"], input[type="number"], input[type="password"], select, textarea {
+  font-size: 0.8125rem !important;
+  padding: 0.375rem 0.625rem !important;
+  line-height: 1.4 !important;
+}
+
+label {
+  font-size: 0.75rem !important;
+}
+
+/* Bank X Table Style */
+table thead tr {
+  background: #CFD1D2 !important;
+}
+
+table thead th {
+  color: #1a1a1a !important;
+  font-size: 0.6875rem !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.03em !important;
+  padding: 0.625rem 0.75rem !important;
+  white-space: nowrap !important;
+}
+
+table tbody tr {
+  border-bottom: 1px solid #e5e7eb !important;
+}
+
+table tbody tr:hover {
+  background: #f9fafb !important;
+}
+
+table tbody td {
+  padding: 0.625rem 0.75rem !important;
+  font-size: 0.75rem !important;
+  vertical-align: middle !important;
+}

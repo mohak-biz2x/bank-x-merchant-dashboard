@@ -314,7 +314,7 @@ export function BuyerInvoicesModule() {
           </div>
           <button
             onClick={() => setShowAddForm(true)}
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            className="flex items-center gap-2 bg-[#0066B8] text-white px-4 py-2 rounded-lg hover:bg-[#00549a] transition-colors font-medium"
           >
             <Plus className="w-4 h-4" />
             New Invoice Request
@@ -417,16 +417,14 @@ export function BuyerInvoicesModule() {
       {/* Add Invoice Modal */}
       {showAddForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded max-w-3xl w-full max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
-            <div className="p-6 border-b border-gray-200 flex items-center justify-between sticky top-0 bg-white">
+            <div className="px-5 py-3 flex items-center justify-between sticky top-0 bg-[#312B6B] text-white rounded-t">
               <div>
-                <h3 className="text-xl font-semibold text-gray-900">New Invoice Request</h3>
-                {!showSuccess && !verifying && <p className="text-sm text-gray-500 mt-1">Step {currentStep} of 4</p>}
+                <h3 className="text-base font-semibold text-white">New Invoice Request</h3>
+                {!showSuccess && !verifying && <p className="text-xs text-white/60 mt-0.5">Step {currentStep} of 4</p>}
               </div>
-              <button onClick={resetForm} className="text-gray-400 hover:text-gray-600">
-                <X className="w-5 h-5" />
-              </button>
+              <button onClick={resetForm} className="text-white/60 hover:text-white"><X className="w-5 h-5" /></button>
             </div>
 
             {verifying ? (
@@ -455,7 +453,7 @@ export function BuyerInvoicesModule() {
                     </p>
                     <button
                       onClick={resetForm}
-                      className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                      className="px-6 py-2 bg-[#0066B8] text-white rounded-lg hover:bg-[#00549a] transition-colors font-medium"
                     >
                       Done
                     </button>
@@ -476,7 +474,7 @@ export function BuyerInvoicesModule() {
                     </div>
                     <button
                       onClick={resetForm}
-                      className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                      className="px-6 py-2 bg-[#0066B8] text-white rounded-lg hover:bg-[#00549a] transition-colors font-medium"
                     >
                       Done
                     </button>
@@ -494,7 +492,7 @@ export function BuyerInvoicesModule() {
                 </p>
                 <button
                   onClick={resetForm}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                  className="px-6 py-2 bg-[#0066B8] text-white rounded-lg hover:bg-[#00549a] transition-colors font-medium"
                 >
                   Done
                 </button>
@@ -515,7 +513,7 @@ export function BuyerInvoicesModule() {
                       <div
                         className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                           currentStep >= item.step
-                            ? "bg-blue-600 text-white"
+                            ? "bg-[#0066B8] text-white"
                             : "bg-gray-200 text-gray-600"
                         }`}
                       >
@@ -851,7 +849,7 @@ export function BuyerInvoicesModule() {
                     (currentStep === 2 && (lineItems.every(i => !i.invoiceNumber.trim() || !i.invoiceAmount) || lineItems.every(i => !i.invoiceCopy || !i.deliveryNote))) ||
                     (currentStep === 3 && !financingTenor)
                   }
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-2 bg-[#0066B8] text-white rounded-lg hover:bg-[#00549a] transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Continue
                 </button>
@@ -873,15 +871,13 @@ export function BuyerInvoicesModule() {
       {/* Terms Modal */}
       {showTermsModal && selectedInvoiceForTerms && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+          <div className="bg-white rounded max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div className="px-5 py-3 flex items-center justify-between bg-[#312B6B] text-white rounded-t">
               <div>
-                <h3 className="text-xl font-semibold text-gray-900">Approval Terms</h3>
-                <p className="text-sm text-gray-500 mt-1">{selectedInvoiceForTerms.id} — {selectedInvoiceForTerms.supplierName}</p>
+                <h3 className="text-base font-semibold text-white">Approval Terms</h3>
+                <p className="text-xs text-white/60 mt-0.5">{selectedInvoiceForTerms.id} — {selectedInvoiceForTerms.supplierName}</p>
               </div>
-              <button onClick={() => setShowTermsModal(false)} className="text-gray-400 hover:text-gray-600">
-                <X className="w-5 h-5" />
-              </button>
+              <button onClick={() => setShowTermsModal(false)} className="text-white/60 hover:text-white"><X className="w-5 h-5" /></button>
             </div>
 
             {showTermsAccepted ? (
@@ -895,7 +891,7 @@ export function BuyerInvoicesModule() {
                 </p>
                 <button
                   onClick={() => { setShowTermsModal(false); setSelectedInvoiceForTerms(null); setShowTermsAccepted(false); }}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                  className="px-6 py-2 bg-[#0066B8] text-white rounded-lg hover:bg-[#00549a] transition-colors font-medium"
                 >
                   Done
                 </button>

@@ -43,10 +43,10 @@ export const router = createHashRouter([
         path: "payable-invoices",
         Component: BuyerInvoicesModule,
       },
+      {
+        path: "applications",
+        Component: ApplicationsModule,
+      },
     ],
-  },
-  {
-    path: "/applications",
-    Component: ApplicationsModule,
   },
 ]);

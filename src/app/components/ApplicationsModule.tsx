@@ -1,6 +1,6 @@
 import { useState, Fragment } from "react";
 import { useNavigate } from "react-router";
-import { FileText, ChevronDown, ChevronUp, Upload, CheckCircle, Clock, AlertCircle, MoreVertical, X, ShieldCheck, ArrowLeft, Building2 } from "lucide-react";
+import { FileText, ChevronDown, ChevronUp, Upload, CheckCircle, Clock, AlertCircle, MoreVertical, X, ShieldCheck, ArrowLeft } from "lucide-react";
 
 type AppStatus = "in_progress" | "kyc_verification" | "analysis" | "credit_decisioning" | "invoice_processing" | "security_onboarding" | "limit_approved" | "rejected";
 
@@ -113,27 +113,10 @@ export function ApplicationsModule({ onSecurityOnboarding, embedded }: Applicati
 
   return (
     <div className={embedded ? "" : "min-h-screen bg-gray-50"}>
-      {!embedded && (
-        <header className="bg-white border-b-2 border-blue-600 px-6 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center"><Building2 className="w-5 h-5 text-white" /></div>
-                <div><h1 className="text-lg font-semibold text-gray-900">Bank X</h1><p className="text-xs text-gray-500">Supply Chain Finance</p></div>
-              </div>
-            </div>
-            <button onClick={() => navigate('/')} className="flex items-center gap-2 text-sm text-gray-700 hover:text-blue-600 transition-colors">
-              <ArrowLeft className="w-4 h-4" /> Back to Dashboard
-            </button>
-          </div>
-        </header>
-      )}
       <div className="p-6 max-w-7xl mx-auto">
-      {embedded && (
-        <button onClick={() => { localStorage.setItem("merchant_underwriting_status", "none"); window.dispatchEvent(new Event("demo-role-change")); navigate('/'); }} className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 transition-colors mb-4">
-          <ArrowLeft className="w-4 h-4" /> Back to Dashboard
-        </button>
-      )}
+      <button onClick={() => { if (embedded) { localStorage.setItem("merchant_underwriting_status", "none"); window.dispatchEvent(new Event("demo-role-change")); } navigate('/'); }} className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 transition-colors mb-4">
+        <ArrowLeft className="w-4 h-4" /> Back to Dashboard
+      </button>
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-2xl font-semibold text-gray-900">Your Loan Applications</h2>

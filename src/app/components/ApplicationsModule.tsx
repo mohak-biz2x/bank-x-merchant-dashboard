@@ -333,7 +333,7 @@ export function ApplicationsModule({ onSecurityOnboarding, embedded }: Applicati
             )}
 
             {/* Step 1: Agreements */}
-            {securityStep === 1 && (
+            {securityStep === 1 && !showStpSuccess && (
               <div>
                 <h4 className="text-sm font-semibold text-gray-900 mb-1">Sign Digital Agreements</h4>
                 <p className="text-xs text-gray-500 mb-4">Review and e-sign the following agreements to proceed.</p>
@@ -366,12 +366,12 @@ export function ApplicationsModule({ onSecurityOnboarding, embedded }: Applicati
                 <div className="mt-5 flex justify-end">
                   <button
                     onClick={() => {
-                      if (isStp) { setShowStpSuccess(true); setStpTimer(10); }
+                      if (isStp) { setShowStpSuccess(true); setStpTimer(5); }
                       else { setSecurityStep(2); }
                     }}
                     disabled={!signedAgreements.financing || !signedAgreements.assignmentReceivables}
                     className={`px-5 py-2 rounded-lg text-sm font-medium ${signedAgreements.financing && signedAgreements.assignmentReceivables ? "bg-[#0066B8] text-white hover:bg-[#00549a]" : "bg-gray-200 text-gray-400 cursor-not-allowed"}`}
-                  >Continue</button>
+                  >{isStp ? "Submit" : "Continue"}</button>
                 </div>
               </div>
             )}

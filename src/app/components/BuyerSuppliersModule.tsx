@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router";
 import { showToast } from "./Toast";
 
-type SupplierStatus = "verification_pending" | "onboarding_pending" | "active";
+type SupplierStatus = "onboarding_pending" | "active";
 
 interface Supplier {
   id: string;
@@ -104,13 +104,6 @@ export function BuyerSuppliersModule() {
 
   const getStatusBadge = (status: SupplierStatus) => {
     switch (status) {
-      case "verification_pending":
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
-            <Clock className="w-3 h-3" />
-            Verification Pending
-          </span>
-        );
       case "onboarding_pending":
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
@@ -132,7 +125,7 @@ export function BuyerSuppliersModule() {
     const newSupplier: Supplier = {
       id: `SUP-${String(suppliers.length + 1).padStart(3, '0')}`,
       ...formData,
-      status: "verification_pending",
+      status: "onboarding_pending",
       addedDate: new Date().toISOString().split('T')[0],
     };
     setSuppliers([...suppliers, newSupplier]);
@@ -244,9 +237,6 @@ export function BuyerSuppliersModule() {
                         View Link
                       </button>
                     )}
-                    {supplier.status === "verification_pending" && (
-                      <span className="text-gray-400 text-xs">Pending</span>
-                    )}
                   </td>
                 </tr>
               ))}
@@ -269,7 +259,7 @@ export function BuyerSuppliersModule() {
             <div className="px-5 py-3 flex items-center justify-between sticky top-0 bg-[#312B6B] text-white rounded-t">
               <div>
                 <h3 className="text-base font-semibold text-white">Add Supplier</h3>
-                <p className="text-xs text-white/60 mt-0.5">Step {addStep} of 3</p>
+                {!showAddSuccess && <p className="text-xs text-white/60 mt-0.5">Step {addStep} of 3</p>}
               </div>
               <button onClick={resetAddForm} className="text-white/60 hover:text-white"><X className="w-5 h-5" /></button>
             </div>

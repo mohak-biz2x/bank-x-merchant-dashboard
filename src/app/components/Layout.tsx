@@ -45,9 +45,7 @@ export function Layout() {
     localStorage.setItem("demo_merchant_role", newRole);
     window.dispatchEvent(new Event("demo-role-change"));
     setShowDemoPanel(false);
-    if (newRole === "supplier-only") {
-      navigate("/");
-    }
+    navigate("/");
   };
 
 

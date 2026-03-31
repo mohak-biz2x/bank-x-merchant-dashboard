@@ -84,7 +84,6 @@ export function PremiumBuyerInvoices() {
   const [invoices, setInvoices] = useState(INIT);
   const [viewInv, setViewInv] = useState<Invoice | null>(null);
   const [approveInv, setApproveInv] = useState<Invoice | null>(null);
-  const [approveStep, setApproveStep] = useState<1 | 2>(1);
   const [signStatus, setSignStatus] = useState<"idle" | "signing" | "signed">("idle");
 
   const fmt = (n: number) =>
@@ -99,13 +98,13 @@ export function PremiumBuyerInvoices() {
       )
     );
     showToast("success", "Invoice approved and NOA signed.");
-    closeApproveModal();
+    setApproveInv(null);
+    setSignStatus("idle");
     setViewInv(null);
   };
 
   const closeApproveModal = () => {
     setApproveInv(null);
-    setApproveStep(1);
     setSignStatus("idle");
   };
 
@@ -241,98 +240,60 @@ export function PremiumBuyerInvoices() {
         </div>
       )}
 
-      {/* Unified Approve & Sign NOA Modal */}
+      {/* Approve & Sign NOA Modal — NOA shown upfront */}
       {approveInv && (
         <div className="fixed inset-0 bg-gray-500/30 flex items-center justify-center z-[60] p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
             {/* Header */}
             <div className="px-5 py-3 bg-[#312B6B] rounded-t-lg flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <h3 className="text-sm font-semibold text-white">Invoice Approval</h3>
+                <h3 className="text-sm font-semibold text-white">Approve & Sign NOA</h3>
                 <span className="text-xs text-white/50">·</span>
                 <span className="text-xs text-white/70">{approveInv.id}</span>
               </div>
               <button onClick={closeApproveModal} className="text-white/50 hover:text-white"><X className="w-4 h-4" /></button>
             </div>
 
-            {/* Step indicator */}
-            <div className="px-5 pt-4 pb-2">
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-2 flex-1">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${approveStep >= 1 ? "bg-[#0066B8] text-white" : "bg-gray-200 text-gray-500"}`}>
-                    {approveStep > 1 ? <CheckCircle className="w-3.5 h-3.5" /> : "1"}
-                  </div>
-                  <span className={`text-xs font-medium ${approveStep === 1 ? "text-gray-900" : "text-green-700"}`}>Confirm</span>
-                </div>
-                <div className={`h-px flex-1 ${approveStep > 1 ? "bg-[#0066B8]" : "bg-gray-200"}`} />
-                <div className="flex items-center gap-2 flex-1 justify-end">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${approveStep >= 2 ? "bg-[#0066B8] text-white" : "bg-gray-200 text-gray-500"}`}>
-                    {signStatus === "signed" ? <CheckCircle className="w-3.5 h-3.5" /> : "2"}
-                  </div>
-                  <span className={`text-xs font-medium ${approveStep === 2 ? "text-gray-900" : "text-gray-400"}`}>Sign NOA</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Step 1: Confirm */}
-            {approveStep === 1 && (
-              <div className="px-5 pb-5 pt-3">
-                <div className="text-center mb-4">
-                  <div className="w-11 h-11 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <CheckCircle className="w-5 h-5 text-green-600" />
-                  </div>
-                  <h3 className="text-base font-semibold text-gray-900 mb-1">Confirm Approval</h3>
-                  <p className="text-sm text-gray-500">Review the details below and proceed to sign the NOA.</p>
-                </div>
+            {/* Ready to sign */}
+            {signStatus === "idle" && (
+              <div className="p-5">
+                {/* Invoice summary */}
                 <div className="bg-gray-50 rounded-lg p-3 mb-4 text-sm">
                   <div className="flex justify-between mb-1"><span className="text-gray-500">Supplier</span><span className="font-medium text-gray-900">{approveInv.supplierName}</span></div>
                   <div className="flex justify-between mb-1"><span className="text-gray-500">Invoices</span><span className="font-medium text-gray-900">{approveInv.lineItems.length}</span></div>
                   <div className="flex justify-between"><span className="text-gray-500">Amount</span><span className="font-medium text-gray-900">{fmt(approveInv.totalAmount)}</span></div>
                 </div>
-                <div className="flex gap-3">
-                  <button onClick={closeApproveModal} className="flex-1 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50">Cancel</button>
-                  <button onClick={() => setApproveStep(2)} className="flex-1 py-2 bg-[#0066B8] text-white rounded-lg text-sm font-medium hover:bg-[#005299]">Proceed to Sign NOA</button>
-                </div>
-              </div>
-            )}
 
-            {/* Step 2: Sign NOA — idle */}
-            {approveStep === 2 && signStatus === "idle" && (
-              <div className="px-5 pb-5 pt-3">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-6 h-6 bg-[#1A1A1A] rounded flex items-center justify-center">
-                    <PenLine className="w-3.5 h-3.5 text-[#FFCC00]" />
-                  </div>
-                  <span className="text-xs font-bold text-gray-700">DocuSign</span>
-                  <span className="text-xs text-gray-400 ml-auto">Secure e-Signature</span>
-                </div>
-
-                <div className="border border-gray-200 rounded-lg p-3 mb-3 bg-gray-50">
-                  <div className="flex items-center gap-3">
-                    <FileText className="w-7 h-7 text-red-500 flex-shrink-0" />
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">NOA-{approveInv.id}.pdf</p>
-                      <p className="text-xs text-gray-500">Notice of Assignment · {approveInv.supplierName}</p>
+                {/* NOA Document */}
+                <div className="border border-gray-200 rounded-lg overflow-hidden mb-4">
+                  <div className="bg-[#FFCC00]/10 px-4 py-2 border-b border-gray-200 flex items-center gap-2">
+                    <div className="w-5 h-5 bg-[#1A1A1A] rounded flex items-center justify-center">
+                      <PenLine className="w-3 h-3 text-[#FFCC00]" />
                     </div>
+                    <span className="text-xs font-semibold text-gray-700">DocuSign — Notice of Assignment</span>
                     <span className="ml-auto text-xs text-blue-600 flex items-center gap-1 cursor-pointer hover:underline">
                       <ExternalLink className="w-3 h-3" />Preview
                     </span>
                   </div>
+                  <div className="p-4">
+                    <div className="flex items-center gap-3 mb-3">
+                      <FileText className="w-8 h-8 text-red-500 flex-shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">NOA-{approveInv.id}.pdf</p>
+                        <p className="text-xs text-gray-500">Notice of Assignment · {approveInv.supplierName}</p>
+                      </div>
+                    </div>
+                    <div className="bg-amber-50 border border-amber-200 rounded p-2.5 text-xs text-amber-800">
+                      By approving, you confirm the invoice details and electronically sign the NOA. This is legally binding.
+                    </div>
+                  </div>
                 </div>
-
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 text-sm">
-                  <div className="flex justify-between mb-1"><span className="text-gray-500">Invoice Request</span><span className="font-medium text-gray-900">{approveInv.id}</span></div>
-                  <div className="flex justify-between mb-1"><span className="text-gray-500">Supplier</span><span className="font-medium text-gray-900">{approveInv.supplierName}</span></div>
-                  <div className="flex justify-between"><span className="text-gray-500">Amount</span><span className="font-medium text-gray-900">{fmt(approveInv.totalAmount)}</span></div>
-                </div>
-
-                <p className="text-xs text-gray-400 mb-4">By clicking "Sign & Approve" you agree to electronically sign this document. This is legally binding.</p>
 
                 <div className="flex gap-3">
-                  <button onClick={() => setApproveStep(1)} className="flex-1 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50">Back</button>
+                  <button onClick={closeApproveModal} className="flex-1 py-2.5 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50">Cancel</button>
                   <button
                     onClick={() => { setSignStatus("signing"); setTimeout(() => setSignStatus("signed"), 2000); }}
-                    className="flex-1 py-2 bg-[#FFCC00] text-[#1A1A1A] rounded-lg text-sm font-semibold hover:bg-yellow-400 flex items-center justify-center gap-2"
+                    className="flex-1 py-2.5 bg-[#FFCC00] text-[#1A1A1A] rounded-lg text-sm font-semibold hover:bg-yellow-400 flex items-center justify-center gap-2"
                   >
                     <PenLine className="w-4 h-4" />
                     Sign & Approve
@@ -341,10 +302,10 @@ export function PremiumBuyerInvoices() {
               </div>
             )}
 
-            {/* Step 2: Signing */}
-            {approveStep === 2 && signStatus === "signing" && (
-              <div className="px-5 pb-6 pt-3">
-                <div className="py-6 text-center">
+            {/* Signing in progress */}
+            {signStatus === "signing" && (
+              <div className="p-5">
+                <div className="py-8 text-center">
                   <div className="w-12 h-12 border-4 border-[#FFCC00] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
                   <p className="text-sm font-semibold text-gray-900">Applying your signature...</p>
                   <p className="text-xs text-gray-500 mt-1">Please wait while DocuSign processes your signature.</p>
@@ -352,12 +313,12 @@ export function PremiumBuyerInvoices() {
               </div>
             )}
 
-            {/* Step 2: Signed */}
-            {approveStep === 2 && signStatus === "signed" && (
-              <div className="px-5 pb-5 pt-3">
+            {/* Signed successfully */}
+            {signStatus === "signed" && (
+              <div className="p-5">
                 <div className="text-center mb-4">
-                  <div className="w-11 h-11 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <ShieldCheck className="w-5 h-5 text-green-600" />
+                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <ShieldCheck className="w-6 h-6 text-green-600" />
                   </div>
                   <h3 className="text-sm font-semibold text-gray-900 mb-1">NOA Signed Successfully</h3>
                   <p className="text-xs text-gray-500">Your electronic signature has been applied.</p>

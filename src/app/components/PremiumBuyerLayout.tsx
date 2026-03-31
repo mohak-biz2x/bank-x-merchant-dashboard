@@ -1,14 +1,13 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
-import { LayoutDashboard, FileText, LogOut, Building2, FlaskConical, X, Zap } from "lucide-react";
+import { LayoutDashboard, FileText, Building2, LogOut, FlaskConical, X, Zap } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { getMerchantRole, getUnderwritingStatus, getStpEligibility } from "./MerchantDashboard";
 import type { MerchantRole } from "./MerchantDashboard";
 
-const allNavItems = [
-  { name: "Dashboard", path: "/", icon: LayoutDashboard, roles: ["both", "receivable", "payable"] as MerchantRole[] },
-  { name: "Suppliers", path: "/suppliers", icon: Building2, roles: ["both", "payable"] as MerchantRole[] },
-  { name: "Receivable Invoices", path: "/receivable-invoices", icon: FileText, roles: ["both", "receivable"] as MerchantRole[] },
-  { name: "Payable Invoices", path: "/payable-invoices", icon: FileText, roles: ["both", "payable"] as MerchantRole[] },
+const navItems = [
+  { name: "Dashboard", path: "/pb", icon: LayoutDashboard },
+  { name: "Suppliers", path: "/pb/suppliers", icon: Building2 },
+  { name: "Payable Invoices", path: "/pb/invoices", icon: FileText },
 ];
 
 const roleOptions: { key: MerchantRole; label: string }[] = [
@@ -19,7 +18,7 @@ const roleOptions: { key: MerchantRole; label: string }[] = [
   { key: "premium-buyer-supplier", label: "Supplier of Premium Buyer" },
 ];
 
-export function Layout() {
+export function PremiumBuyerLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -47,99 +46,58 @@ export function Layout() {
     localStorage.setItem("demo_merchant_role", newRole);
     window.dispatchEvent(new Event("demo-role-change"));
     setShowDemoPanel(false);
-    navigate("/");
+    // Navigate away from premium buyer layout for all non-premium-buyer roles
+    if (newRole !== "premium-buyer") {
+      navigate("/");
+    }
   };
 
-
-  const navItems = (uwStatus === "pending" || uwStatus === "approved" || uwStatus === "security-pending")
-    ? []
-    : allNavItems.filter((item) => item.roles.includes(role));
-  const isActive = (path: string) => {
-    if (path === "/") return location.pathname === "/";
-    return location.pathname.startsWith(path);
-  };
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) setShowProfileMenu(false);
-      if (demoPanelRef.current && !demoPanelRef.current.contains(event.target as Node)) setShowDemoPanel(false);
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+  const ref = profileMenuRef;
+  const isActive = (p: string) => p === "/pb" ? location.pathname === "/pb" : location.pathname.startsWith(p);
+  
+  useEffect(() => { 
+    const h = (e: MouseEvent) => { 
+      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target as Node)) setShowProfileMenu(false); 
+      if (demoPanelRef.current && !demoPanelRef.current.contains(e.target as Node)) setShowDemoPanel(false);
+    }; 
+    document.addEventListener("mousedown", h); 
+    return () => document.removeEventListener("mousedown", h); 
   }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <header className="sticky top-0 z-50">
-        {/* Dark header bar */}
         <div className="bg-[#312B6B] px-6 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-5">
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold text-white tracking-tight">BANK<span className="text-blue-400">X</span></h1>
-              </div>
-              <div className="h-6 w-px bg-white/20"></div>
-              <div className="flex items-center gap-2">
-                <Building2 className="w-4 h-4 text-white/60" />
-                <p className="text-sm text-white/90">
-                  {role === "supplier-only" 
-                    ? "Falcon Steel Industries LLC" 
-                    : role === "premium-buyer" 
-                    ? "Gulf Trading Co." 
-                    : role === "premium-buyer-supplier"
-                    ? "Falcon Steel Industries LLC"
-                    : "Al Masraf Industries LLC"}
-                </p>
-              </div>
+              <h1 className="text-xl font-bold text-white tracking-tight">BANK<span className="text-blue-400">X</span></h1>
+              <div className="h-6 w-px bg-white/20" />
+              <p className="text-sm text-white/90">Gulf Trading Enterprises LLC</p>
+              <span className="px-2 py-0.5 bg-amber-400/20 text-amber-300 text-xs font-medium rounded">Premium Buyer</span>
             </div>
             <div className="flex items-center gap-3">
-              <p className="text-sm text-white/90">Logged in as <span className="font-medium text-white">
-                {role === "supplier-only" 
-                  ? "Rashid Al Farsi" 
-                  : role === "premium-buyer" 
-                  ? "Sarah Al-Mansouri" 
-                  : role === "premium-buyer-supplier"
-                  ? "Rashid Al Farsi"
-                  : "Ahmed Al Mansouri"}
-              </span></p>
-              <div className="relative" ref={profileMenuRef}>
-                <button onClick={() => setShowProfileMenu(!showProfileMenu)} className="w-9 h-9 rounded-full bg-teal-500 flex items-center justify-center text-white font-medium hover:bg-teal-600 transition-colors">
-                  {role === "supplier-only" 
-                    ? "R" 
-                    : role === "premium-buyer" 
-                    ? "SA" 
-                    : role === "premium-buyer-supplier"
-                    ? "R"
-                    : "A"}
-                </button>
+              <p className="text-sm text-white/90">Sarah Al-Mansouri</p>
+              <div className="relative" ref={ref}>
+                <button onClick={() => setShowProfileMenu(!showProfileMenu)} className="w-9 h-9 rounded-full bg-teal-500 flex items-center justify-center text-white font-medium hover:bg-teal-600">SA</button>
                 {showProfileMenu && (
                   <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                    <button onClick={() => { setShowProfileMenu(false); navigate('/applications'); }} className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3"><FileText className="w-4 h-4 text-blue-500" />My Applications</button>
-                    <div className="border-t border-gray-200 my-2"></div>
-                    <button onClick={() => { setShowProfileMenu(false); navigate('/login'); }} className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-3"><LogOut className="w-4 h-4" />Logout</button>
+                    <button onClick={() => { setShowProfileMenu(false); navigate('/login'); }} className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-3"><LogOut className="w-4 h-4" /> Logout</button>
                   </div>
                 )}
               </div>
             </div>
           </div>
         </div>
-        {/* Nav tabs */}
-        {navItems.length > 0 && location.pathname !== "/applications" && (
         <div className="bg-white border-b border-gray-200 px-6">
           <nav className="flex items-center gap-0">
-            {navItems.map((item) => {
+            {navItems.map(item => {
               const Icon = item.icon;
-              const active = isActive(item.path);
-              return (<Link key={item.path} to={item.path} className={`flex items-center gap-2 px-4 py-3 text-sm border-b-2 transition-colors ${active ? "border-blue-600 text-blue-600 font-medium" : "border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300"}`}><Icon className="w-4 h-4" />{item.name}</Link>);
+              return <Link key={item.path} to={item.path} className={`flex items-center gap-2 px-4 py-3 text-sm border-b-2 transition-colors ${isActive(item.path) ? "border-blue-600 text-blue-600 font-medium" : "border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300"}`}><Icon className="w-4 h-4" />{item.name}</Link>;
             })}
           </nav>
         </div>
-        )}
       </header>
-
       <main className="flex-1"><Outlet /></main>
-
-      {/* Footer */}
       <footer className="bg-white border-t border-gray-200 px-6 py-5">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
           <div className="flex items-center gap-4">
@@ -151,6 +109,7 @@ export function Layout() {
         </div>
       </footer>
 
+      {/* Demo Panel */}
       <div className="fixed bottom-5 right-5 z-50" ref={demoPanelRef}>
         {showDemoPanel && (
           <div className="absolute bottom-14 right-0 w-72 bg-white rounded-lg shadow-xl border border-gray-200 p-4 mb-2">

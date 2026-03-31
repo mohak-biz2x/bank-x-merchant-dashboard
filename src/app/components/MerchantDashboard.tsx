@@ -2,8 +2,9 @@ import { Wallet, FileText, TrendingUp, Clock, CheckCircle, Building2, Loader2, S
 import { Link, useNavigate } from "react-router";
 import { useState, useEffect } from "react";
 import { ApplicationsModule } from "./ApplicationsModule";
+import { PremiumBuyerSupplierDashboard } from "./PremiumBuyerSupplierDashboard";
 
-export type MerchantRole = "both" | "receivable" | "payable" | "supplier-only";
+export type MerchantRole = "both" | "receivable" | "payable" | "supplier-only" | "premium-buyer" | "premium-buyer-supplier";
 
 export function getMerchantRole(): MerchantRole {
   return (localStorage.getItem("demo_merchant_role") as MerchantRole) || "both";
@@ -159,6 +160,17 @@ export function MerchantDashboard() {
   ];
 
   const filteredModules = modules.filter((mod) => mod.roles.includes(role));
+
+  // Premium buyer - redirect to premium buyer dashboard
+  if (role === "premium-buyer") {
+    navigate("/pb");
+    return null;
+  }
+
+  // Premium buyer supplier dashboard
+  if (role === "premium-buyer-supplier") {
+    return <PremiumBuyerSupplierDashboard />;
+  }
 
   // Supplier-only dashboard (no financing)
   if (role === "supplier-only") {
@@ -1055,7 +1067,7 @@ function SupplierOnlyDashboard() {
                   <th className="text-left py-3 px-3 text-xs font-medium text-gray-500 uppercase">Repayment</th>
                   <th className="text-left py-3 px-3 text-xs font-medium text-gray-500 uppercase">Submitted</th>
                   <th className="text-left py-3 px-3 text-xs font-medium text-gray-500 uppercase">Status</th>
-                  <th className="text-center py-3 px-3 text-xs font-medium text-gray-500 uppercase">Details</th>
+                  <th className="text-left py-3 px-3 text-xs font-medium text-gray-500 uppercase">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -1069,9 +1081,12 @@ function SupplierOnlyDashboard() {
                     <td className="py-3 px-3 text-gray-600 capitalize">{req.repaymentStructure}</td>
                     <td className="py-3 px-3 text-gray-600">{req.submittedDate}</td>
                     <td className="py-3 px-3">{renderStatusBadge(req.status)}</td>
-                    <td className="py-3 px-3 text-center">
-                      <button onClick={() => setSelectedRequest(req)} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                        <Eye className="w-4 h-4" />
+                    <td className="py-3 px-3">
+                      <button 
+                        onClick={() => setSelectedRequest(req)} 
+                        className="text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1 text-sm"
+                      >
+                        <Eye className="w-4 h-4" /> View
                       </button>
                     </td>
                   </tr>
@@ -1083,45 +1098,75 @@ function SupplierOnlyDashboard() {
 
         {/* Detail Modal */}
         {selectedRequest && (
-          <div className="fixed inset-0 bg-gray-500/30 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl shadow-xl max-w-lg w-full mx-4 p-6">
-              <div className="flex items-center justify-between mb-5">
-                <h3 className="text-lg font-semibold text-gray-900">Invoice Request Details</h3>
-                <button onClick={() => setSelectedRequest(null)} className="p-1 text-gray-400 hover:text-gray-600 transition-colors"><X className="w-5 h-5" /></button>
-              </div>
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div><p className="text-xs text-gray-500">Request ID</p><p className="font-medium text-gray-900">{selectedRequest.id}</p></div>
-                  <div><p className="text-xs text-gray-500">Buyer</p><p className="font-medium text-gray-900">{selectedRequest.buyerName}</p></div>
-                  <div><p className="text-xs text-gray-500">Total Amount</p><p className="font-semibold text-gray-900 text-lg">{formatCurrency(selectedRequest.totalAmount)}</p></div>
-                  <div><p className="text-xs text-gray-500">Invoice Files</p><p className="font-medium text-gray-900">{selectedRequest.invoiceFiles} file(s)</p></div>
-                  <div><p className="text-xs text-gray-500">Financing Tenor</p><p className="font-medium text-gray-900">{selectedRequest.financingTenor} days</p></div>
-                  <div><p className="text-xs text-gray-500">Repayment Structure</p><p className="font-medium text-gray-900 capitalize">{selectedRequest.repaymentStructure}</p></div>
-                </div>
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded max-w-lg w-full max-h-[90vh] overflow-y-auto">
+              <div className="px-5 py-3 flex items-center justify-between bg-[#312B6B] text-white rounded-t">
                 <div>
-                  <p className="text-xs text-gray-500 mb-1">Invoice Numbers</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {selectedRequest.invoiceNumbers.map((inv) => (
-                      <span key={inv} className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs font-medium">{inv}</span>
-                    ))}
-                  </div>
+                  <h3 className="text-base font-semibold text-white">Invoice Request Details</h3>
+                  <p className="text-xs text-white/60 mt-0.5">{selectedRequest.id}</p>
                 </div>
-                <div className="border-t border-gray-200 pt-4 grid grid-cols-2 gap-4">
-                  <div><p className="text-xs text-gray-500">Status</p><div className="mt-1">{renderStatusBadge(selectedRequest.status)}</div></div>
-                  <div><p className="text-xs text-gray-500">Submitted Date</p><p className="font-medium text-gray-900">{selectedRequest.submittedDate}</p></div>
+                <button onClick={() => setSelectedRequest(null)} className="text-white/60 hover:text-white">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="p-5 space-y-4">
+                <div className="flex items-center gap-2 mb-2">{renderStatusBadge(selectedRequest.status)}</div>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <p className="text-xs text-gray-500">Buyer</p>
+                    <p className="font-medium text-gray-900">{selectedRequest.buyerName}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">Amount</p>
+                    <p className="font-medium text-gray-900">{formatCurrency(selectedRequest.totalAmount)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">Invoice Numbers</p>
+                    <p className="font-medium text-gray-900">{selectedRequest.invoiceNumbers.join(", ")}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">Financing Tenor</p>
+                    <p className="font-medium text-gray-900">{selectedRequest.financingTenor} days</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">Repayment Structure</p>
+                    <p className="font-medium text-gray-900 capitalize">{selectedRequest.repaymentStructure}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">Submitted</p>
+                    <p className="font-medium text-gray-900">{selectedRequest.submittedDate}</p>
+                  </div>
                   {selectedRequest.approvedDate && (
-                    <div><p className="text-xs text-gray-500">Approved Date</p><p className="font-medium text-gray-900">{selectedRequest.approvedDate}</p></div>
+                    <div>
+                      <p className="text-xs text-gray-500">Approved</p>
+                      <p className="font-medium text-gray-900">{selectedRequest.approvedDate}</p>
+                    </div>
                   )}
                   {selectedRequest.disbursedDate && (
-                    <div><p className="text-xs text-gray-500">Disbursed Date</p><p className="font-medium text-green-700">{selectedRequest.disbursedDate}</p></div>
+                    <div>
+                      <p className="text-xs text-gray-500">Disbursed</p>
+                      <p className="font-medium text-gray-900">{selectedRequest.disbursedDate}</p>
+                    </div>
                   )}
+                  <div>
+                    <p className="text-xs text-gray-500">Invoice Files</p>
+                    <p className="font-medium text-gray-900">{selectedRequest.invoiceFiles} file(s)</p>
+                  </div>
                   {selectedRequest.rejectionReason && (
-                    <div className="col-span-2"><p className="text-xs text-gray-500">Rejection Reason</p><p className="font-medium text-red-600">{selectedRequest.rejectionReason}</p></div>
+                    <div className="col-span-2">
+                      <p className="text-xs text-gray-500">Rejection Reason</p>
+                      <p className="font-medium text-red-600">{selectedRequest.rejectionReason}</p>
+                    </div>
                   )}
                 </div>
               </div>
-              <div className="mt-6 flex justify-end">
-                <button onClick={() => setSelectedRequest(null)} className="px-5 py-2 bg-[#0066B8] text-white rounded-lg hover:bg-[#00549a] transition-colors text-sm font-medium">Close</button>
+              <div className="px-5 py-3 border-t border-gray-200">
+                <button 
+                  onClick={() => setSelectedRequest(null)} 
+                  className="w-full py-2 bg-[#0066B8] text-white rounded hover:bg-[#005299] text-sm font-medium"
+                >
+                  Close
+                </button>
               </div>
             </div>
           </div>

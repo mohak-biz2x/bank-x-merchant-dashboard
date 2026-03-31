@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { Building2, FileText, Upload, CheckCircle, X, Landmark, Info, Check, Mail, Phone, Loader2 } from "lucide-react";
+import { Building2, FileText, Upload, CheckCircle, X, Landmark, Info, Check, Mail, Phone, Loader2, ShieldCheck } from "lucide-react";
 
 interface SupplierData {
   name: string;
@@ -58,11 +58,27 @@ export function SupplierJourneyPage() {
   const [verifyingPhone, setVerifyingPhone] = useState(false);
   const [otpAutoSent, setOtpAutoSent] = useState(false);
 
+  // KYB state
+  const [tlNumber, setTlNumber] = useState("");
+  const [kybStatus, setKybStatus] = useState<"idle" | "verifying" | "verified">("idle");
+  const [kybProgress, setKybProgress] = useState(0);
+  const [companyInfo, setCompanyInfo] = useState({
+    legalBusinessName: "",
+    tradeLicenseNumber: "",
+    businessType: "",
+    industrySector: "",
+    countryOfIncorporation: "",
+    registeredAddress: "",
+    city: "",
+    emirate: "",
+  });
+
   const steps = [
-    { id: 1, name: "Review Details" },
-    { id: 2, name: "Documents" },
-    { id: 3, name: "Bank Account" },
-    { id: 4, name: "Review & Submit" },
+    { id: 1, name: "Basic Details" },
+    { id: 2, name: "Lite KYB" },
+    { id: 3, name: "Documents" },
+    { id: 4, name: "Bank Account" },
+    { id: 5, name: "Review & Submit" },
   ];
 
   const handleNext = () => {
@@ -73,7 +89,7 @@ export function SupplierJourneyPage() {
       }
       return;
     }
-    if (currentStep === 4) {
+    if (currentStep === 5) {
       if (confirmed) {
         localStorage.setItem("demo_merchant_role", "supplier-only");
         localStorage.setItem("merchant_underwriting_status", "none");
@@ -152,14 +168,40 @@ export function SupplierJourneyPage() {
     setTimeout(() => { setVerifyingPhone(false); setPhoneVerified(true); }, 1500);
   };
 
+  // KYB verification
+  const startKybVerification = () => {
+    setKybStatus("verifying");
+    setKybProgress(0);
+    const interval = setInterval(() => {
+      setKybProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          setKybStatus("verified");
+          setCompanyInfo({
+            legalBusinessName: supplierData.name,
+            tradeLicenseNumber: tlNumber,
+            businessType: "Limited Liability Company (LLC)",
+            industrySector: "Manufacturing - Steel & Metal",
+            countryOfIncorporation: "United Arab Emirates",
+            registeredAddress: "Dubai Investment Park, Dubai",
+            city: "Dubai",
+            emirate: "Dubai",
+          });
+          return 100;
+        }
+        return prev + 5;
+      });
+    }, 100);
+  };
+
   const renderStepContent = () => {
     switch (currentStep) {
-      // Step 1: Review Details
+      // Step 1: Basic Details
       case 1:
         return (
           <div className="space-y-6">
             <div>
-              <h1 className="text-lg font-semibold text-gray-900">Review Your Details</h1>
+              <h1 className="text-lg font-semibold text-gray-900">Basic Details</h1>
               <p className="text-gray-600 mt-2">
                 The following details were provided by the buyer. Please review and update any information that needs correction.
               </p>
@@ -248,8 +290,108 @@ export function SupplierJourneyPage() {
           </div>
         );
 
-      // Step 2: Documents
+      // Step 2: Lite KYB
       case 2:
+        return (
+          <div className="space-y-6">
+            <div>
+              <h1 className="text-lg font-semibold text-gray-900">Lite KYB Verification</h1>
+              <p className="text-gray-600 mt-2">
+                Verify your business via Oscilar using your Trade License number
+              </p>
+            </div>
+
+            {kybStatus === "idle" && (
+              <>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex gap-3">
+                    <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                    <p className="text-sm text-blue-800">
+                      Enter your Trade License number to verify your business details through Oscilar's KYB workflow.
+                    </p>
+                  </div>
+                </div>
+                <div className="bg-white border border-gray-200 rounded-lg p-5">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Trade License Number</label>
+                  <div className="flex gap-3">
+                    <input
+                      type="text"
+                      value={tlNumber}
+                      onChange={e => setTlNumber(e.target.value)}
+                      placeholder="e.g. TL-112233"
+                      className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                    />
+                    <button
+                      onClick={startKybVerification}
+                      disabled={!tlNumber.trim()}
+                      className="px-5 py-2.5 bg-[#0066B8] text-white rounded-lg hover:bg-[#005299] disabled:opacity-50 text-sm font-medium flex items-center gap-2"
+                    >
+                      <ShieldCheck className="w-4 h-4" /> Verify
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {kybStatus === "verifying" && (
+              <div className="bg-white border border-gray-200 rounded-lg p-8 text-center">
+                <Loader2 className="w-10 h-10 text-blue-600 animate-spin mx-auto mb-4" />
+                <h3 className="text-base font-semibold text-gray-900 mb-1">Oscilar KYB Verification</h3>
+                <p className="text-sm text-gray-500 mb-4">Verifying TL: {tlNumber}</p>
+                <div className="max-w-sm mx-auto">
+                  <div className="flex justify-between text-xs text-gray-500 mb-1">
+                    <span>Verifying...</span>
+                    <span>{kybProgress}%</span>
+                  </div>
+                  <div className="w-full h-2.5 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-[#0066B8] rounded-full transition-all"
+                      style={{ width: `${kybProgress}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {kybStatus === "verified" && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-4 py-3">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  <span className="text-sm text-green-700 font-medium">
+                    KYB Verified — Business details confirmed by Oscilar
+                  </span>
+                </div>
+                <div className="bg-white border border-gray-200 rounded-lg p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Building2 className="w-4 h-4 text-blue-600" />
+                    <h3 className="text-sm font-medium text-gray-900">Company Information</h3>
+                    <span className="ml-auto text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
+                      Verified
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      ["Business Name", companyInfo.legalBusinessName],
+                      ["TL Number", companyInfo.tradeLicenseNumber],
+                      ["Business Type", companyInfo.businessType],
+                      ["Industry", companyInfo.industrySector],
+                      ["Country", companyInfo.countryOfIncorporation],
+                      ["Address", `${companyInfo.registeredAddress}, ${companyInfo.city}`],
+                    ].map(([l, v]) => (
+                      <div key={l}>
+                        <label className="block text-xs text-gray-500 mb-0.5">{l}</label>
+                        <p className="text-sm text-gray-900">{v}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+
+      // Step 3: Documents
+      case 3:
         return (
           <div className="space-y-6">
             <div>
@@ -319,8 +461,8 @@ export function SupplierJourneyPage() {
           </div>
         );
 
-      // Step 3: Bank Account
-      case 3:
+      // Step 4: Bank Account
+      case 4:
         return (
           <div className="space-y-6">
             <div>
@@ -387,8 +529,8 @@ export function SupplierJourneyPage() {
           </div>
         );
 
-      // Step 4: Review & Approve
-      case 4:
+      // Step 5: Review & Submit
+      case 5:
         return (
           <div className="space-y-6">
             <div>
@@ -587,16 +729,16 @@ export function SupplierJourneyPage() {
           </button>
           <button
             onClick={handleNext}
-            disabled={(currentStep === 4 && !confirmed)}
+            disabled={(currentStep === 5 && !confirmed)}
             className={`px-6 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-              currentStep === 4
+              currentStep === 5
                 ? confirmed
                   ? "bg-green-600 text-white hover:bg-green-700"
                   : "bg-gray-200 text-gray-400 cursor-not-allowed"
                 : "bg-[#0066B8] text-white hover:bg-[#005299]"
             }`}
           >
-            {currentStep === 4 ? "Review & Submit" : "Next"}
+            {currentStep === 5 ? "Review & Submit" : "Next"}
           </button>
         </div>
       </div>
@@ -676,7 +818,7 @@ export function SupplierJourneyPage() {
             {emailVerified && phoneVerified ? (
               <button onClick={() => { setShowOtpModal(false); setCurrentStep(2); }}
                 className="w-full px-5 py-2.5 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors flex items-center justify-center gap-2">
-                <CheckCircle className="w-4 h-4" /> Continue to Documents
+                <CheckCircle className="w-4 h-4" /> Continue to Lite KYB
               </button>
             ) : (
               <p className="text-xs text-gray-400 text-center">Verify both to continue</p>

@@ -275,6 +275,18 @@ export function CustomerJourneyPage() {
         <h2 className="text-lg font-semibold text-gray-900">Create Your Profile</h2>
       </div>
       <p className="text-sm text-gray-500 mb-8 ml-4">Tell us about your company and verify your identity to get started</p>
+      
+      {/* Demo Message */}
+      <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
+        <div className="flex gap-3">
+          <Info className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-medium text-purple-900 mb-1">Demo Only</p>
+            <p className="text-sm text-purple-800">This step will be implemented on the MAL Bank system. The data collected here will be passed to Biz2X at the Loan Product step.</p>
+          </div>
+        </div>
+      </div>
+
       <div className="space-y-4">
         <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
           <h3 className="text-sm font-medium text-gray-900">Company Details</h3>
@@ -302,6 +314,17 @@ export function CustomerJourneyPage() {
         <h2 className="text-lg font-semibold text-gray-900">KYB Verification</h2>
       </div>
       <p className="text-sm text-gray-500 mb-6 ml-4">Enter your Trade License number to verify your business via Oscilar</p>
+
+      {/* Demo Message */}
+      <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
+        <div className="flex gap-3">
+          <Info className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-medium text-purple-900 mb-1">Demo Only</p>
+            <p className="text-sm text-purple-800">This step will be implemented on the MAL Bank system. The data collected here will be passed to Biz2X at the Loan Product step.</p>
+          </div>
+        </div>
+      </div>
 
       {kybStatus === "idle" && (
         <>
@@ -421,6 +444,17 @@ export function CustomerJourneyPage() {
         <h2 className="text-lg font-semibold text-gray-900">AECB Credit Consent</h2>
       </div>
       <p className="text-sm text-gray-500 mb-6 ml-4">Authorize a credit check through the Al Etihad Credit Bureau (AECB)</p>
+
+      {/* Demo Message */}
+      <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
+        <div className="flex gap-3">
+          <Info className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-medium text-purple-900 mb-1">Demo Only</p>
+            <p className="text-sm text-purple-800">This step will be implemented on the MAL Bank system. The data collected here will be passed to Biz2X at the Loan Product step.</p>
+          </div>
+        </div>
+      </div>
 
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
         <div className="flex gap-3">
@@ -841,10 +875,16 @@ export function CustomerJourneyPage() {
           <div className="flex items-center gap-3">
             <p className="text-sm text-white/90">{currentStep > 1 ? profileData.contactFullName : "New Merchant"}</p>
             <div className="relative" ref={profileMenuRef}>
-              <button onClick={() => setShowProfileMenu(!showProfileMenu)} className="w-9 h-9 rounded-full bg-teal-500 flex items-center justify-center text-white font-medium hover:bg-teal-600 transition-colors">
+              <button 
+                onClick={() => currentStep > 1 && setShowProfileMenu(!showProfileMenu)} 
+                disabled={currentStep === 1}
+                className={`w-9 h-9 rounded-full bg-teal-500 flex items-center justify-center text-white font-medium transition-colors ${
+                  currentStep === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-teal-600'
+                }`}
+              >
                 {currentStep > 1 ? profileData.contactFullName.charAt(0) : "N"}
               </button>
-              {showProfileMenu && (
+              {showProfileMenu && currentStep > 1 && (
                 <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
                   <button onClick={() => setShowProfileMenu(false)} className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3"><Settings className="w-4 h-4 text-gray-500" /> Account Settings</button>
                   <div className="border-t border-gray-200 my-2"></div>

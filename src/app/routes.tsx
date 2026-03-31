@@ -10,6 +10,11 @@ import { PrivacyPage, DisclaimerPage, TncPage } from "./components/LegalPages";
 import { LoginPage } from "./components/LoginPage";
 import { CustomerJourneyPage } from "./components/CustomerJourneyPage";
 import { SupplierJourneyPage } from "./components/SupplierJourneyPage";
+import { PremiumBuyerJourney } from "./components/PremiumBuyerJourney";
+import { PremiumBuyerLayout } from "./components/PremiumBuyerLayout";
+import { PremiumBuyerDashboard } from "./components/PremiumBuyerDashboard";
+import { PremiumBuyerSuppliers } from "./components/PremiumBuyerSuppliers";
+import { PremiumBuyerInvoices } from "./components/PremiumBuyerInvoices";
 
 export const router = createHashRouter([
   {
@@ -35,6 +40,19 @@ export const router = createHashRouter([
   {
     path: "/supjour",
     Component: SupplierJourneyPage,
+  },
+  {
+    path: "/premiumbuyer",
+    Component: PremiumBuyerJourney,
+  },
+  {
+    path: "/pb",
+    Component: PremiumBuyerLayout,
+    children: [
+      { index: true, Component: PremiumBuyerDashboard },
+      { path: "suppliers", Component: PremiumBuyerSuppliers },
+      { path: "invoices", Component: PremiumBuyerInvoices },
+    ],
   },
   {
     path: "/",

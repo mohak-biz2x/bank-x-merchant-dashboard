@@ -77,8 +77,7 @@ export function LoginPage() {
             <MalLogo height={36} />
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-6">Log in</h2>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-6 text-center">Welcome</h2>
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
@@ -111,14 +110,7 @@ export function LoginPage() {
                 />
               </div>
 
-              <div className="flex items-center justify-between">
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-2 focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-gray-600">Remember me</span>
-                </label>
+              <div className="flex items-center justify-end">
                 <button
                   type="button"
                   className="text-sm text-blue-600 hover:text-blue-700 font-medium"
@@ -127,25 +119,15 @@ export function LoginPage() {
                 </button>
               </div>
 
-              <button
-                type="submit"
-                className="w-full bg-gray-900 text-white py-3 rounded-lg font-medium hover:bg-gray-800 transition-colors mt-6"
-              >
-                Log in
-              </button>
+              <div className="flex justify-center mt-6">
+                <button
+                  type="submit"
+                  className="w-1/2 bg-[#4F8DFF] text-white py-3 rounded-lg font-medium hover:bg-[#3A7AE8] transition-colors"
+                >
+                  Log in
+                </button>
+              </div>
             </form>
-
-
-          </div>
-
-          {/* Footer Links */}
-          <div className="mt-8 text-center">
-            <div className="flex items-center justify-center gap-4 text-xs text-gray-500">
-              <a href="#" className="hover:text-gray-700">Privacy policy</a>
-              <span>•</span>
-              <a href="#" className="hover:text-gray-700">Terms & conditions</a>
-            </div>
-          </div>
         </div>
       </div>
       </div>

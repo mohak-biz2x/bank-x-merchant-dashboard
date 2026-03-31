@@ -660,7 +660,7 @@ export function SupplierJourneyPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-5">
             <MalLogo height={28} className="text-gray-900" />
-            <div className="h-6 w-px bg-gray-300"></div>
+            <div className="h-6 w-px bg-gray-400"></div>
             <p className="text-sm text-gray-700">Supplier Verification</p>
           </div>
           <div className="flex items-center gap-3">

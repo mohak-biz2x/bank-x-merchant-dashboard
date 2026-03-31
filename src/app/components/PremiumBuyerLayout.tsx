@@ -74,7 +74,7 @@ export function PremiumBuyerLayout() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-5">
               <MalLogo height={28} className="text-gray-900" />
-              <div className="h-6 w-px bg-gray-300" />
+              <div className="h-6 w-px bg-gray-400" />
               <div className="flex items-center gap-2">
                 <Building2 className="w-4 h-4 text-gray-500" />
                 <p className="text-sm text-gray-700">Gulf Trading Enterprises LLC</p>

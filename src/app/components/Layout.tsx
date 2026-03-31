@@ -81,7 +81,7 @@ export function Layout() {
               <div className="flex items-center gap-2">
                 <MalLogo height={28} className="text-gray-900" />
               </div>
-              <div className="h-6 w-px bg-gray-300"></div>
+              <div className="h-6 w-px bg-gray-400"></div>
               <div className="flex items-center gap-2">
                 <Building2 className="w-4 h-4 text-gray-500" />
                 <p className="text-sm text-gray-700">

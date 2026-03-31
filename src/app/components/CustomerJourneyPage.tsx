@@ -949,7 +949,7 @@ export function CustomerJourneyPage() {
 
       {/* OTP Verification Modal */}
       {showOtpModal && (
-        <div className="fixed inset-0 bg-gray-500/30 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-[#CBD2DD]/[.72] flex items-center justify-center z-50">
           <div ref={otpModalRef} className="bg-white rounded shadow-xl w-full max-w-lg">
             {!profileCreated ? (
               <>
@@ -1007,7 +1007,7 @@ export function CustomerJourneyPage() {
 
       {/* Connect Bank (Lean) Modal */}
       {showConnectModal && (
-        <div className="fixed inset-0 bg-gray-500/30 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-[#CBD2DD]/[.72] flex items-center justify-center z-50">
           <div className="bg-white rounded shadow-xl w-full max-w-md">
             <div className="px-5 py-3 flex items-center justify-between bg-[#C3D2E7] text-gray-900 rounded-t">
               <h3 className="text-base font-semibold text-gray-900">{connectStep === 'bank-select' ? 'Connect via Lean' : connectStep === 'auth' ? 'Authenticate' : 'Connected'}</h3>
@@ -1044,7 +1044,7 @@ export function CustomerJourneyPage() {
 
       {/* Terms Modal */}
       {showTermsModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-[#CBD2DD]/[.72] flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded max-w-lg w-full max-h-[80vh] overflow-y-auto">
             <div className="px-5 py-3 flex items-center justify-between bg-[#C3D2E7] text-gray-900 rounded-t"><h3 className="text-base font-semibold text-gray-900">Terms and Conditions</h3><button onClick={() => setShowTermsModal(false)} className="text-gray-500 hover:text-gray-900"><X className="w-5 h-5" /></button></div>
             <div className="p-5">
@@ -1057,7 +1057,7 @@ export function CustomerJourneyPage() {
 
       {/* Privacy Modal */}
       {showPrivacyModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-[#CBD2DD]/[.72] flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded max-w-lg w-full max-h-[80vh] overflow-y-auto">
             <div className="px-5 py-3 flex items-center justify-between bg-[#C3D2E7] text-gray-900 rounded-t"><h3 className="text-base font-semibold text-gray-900">Privacy Policy</h3><button onClick={() => setShowPrivacyModal(false)} className="text-gray-500 hover:text-gray-900"><X className="w-5 h-5" /></button></div>
             <div className="p-5">
@@ -1070,7 +1070,7 @@ export function CustomerJourneyPage() {
 
       {/* Application Submitted Success Modal */}
       {showSubmitSuccess && (
-        <div className="fixed inset-0 bg-gray-500/30 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-[#CBD2DD]/[.72] flex items-center justify-center z-50">
           <div className="bg-white rounded shadow-xl w-full max-w-lg p-8 text-center">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5">
               <CheckCircle className="w-8 h-8 text-green-600" />

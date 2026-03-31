@@ -747,7 +747,7 @@ export function SupplierJourneyPage() {
 
       {/* OTP Verification Modal */}
       {showOtpModal && (
-        <div className="fixed inset-0 bg-gray-500/30 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-[#CBD2DD]/[.72] flex items-center justify-center z-50">
           <div className="bg-white rounded shadow-xl max-w-lg w-full mx-4">
             <div className="px-5 py-3 flex items-center justify-between bg-[#C3D2E7] text-gray-900 rounded-t">
               <h2 className="text-base font-semibold text-gray-900">Verify Contact Information</h2>
@@ -831,7 +831,7 @@ export function SupplierJourneyPage() {
 
       {/* Success Modal */}
       {showSuccessModal && (
-        <div className="fixed inset-0 bg-gray-500/30 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-[#CBD2DD]/[.72] flex items-center justify-center z-50">
           <div className="bg-white rounded shadow-xl max-w-md w-full mx-4 p-8 text-center">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <CheckCircle className="w-8 h-8 text-green-600" />

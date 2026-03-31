@@ -210,7 +210,7 @@ export function PremiumBuyerJourney() {
       <header className="bg-[#C3D2E7] px-6 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-5">
-            <div className="flex items-center gap-2"><MalLogo size={28} className="text-gray-900" /><h1 className="text-xl font-bold text-gray-900 tracking-tight">Mal</h1></div>
+            <MalLogo height={28} className="text-gray-900" />
             {currentStep > 1 && (<><div className="h-6 w-px bg-gray-300"></div><div className="flex items-center gap-2"><Building2 className="w-4 h-4 text-gray-500" /><p className="text-sm text-gray-700">{profileData.companyLegalName}</p></div></>)}
           </div>
           <div className="flex items-center gap-3">
@@ -275,7 +275,7 @@ export function PremiumBuyerJourney() {
 
       {/* OTP Modal */}
       {showOtpModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-[#CBD2DD]/[.72] flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded max-w-lg w-full">
             {!profileCreated ? (
               <>
@@ -314,7 +314,7 @@ export function PremiumBuyerJourney() {
 
       {/* Success Modal */}
       {showSuccess && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-[#CBD2DD]/[.72] flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded max-w-lg w-full p-8 text-center">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5"><CheckCircle className="w-8 h-8 text-green-600" /></div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Onboarding Completed</h3>

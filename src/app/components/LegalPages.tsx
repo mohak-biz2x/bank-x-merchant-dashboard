@@ -7,8 +7,7 @@ function LegalPage({ title, children }: { title: string; children: React.ReactNo
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <header className="bg-[#C3D2E7] px-6 py-3">
         <div className="flex items-center gap-2">
-          <MalLogo size={28} className="text-gray-900" />
-          <h1 className="text-xl font-bold text-gray-900 tracking-tight">Mal</h1>
+          <MalLogo height={28} className="text-gray-900" />
         </div>
       </header>
       <div className="flex-1 p-6 max-w-3xl mx-auto w-full">

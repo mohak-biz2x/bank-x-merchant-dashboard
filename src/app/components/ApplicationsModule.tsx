@@ -309,7 +309,7 @@ export function ApplicationsModule({ onSecurityOnboarding, embedded }: Applicati
 
       {/* Security Onboarding Modal */}
       {showSecurityModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-[#CBD2DD]/[.72] flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded max-w-2xl w-full max-h-[85vh] overflow-y-auto">
             <div className="px-5 py-3 flex items-center justify-between bg-[#C3D2E7] text-gray-900 rounded-t">
               <h3 className="text-base font-semibold text-gray-900">{isStp ? "E-sign Agreements" : "Security Onboarding"}</h3>

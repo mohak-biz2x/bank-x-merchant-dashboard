@@ -659,7 +659,7 @@ export function SupplierJourneyPage() {
       <header className="bg-[#C3D2E7] px-6 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-5">
-            <div className="flex items-center gap-2"><MalLogo size={28} className="text-gray-900" /><h1 className="text-xl font-bold text-gray-900 tracking-tight">Mal</h1></div>
+            <MalLogo height={28} className="text-gray-900" />
             <div className="h-6 w-px bg-gray-300"></div>
             <p className="text-sm text-gray-700">Supplier Verification</p>
           </div>

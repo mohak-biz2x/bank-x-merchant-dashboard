@@ -77,7 +77,7 @@ export function PremiumBuyerSuppliers() {
 
       {/* Add Supplier Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-[#CBD2DD]/[.72] flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded max-w-md w-full">
             <div className="px-5 py-3 flex items-center justify-between bg-[#C3D2E7] text-gray-900 rounded-t">
               <h3 className="text-base font-semibold text-gray-900">Add Supplier</h3>
@@ -105,7 +105,7 @@ export function PremiumBuyerSuppliers() {
 
       {/* Bulk Upload Modal */}
       {showBulkModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-[#CBD2DD]/[.72] flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded max-w-md w-full">
             <div className="px-5 py-3 flex items-center justify-between bg-[#C3D2E7] text-gray-900 rounded-t">
               <h3 className="text-base font-semibold text-gray-900">Bulk Add Suppliers</h3>

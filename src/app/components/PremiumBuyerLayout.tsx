@@ -72,10 +72,10 @@ export function PremiumBuyerLayout() {
         <div className="bg-[#C3D2E7] px-6 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-5">
-              <div className="flex items-center gap-2"><MalLogo size={28} className="text-gray-900" /><h1 className="text-xl font-bold text-gray-900 tracking-tight">Mal</h1></div>
+              <MalLogo height={28} className="text-gray-900" />
               <div className="h-6 w-px bg-gray-300" />
               <p className="text-sm text-gray-700">Gulf Trading Enterprises LLC</p>
-              <span className="px-2 py-0.5 bg-amber-400/20 text-amber-300 text-xs font-medium rounded">Premium Buyer</span>
+              <span className="px-2 py-0.5 bg-amber-100 text-amber-800 text-xs font-medium rounded border border-amber-300">Premium Buyer</span>
             </div>
             <div className="flex items-center gap-3">
               <p className="text-sm text-gray-700">Sarah Al-Mansouri</p>

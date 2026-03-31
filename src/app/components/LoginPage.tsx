@@ -2,6 +2,7 @@ import { Wallet, Lock, CheckCircle, Shield } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { MalLogo } from "./MalLogo";
+import biz2xLogo from "@/assets/biz2X-m-logo.svg";
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -50,26 +51,20 @@ export function LoginPage() {
         <div className="space-y-4">
           <div className="flex gap-8">
             <div className="flex flex-col items-center gap-2">
-              <div className="w-12 h-12 bg-blue-700/50 rounded-lg flex items-center justify-center">
-                <Lock className="w-6 h-6 text-white" />
-              </div>
-              <p className="text-xs uppercase tracking-wide">Private</p>
+              <Lock className="w-6 h-6 text-gray-700" />
+              <p className="text-xs uppercase tracking-wide text-gray-600">Private</p>
             </div>
             <div className="flex flex-col items-center gap-2">
-              <div className="w-12 h-12 bg-blue-700/50 rounded-lg flex items-center justify-center">
-                <CheckCircle className="w-6 h-6 text-white" />
-              </div>
-              <p className="text-xs uppercase tracking-wide">Trusted</p>
+              <CheckCircle className="w-6 h-6 text-gray-700" />
+              <p className="text-xs uppercase tracking-wide text-gray-600">Trusted</p>
             </div>
             <div className="flex flex-col items-center gap-2">
-              <div className="w-12 h-12 bg-blue-700/50 rounded-lg flex items-center justify-center">
-                <Shield className="w-6 h-6 text-white" />
-              </div>
-              <p className="text-xs uppercase tracking-wide">Secure</p>
+              <Shield className="w-6 h-6 text-gray-700" />
+              <p className="text-xs uppercase tracking-wide text-gray-600">Secure</p>
             </div>
           </div>
           <div className="text-sm text-gray-500">
-            Your information is secured with 256-bit encryption across systems.
+            Your information is protected using advanced security protocols.
           </div>
         </div>
       </div>
@@ -163,7 +158,7 @@ export function LoginPage() {
             <a href="#/disclaimer" target="_blank" className="text-xs text-gray-500 hover:text-gray-700">Disclaimer</a>
             <a href="#/tnc" target="_blank" className="text-xs text-gray-500 hover:text-gray-700">Terms & conditions</a>
           </div>
-          <p className="text-xs text-gray-400">&copy; Biz2X 2026. All rights reserved.</p>
+          <p className="text-xs text-gray-400 flex items-center gap-1">&copy; Mal 2026. All rights reserved. <span className="mx-1">|</span> Powered by <img src="/src/assets/biz2X-m-logo.svg" alt="Biz2X" className="inline-block h-4 ml-1" /></p>
         </div>
       </footer>
     </div>

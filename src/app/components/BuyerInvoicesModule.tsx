@@ -346,7 +346,7 @@ export function BuyerInvoicesModule() {
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-[#E6F0FF] border-b border-gray-200">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Request ID</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supplier</th>
@@ -406,15 +406,15 @@ export function BuyerInvoicesModule() {
 
       {/* Add Invoice Modal */}
       {showAddForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-[#CBD2DD]/[.72] flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded max-w-3xl w-full max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
-            <div className="px-5 py-3 flex items-center justify-between sticky top-0 bg-[#000000] text-white rounded-t">
+            <div className="px-5 py-3 flex items-center justify-between sticky top-0 bg-[#C3D2E7] text-gray-900 rounded-t">
               <div>
-                <h3 className="text-base font-semibold text-white">New Invoice Request</h3>
-                {!showSuccess && !verifying && <p className="text-xs text-white/60 mt-0.5">Step {currentStep} of 4</p>}
+                <h3 className="text-base font-semibold text-gray-900">New Invoice Request</h3>
+                {!showSuccess && !verifying && <p className="text-xs text-gray-500 mt-0.5">Step {currentStep} of 4</p>}
               </div>
-              <button onClick={resetForm} className="text-white/60 hover:text-white"><X className="w-5 h-5" /></button>
+              <button onClick={resetForm} className="text-gray-500 hover:text-gray-900"><X className="w-5 h-5" /></button>
             </div>
 
             {verifying ? (
@@ -860,14 +860,14 @@ export function BuyerInvoicesModule() {
 
       {/* View Invoice Request Modal */}
       {viewRequest && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-[#CBD2DD]/[.72] flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded max-w-lg w-full max-h-[90vh] overflow-y-auto">
-            <div className="px-5 py-3 flex items-center justify-between bg-[#000000] text-white rounded-t">
+            <div className="px-5 py-3 flex items-center justify-between bg-[#C3D2E7] text-gray-900 rounded-t">
               <div>
-                <h3 className="text-base font-semibold text-white">Invoice Request Details</h3>
-                <p className="text-xs text-white/60 mt-0.5">{viewRequest.id}</p>
+                <h3 className="text-base font-semibold text-gray-900">Invoice Request Details</h3>
+                <p className="text-xs text-gray-500 mt-0.5">{viewRequest.id}</p>
               </div>
-              <button onClick={() => setViewRequest(null)} className="text-white/60 hover:text-white"><X className="w-5 h-5" /></button>
+              <button onClick={() => setViewRequest(null)} className="text-gray-500 hover:text-gray-900"><X className="w-5 h-5" /></button>
             </div>
             <div className="p-5 space-y-4">
               <div className="flex items-center gap-2 mb-2">{getStatusBadge(viewRequest.status)}</div>

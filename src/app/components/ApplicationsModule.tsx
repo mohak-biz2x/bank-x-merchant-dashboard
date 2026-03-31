@@ -198,7 +198,7 @@ export function ApplicationsModule({ onSecurityOnboarding, embedded }: Applicati
       <div className="bg-white border border-gray-200 rounded-lg">
         <div>
           <table className="w-full text-xs">
-            <thead>
+            <thead className="bg-[#E6F0FF]">
               <tr>
                 <th className="text-left px-3 py-2.5 font-medium">Application ID</th>
                 <th className="text-left px-3 py-2.5 font-medium">Product</th>
@@ -311,9 +311,9 @@ export function ApplicationsModule({ onSecurityOnboarding, embedded }: Applicati
       {showSecurityModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded max-w-2xl w-full max-h-[85vh] overflow-y-auto">
-            <div className="px-5 py-3 flex items-center justify-between bg-[#000000] text-white rounded-t">
-              <h3 className="text-base font-semibold text-white">{isStp ? "E-sign Agreements" : "Security Onboarding"}</h3>
-              <button onClick={() => setShowSecurityModal(false)} className="text-white/60 hover:text-white"><X className="w-5 h-5" /></button>
+            <div className="px-5 py-3 flex items-center justify-between bg-[#C3D2E7] text-gray-900 rounded-t">
+              <h3 className="text-base font-semibold text-gray-900">{isStp ? "E-sign Agreements" : "Security Onboarding"}</h3>
+              <button onClick={() => setShowSecurityModal(false)} className="text-gray-500 hover:text-gray-900"><X className="w-5 h-5" /></button>
             </div>
             <div className="p-5">
 

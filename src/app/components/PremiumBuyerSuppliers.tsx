@@ -54,7 +54,7 @@ export function PremiumBuyerSuppliers() {
 
       <div className="bg-white border border-gray-200 rounded">
         <table className="w-full">
-          <thead><tr>
+          <thead className="bg-[#E6F0FF]"><tr>
             <th className="text-left px-4 py-3">Supplier ID</th><th className="text-left px-4 py-3">Company Name</th><th className="text-left px-4 py-3">Email</th><th className="text-left px-4 py-3">TL Number</th><th className="text-left px-4 py-3">Status</th><th className="text-left px-4 py-3">Added</th>
           </tr></thead>
           <tbody>
@@ -79,9 +79,9 @@ export function PremiumBuyerSuppliers() {
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded max-w-md w-full">
-            <div className="px-5 py-3 flex items-center justify-between bg-[#000000] text-white rounded-t">
-              <h3 className="text-base font-semibold text-white">Add Supplier</h3>
-              <button onClick={resetForm} className="text-white/60 hover:text-white"><X className="w-5 h-5" /></button>
+            <div className="px-5 py-3 flex items-center justify-between bg-[#C3D2E7] text-gray-900 rounded-t">
+              <h3 className="text-base font-semibold text-gray-900">Add Supplier</h3>
+              <button onClick={resetForm} className="text-gray-500 hover:text-gray-900"><X className="w-5 h-5" /></button>
             </div>
             {addSuccess ? (
               <div className="p-8 text-center">
@@ -107,9 +107,9 @@ export function PremiumBuyerSuppliers() {
       {showBulkModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded max-w-md w-full">
-            <div className="px-5 py-3 flex items-center justify-between bg-[#000000] text-white rounded-t">
-              <h3 className="text-base font-semibold text-white">Bulk Add Suppliers</h3>
-              <button onClick={() => { setShowBulkModal(false); setBulkFile(null); }} className="text-white/60 hover:text-white"><X className="w-5 h-5" /></button>
+            <div className="px-5 py-3 flex items-center justify-between bg-[#C3D2E7] text-gray-900 rounded-t">
+              <h3 className="text-base font-semibold text-gray-900">Bulk Add Suppliers</h3>
+              <button onClick={() => { setShowBulkModal(false); setBulkFile(null); }} className="text-gray-500 hover:text-gray-900"><X className="w-5 h-5" /></button>
             </div>
             <div className="p-5 space-y-4">
               <p className="text-xs text-gray-500">Upload a CSV file with columns: Company Name, Trade License Number, Email Address</p>

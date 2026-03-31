@@ -410,7 +410,7 @@ export function MerchantDashboard() {
 
           {/* STP Auto-Approval Overlay */}
           {showStpBanner && (
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50">
+            <div className="fixed inset-0 bg-[#CBD2DD]/[.72] flex items-center justify-center z-50">
               <div className="bg-white rounded-xl shadow-2xl p-10 text-center max-w-md mx-4">
                 <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                   <Zap className="w-10 h-10 text-green-600" />
@@ -430,7 +430,7 @@ export function MerchantDashboard() {
 
           {/* Mock DocuSign Modal */}
           {docuSignDoc && (
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50">
+            <div className="fixed inset-0 bg-[#CBD2DD]/[.72] flex items-center justify-center z-50">
               <div className="bg-white rounded-lg shadow-2xl max-w-3xl w-full mx-4 max-h-[90vh] flex flex-col">
                 {/* DocuSign Header */}
                 <div className="bg-[#1a1a2e] px-6 py-3 rounded-t-lg flex items-center justify-between">
@@ -584,7 +584,7 @@ export function MerchantDashboard() {
 
           {/* Mock Direct Debit Mandate — DocuSign E-Signing Modal */}
           {showMandateModal && (
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50">
+            <div className="fixed inset-0 bg-[#CBD2DD]/[.72] flex items-center justify-center z-50">
               <div className="bg-white rounded-lg shadow-2xl max-w-3xl w-full mx-4 max-h-[90vh] flex flex-col">
                 {/* DocuSign Header */}
                 <div className="bg-[#1a1a2e] px-6 py-3 rounded-t-lg flex items-center justify-between">
@@ -1057,7 +1057,7 @@ function SupplierOnlyDashboard() {
           </div>
           <div className="p-6 overflow-x-auto">
             <table className="w-full text-sm">
-              <thead>
+              <thead className="bg-[#E6F0FF]">
                 <tr className="border-b border-gray-200">
                   <th className="text-left py-3 px-3 text-xs font-medium text-gray-500 uppercase">Request ID</th>
                   <th className="text-left py-3 px-3 text-xs font-medium text-gray-500 uppercase">Buyer</th>
@@ -1098,14 +1098,14 @@ function SupplierOnlyDashboard() {
 
         {/* Detail Modal */}
         {selectedRequest && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 bg-[#CBD2DD]/[.72] flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded max-w-lg w-full max-h-[90vh] overflow-y-auto">
-              <div className="px-5 py-3 flex items-center justify-between bg-[#000000] text-white rounded-t">
+              <div className="px-5 py-3 flex items-center justify-between bg-[#C3D2E7] text-gray-900 rounded-t">
                 <div>
-                  <h3 className="text-base font-semibold text-white">Invoice Request Details</h3>
-                  <p className="text-xs text-white/60 mt-0.5">{selectedRequest.id}</p>
+                  <h3 className="text-base font-semibold text-gray-900">Invoice Request Details</h3>
+                  <p className="text-xs text-gray-500 mt-0.5">{selectedRequest.id}</p>
                 </div>
-                <button onClick={() => setSelectedRequest(null)} className="text-white/60 hover:text-white">
+                <button onClick={() => setSelectedRequest(null)} className="text-gray-500 hover:text-gray-900">
                   <X className="w-5 h-5" />
                 </button>
               </div>

@@ -273,7 +273,7 @@ export function PremiumBuyerSupplierDashboard() {
           </div>
           <div className="p-6 overflow-x-auto">
             <table className="w-full text-sm">
-              <thead>
+              <thead className="bg-[#E6F0FF]">
                 <tr className="border-b border-gray-200">
                   <th className="text-left py-3 px-3 text-xs font-medium text-gray-500 uppercase">Request ID</th>
                   <th className="text-left py-3 px-3 text-xs font-medium text-gray-500 uppercase">Invoice Numbers</th>
@@ -318,14 +318,14 @@ export function PremiumBuyerSupplierDashboard() {
 
         {/* Add Invoice Request Modal */}
         {showAddModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 bg-[#CBD2DD]/[.72] flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded max-w-3xl w-full max-h-[90vh] overflow-y-auto">
               {/* Header */}
-              <div className="px-5 py-3 flex items-center justify-between sticky top-0 bg-[#000000] text-white rounded-t">
+              <div className="px-5 py-3 flex items-center justify-between sticky top-0 bg-[#C3D2E7] text-gray-900 rounded-t">
                 <div>
-                  <h3 className="text-base font-semibold text-white">New Invoice Request</h3>
+                  <h3 className="text-base font-semibold text-gray-900">New Invoice Request</h3>
                 </div>
-                <button onClick={resetForm} className="text-white/60 hover:text-white">
+                <button onClick={resetForm} className="text-gray-500 hover:text-gray-900">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -518,14 +518,14 @@ export function PremiumBuyerSupplierDashboard() {
 
       {/* View Invoice Request Modal */}
       {viewRequest && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-[#CBD2DD]/[.72] flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded max-w-lg w-full max-h-[90vh] overflow-y-auto">
-            <div className="px-5 py-3 flex items-center justify-between bg-[#000000] text-white rounded-t">
+            <div className="px-5 py-3 flex items-center justify-between bg-[#C3D2E7] text-gray-900 rounded-t">
               <div>
-                <h3 className="text-base font-semibold text-white">Invoice Request Details</h3>
-                <p className="text-xs text-white/60 mt-0.5">{viewRequest.id}</p>
+                <h3 className="text-base font-semibold text-gray-900">Invoice Request Details</h3>
+                <p className="text-xs text-gray-500 mt-0.5">{viewRequest.id}</p>
               </div>
-              <button onClick={() => setViewRequest(null)} className="text-white/60 hover:text-white">
+              <button onClick={() => setViewRequest(null)} className="text-gray-500 hover:text-gray-900">
                 <X className="w-5 h-5" />
               </button>
             </div>

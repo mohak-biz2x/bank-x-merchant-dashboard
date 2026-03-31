@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { Building2, FileText, Upload, CheckCircle, X, Landmark, Info, Check, Mail, Phone, Loader2, ShieldCheck } from "lucide-react";
+import { MalLogo } from "./MalLogo";
 
 interface SupplierData {
   name: string;
@@ -655,15 +656,15 @@ export function SupplierJourneyPage() {
   return (
     <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
       {/* Header */}
-      <header className="bg-[#000000] px-6 py-3">
+      <header className="bg-[#C3D2E7] px-6 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-5">
-            <h1 className="text-xl font-bold text-white tracking-tight">Mal</h1>
-            <div className="h-6 w-px bg-white/20"></div>
-            <p className="text-sm text-white/90">Supplier Verification</p>
+            <div className="flex items-center gap-2"><MalLogo size={28} className="text-gray-900" /><h1 className="text-xl font-bold text-gray-900 tracking-tight">Mal</h1></div>
+            <div className="h-6 w-px bg-gray-300"></div>
+            <p className="text-sm text-gray-700">Supplier Verification</p>
           </div>
           <div className="flex items-center gap-3">
-            <p className="text-xs text-white/60">Invited by Al Masraf Industries LLC</p>
+            <p className="text-xs text-gray-500">Invited by Al Masraf Industries LLC</p>
           </div>
         </div>
       </header>
@@ -748,9 +749,9 @@ export function SupplierJourneyPage() {
       {showOtpModal && (
         <div className="fixed inset-0 bg-gray-500/30 flex items-center justify-center z-50">
           <div className="bg-white rounded shadow-xl max-w-lg w-full mx-4">
-            <div className="px-5 py-3 flex items-center justify-between bg-[#000000] text-white rounded-t">
-              <h2 className="text-base font-semibold text-white">Verify Contact Information</h2>
-              <button onClick={() => setShowOtpModal(false)} className="text-white/60 hover:text-white"><X className="w-5 h-5" /></button>
+            <div className="px-5 py-3 flex items-center justify-between bg-[#C3D2E7] text-gray-900 rounded-t">
+              <h2 className="text-base font-semibold text-gray-900">Verify Contact Information</h2>
+              <button onClick={() => setShowOtpModal(false)} className="text-gray-500 hover:text-gray-900"><X className="w-5 h-5" /></button>
             </div>
             <div className="p-5">
             <p className="text-sm text-gray-600 mb-5">OTPs have been sent to your email and phone number. Please enter them below to verify.</p>

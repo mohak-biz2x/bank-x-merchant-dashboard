@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { Building2, X, FileText, Upload, CheckCircle, ArrowLeft, Check, Info, Plus, UserCheck, ReceiptText, Mail, Phone, Loader2, LogOut, Settings, ShieldCheck } from "lucide-react";
+import { MalLogo } from "./MalLogo";
 
 interface BankStatement {
   id: string;
@@ -866,14 +867,14 @@ export function CustomerJourneyPage() {
   return (
     <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
       {/* Header */}
-      <header className="bg-[#000000] px-6 py-3">
+      <header className="bg-[#C3D2E7] px-6 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-5">
-            <h1 className="text-xl font-bold text-white tracking-tight">Mal</h1>
-            {currentStep > 1 && (<><div className="h-6 w-px bg-white/20"></div><div className="flex items-center gap-2"><Building2 className="w-4 h-4 text-white/60" /><p className="text-sm text-white/90">{profileData.companyLegalName}</p></div></>)}
+            <div className="flex items-center gap-2"><MalLogo size={28} className="text-gray-900" /><h1 className="text-xl font-bold text-gray-900 tracking-tight">Mal</h1></div>
+            {currentStep > 1 && (<><div className="h-6 w-px bg-gray-300"></div><div className="flex items-center gap-2"><Building2 className="w-4 h-4 text-gray-500" /><p className="text-sm text-gray-700">{profileData.companyLegalName}</p></div></>)}
           </div>
           <div className="flex items-center gap-3">
-            <p className="text-sm text-white/90">{currentStep > 1 ? profileData.contactFullName : "New Merchant"}</p>
+            <p className="text-sm text-gray-700">{currentStep > 1 ? profileData.contactFullName : "New Merchant"}</p>
             <div className="relative" ref={profileMenuRef}>
               <button 
                 onClick={() => currentStep > 1 && setShowProfileMenu(!showProfileMenu)} 
@@ -952,9 +953,9 @@ export function CustomerJourneyPage() {
           <div ref={otpModalRef} className="bg-white rounded shadow-xl w-full max-w-lg">
             {!profileCreated ? (
               <>
-                <div className="px-5 py-3 flex items-center justify-between bg-[#000000] text-white rounded-t">
-                  <h3 className="text-base font-semibold text-white">Verify Your Identity</h3>
-                  <button onClick={() => setShowOtpModal(false)} className="text-white/60 hover:text-white"><X className="w-5 h-5" /></button>
+                <div className="px-5 py-3 flex items-center justify-between bg-[#C3D2E7] text-gray-900 rounded-t">
+                  <h3 className="text-base font-semibold text-gray-900">Verify Your Identity</h3>
+                  <button onClick={() => setShowOtpModal(false)} className="text-gray-500 hover:text-gray-900"><X className="w-5 h-5" /></button>
                 </div>
                 <div className="p-5">
                 <div className="mb-6">
@@ -1008,9 +1009,9 @@ export function CustomerJourneyPage() {
       {showConnectModal && (
         <div className="fixed inset-0 bg-gray-500/30 flex items-center justify-center z-50">
           <div className="bg-white rounded shadow-xl w-full max-w-md">
-            <div className="px-5 py-3 flex items-center justify-between bg-[#000000] text-white rounded-t">
-              <h3 className="text-base font-semibold text-white">{connectStep === 'bank-select' ? 'Connect via Lean' : connectStep === 'auth' ? 'Authenticate' : 'Connected'}</h3>
-              <button onClick={closeConnectModal} className="text-white/60 hover:text-white"><X className="w-5 h-5" /></button>
+            <div className="px-5 py-3 flex items-center justify-between bg-[#C3D2E7] text-gray-900 rounded-t">
+              <h3 className="text-base font-semibold text-gray-900">{connectStep === 'bank-select' ? 'Connect via Lean' : connectStep === 'auth' ? 'Authenticate' : 'Connected'}</h3>
+              <button onClick={closeConnectModal} className="text-gray-500 hover:text-gray-900"><X className="w-5 h-5" /></button>
             </div>
             <div className="p-5">
             {connectStep === 'bank-select' && (
@@ -1045,7 +1046,7 @@ export function CustomerJourneyPage() {
       {showTermsModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded max-w-lg w-full max-h-[80vh] overflow-y-auto">
-            <div className="px-5 py-3 flex items-center justify-between bg-[#000000] text-white rounded-t"><h3 className="text-base font-semibold text-white">Terms and Conditions</h3><button onClick={() => setShowTermsModal(false)} className="text-white/60 hover:text-white"><X className="w-5 h-5" /></button></div>
+            <div className="px-5 py-3 flex items-center justify-between bg-[#C3D2E7] text-gray-900 rounded-t"><h3 className="text-base font-semibold text-gray-900">Terms and Conditions</h3><button onClick={() => setShowTermsModal(false)} className="text-gray-500 hover:text-gray-900"><X className="w-5 h-5" /></button></div>
             <div className="p-5">
             <p className="text-sm text-gray-600 leading-relaxed">These Terms and Conditions govern your use of the Mal Supply Chain Finance platform. By submitting your application, you agree to provide accurate information and authorize Mal to verify your business details through third-party services.</p>
             <button onClick={() => setShowTermsModal(false)} className="mt-6 w-full py-2.5 bg-[#4F8DFF] text-white rounded hover:bg-[#3A7AE8] text-sm font-medium">Close</button>
@@ -1058,7 +1059,7 @@ export function CustomerJourneyPage() {
       {showPrivacyModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded max-w-lg w-full max-h-[80vh] overflow-y-auto">
-            <div className="px-5 py-3 flex items-center justify-between bg-[#000000] text-white rounded-t"><h3 className="text-base font-semibold text-white">Privacy Policy</h3><button onClick={() => setShowPrivacyModal(false)} className="text-white/60 hover:text-white"><X className="w-5 h-5" /></button></div>
+            <div className="px-5 py-3 flex items-center justify-between bg-[#C3D2E7] text-gray-900 rounded-t"><h3 className="text-base font-semibold text-gray-900">Privacy Policy</h3><button onClick={() => setShowPrivacyModal(false)} className="text-gray-500 hover:text-gray-900"><X className="w-5 h-5" /></button></div>
             <div className="p-5">
             <p className="text-sm text-gray-600 leading-relaxed">Mal is committed to protecting your privacy. We collect and process your business information solely for the purpose of evaluating your supply chain financing application. Your data is stored securely and shared only with authorized verification partners.</p>
             <button onClick={() => setShowPrivacyModal(false)} className="mt-6 w-full py-2.5 bg-[#4F8DFF] text-white rounded hover:bg-[#3A7AE8] text-sm font-medium">Close</button>

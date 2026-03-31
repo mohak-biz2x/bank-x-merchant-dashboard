@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 import { Building2, X, CheckCircle, Check, Info, Mail, Loader2, ShieldCheck, LogOut, Settings, UserCheck, FileText } from "lucide-react";
+import { MalLogo } from "./MalLogo";
 
 export function PremiumBuyerJourney() {
   const navigate = useNavigate();
@@ -206,14 +207,14 @@ export function PremiumBuyerJourney() {
 
   return (
     <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
-      <header className="bg-[#000000] px-6 py-3">
+      <header className="bg-[#C3D2E7] px-6 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-5">
-            <h1 className="text-xl font-bold text-white tracking-tight">Mal</h1>
-            {currentStep > 1 && (<><div className="h-6 w-px bg-white/20"></div><div className="flex items-center gap-2"><Building2 className="w-4 h-4 text-white/60" /><p className="text-sm text-white/90">{profileData.companyLegalName}</p></div></>)}
+            <div className="flex items-center gap-2"><MalLogo size={28} className="text-gray-900" /><h1 className="text-xl font-bold text-gray-900 tracking-tight">Mal</h1></div>
+            {currentStep > 1 && (<><div className="h-6 w-px bg-gray-300"></div><div className="flex items-center gap-2"><Building2 className="w-4 h-4 text-gray-500" /><p className="text-sm text-gray-700">{profileData.companyLegalName}</p></div></>)}
           </div>
           <div className="flex items-center gap-3">
-            <p className="text-sm text-white/90">{currentStep > 1 ? (profileData.contactFullName || "Sarah Al-Mansouri") : "New Merchant"}</p>
+            <p className="text-sm text-gray-700">{currentStep > 1 ? (profileData.contactFullName || "Sarah Al-Mansouri") : "New Merchant"}</p>
             <div className="relative" ref={profileMenuRef}>
               <button 
                 onClick={() => currentStep > 1 && setShowProfileMenu(!showProfileMenu)} 
@@ -278,9 +279,9 @@ export function PremiumBuyerJourney() {
           <div className="bg-white rounded max-w-lg w-full">
             {!profileCreated ? (
               <>
-                <div className="px-5 py-3 flex items-center justify-between bg-[#000000] text-white rounded-t">
-                  <h3 className="text-base font-semibold text-white">Verify Your Email</h3>
-                  <button onClick={() => setShowOtpModal(false)} className="text-white/60 hover:text-white"><X className="w-5 h-5" /></button>
+                <div className="px-5 py-3 flex items-center justify-between bg-[#C3D2E7] text-gray-900 rounded-t">
+                  <h3 className="text-base font-semibold text-gray-900">Verify Your Email</h3>
+                  <button onClick={() => setShowOtpModal(false)} className="text-gray-500 hover:text-gray-900"><X className="w-5 h-5" /></button>
                 </div>
                 <div className="p-5">
                   <div className="flex items-center gap-2 mb-3"><Mail className="w-4 h-4 text-blue-600" /><span className="text-sm font-medium text-gray-700">Email Verification</span>{emailVerified && <CheckCircle className="w-4 h-4 text-green-500" />}</div>

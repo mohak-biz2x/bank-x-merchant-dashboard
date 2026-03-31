@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from "react";
 import { getMerchantRole, getUnderwritingStatus, getStpEligibility } from "./MerchantDashboard";
 import type { MerchantRole } from "./MerchantDashboard";
 
+import { MalLogo } from "./MalLogo";
+
 const navItems = [
   { name: "Dashboard", path: "/pb", icon: LayoutDashboard },
   { name: "Suppliers", path: "/pb/suppliers", icon: Building2 },
@@ -67,16 +69,16 @@ export function PremiumBuyerLayout() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <header className="sticky top-0 z-50">
-        <div className="bg-[#000000] px-6 py-3">
+        <div className="bg-[#C3D2E7] px-6 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-5">
-              <h1 className="text-xl font-bold text-white tracking-tight">Mal</h1>
-              <div className="h-6 w-px bg-white/20" />
-              <p className="text-sm text-white/90">Gulf Trading Enterprises LLC</p>
+              <div className="flex items-center gap-2"><MalLogo size={28} className="text-gray-900" /><h1 className="text-xl font-bold text-gray-900 tracking-tight">Mal</h1></div>
+              <div className="h-6 w-px bg-gray-300" />
+              <p className="text-sm text-gray-700">Gulf Trading Enterprises LLC</p>
               <span className="px-2 py-0.5 bg-amber-400/20 text-amber-300 text-xs font-medium rounded">Premium Buyer</span>
             </div>
             <div className="flex items-center gap-3">
-              <p className="text-sm text-white/90">Sarah Al-Mansouri</p>
+              <p className="text-sm text-gray-700">Sarah Al-Mansouri</p>
               <div className="relative" ref={ref}>
                 <button onClick={() => setShowProfileMenu(!showProfileMenu)} className="w-9 h-9 rounded-full bg-teal-500 flex items-center justify-center text-white font-medium hover:bg-teal-600">SA</button>
                 {showProfileMenu && (

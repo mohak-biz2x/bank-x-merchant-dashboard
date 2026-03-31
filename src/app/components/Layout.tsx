@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from "react";
 import { getMerchantRole, getUnderwritingStatus, getStpEligibility } from "./MerchantDashboard";
 import type { MerchantRole } from "./MerchantDashboard";
 
+import { MalLogo } from "./MalLogo";
+
 const allNavItems = [
   { name: "Dashboard", path: "/", icon: LayoutDashboard, roles: ["both", "receivable", "payable"] as MerchantRole[] },
   { name: "Suppliers", path: "/suppliers", icon: Building2, roles: ["both", "payable"] as MerchantRole[] },
@@ -72,16 +74,17 @@ export function Layout() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <header className="sticky top-0 z-50">
         {/* Dark header bar */}
-        <div className="bg-[#000000] px-6 py-3">
+        <div className="bg-[#C3D2E7] px-6 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-5">
               <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold text-white tracking-tight">Mal</h1>
+                <MalLogo size={28} className="text-gray-900" />
+                <h1 className="text-xl font-bold text-gray-900 tracking-tight">Mal</h1>
               </div>
-              <div className="h-6 w-px bg-white/20"></div>
+              <div className="h-6 w-px bg-gray-300"></div>
               <div className="flex items-center gap-2">
-                <Building2 className="w-4 h-4 text-white/60" />
-                <p className="text-sm text-white/90">
+                <Building2 className="w-4 h-4 text-gray-500" />
+                <p className="text-sm text-gray-700">
                   {role === "supplier-only" 
                     ? "Falcon Steel Industries LLC" 
                     : role === "premium-buyer" 
@@ -93,7 +96,7 @@ export function Layout() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <p className="text-sm text-white/90">Logged in as <span className="font-medium text-white">
+              <p className="text-sm text-gray-700">Logged in as <span className="font-medium text-gray-900">
                 {role === "supplier-only" 
                   ? "Rashid Al Farsi" 
                   : role === "premium-buyer" 

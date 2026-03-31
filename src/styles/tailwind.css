@@ -43,7 +43,7 @@
     padding-right: 0.875rem !important;
   }
 
-  /* Modal headers - dark blue like Mal */
+  /* Modal headers - light blue Mal style */
   div[class*="rounded-xl"][class*="shadow-xl"] > div:first-child {
     border-radius: 0.5rem 0.5rem 0 0;
   }
@@ -51,8 +51,8 @@
 
 /* Mal modal header style */
 .mal-modal-header {
-  background: #000000;
-  color: white;
+  background: #C3D2E7;
+  color: #1a1a1a;
   padding: 0.75rem 1.25rem;
   border-radius: 0.5rem 0.5rem 0 0;
   font-size: 0.9375rem;

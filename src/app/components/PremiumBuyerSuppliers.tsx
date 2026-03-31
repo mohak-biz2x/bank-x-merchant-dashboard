@@ -48,7 +48,7 @@ export function PremiumBuyerSuppliers() {
         <div><h2 className="text-xl font-semibold text-gray-900">Supplier Management</h2><p className="text-sm text-gray-500 mt-1">Manage your supplier relationships</p></div>
         <div className="flex gap-3">
           <button onClick={() => setShowBulkModal(true)} className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 text-sm font-medium"><Upload className="w-4 h-4" /> Bulk Add (CSV)</button>
-          <button onClick={() => setShowAddModal(true)} className="flex items-center gap-2 px-4 py-2 bg-[#0066B8] text-white rounded hover:bg-[#005299] text-sm font-medium"><Plus className="w-4 h-4" /> Add Supplier</button>
+          <button onClick={() => setShowAddModal(true)} className="flex items-center gap-2 px-4 py-2 bg-[#4F8DFF] text-white rounded hover:bg-[#3A7AE8] text-sm font-medium"><Plus className="w-4 h-4" /> Add Supplier</button>
         </div>
       </div>
 
@@ -79,7 +79,7 @@ export function PremiumBuyerSuppliers() {
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded max-w-md w-full">
-            <div className="px-5 py-3 flex items-center justify-between bg-[#312B6B] text-white rounded-t">
+            <div className="px-5 py-3 flex items-center justify-between bg-[#000000] text-white rounded-t">
               <h3 className="text-base font-semibold text-white">Add Supplier</h3>
               <button onClick={resetForm} className="text-white/60 hover:text-white"><X className="w-5 h-5" /></button>
             </div>
@@ -88,7 +88,7 @@ export function PremiumBuyerSuppliers() {
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4"><CheckCircle className="w-8 h-8 text-green-600" /></div>
                 <h3 className="text-base font-semibold text-gray-900 mb-2">Supplier Added</h3>
                 <p className="text-sm text-gray-500 mb-4">An onboarding link has been sent to the supplier's email. They will complete the remaining details.</p>
-                <button onClick={resetForm} className="px-6 py-2 bg-[#0066B8] text-white rounded text-sm font-medium">Done</button>
+                <button onClick={resetForm} className="px-6 py-2 bg-[#4F8DFF] text-white rounded text-sm font-medium">Done</button>
               </div>
             ) : (
               <div className="p-5 space-y-4">
@@ -96,7 +96,7 @@ export function PremiumBuyerSuppliers() {
                 <div><label className="block text-xs font-medium text-gray-500 mb-1">Company Name *</label><input type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded text-sm" placeholder="Enter company name" /></div>
                 <div><label className="block text-xs font-medium text-gray-500 mb-1">Trade License Number *</label><input type="text" value={formData.tradeLicenseNumber} onChange={e => setFormData({ ...formData, tradeLicenseNumber: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded text-sm" placeholder="Enter TL number" /></div>
                 <div><label className="block text-xs font-medium text-gray-500 mb-1">Email Address *</label><input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded text-sm" placeholder="supplier@example.ae" /></div>
-                <button onClick={handleAdd} disabled={!formData.name.trim() || !formData.email.trim() || !formData.tradeLicenseNumber.trim()} className="w-full py-2 bg-[#0066B8] text-white rounded text-sm font-medium disabled:opacity-50 hover:bg-[#005299]">Add Supplier</button>
+                <button onClick={handleAdd} disabled={!formData.name.trim() || !formData.email.trim() || !formData.tradeLicenseNumber.trim()} className="w-full py-2 bg-[#4F8DFF] text-white rounded text-sm font-medium disabled:opacity-50 hover:bg-[#3A7AE8]">Add Supplier</button>
               </div>
             )}
           </div>
@@ -107,7 +107,7 @@ export function PremiumBuyerSuppliers() {
       {showBulkModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded max-w-md w-full">
-            <div className="px-5 py-3 flex items-center justify-between bg-[#312B6B] text-white rounded-t">
+            <div className="px-5 py-3 flex items-center justify-between bg-[#000000] text-white rounded-t">
               <h3 className="text-base font-semibold text-white">Bulk Add Suppliers</h3>
               <button onClick={() => { setShowBulkModal(false); setBulkFile(null); }} className="text-white/60 hover:text-white"><X className="w-5 h-5" /></button>
             </div>
@@ -124,7 +124,7 @@ export function PremiumBuyerSuppliers() {
                   <input type="file" className="hidden" accept=".csv" onChange={e => { if (e.target.files?.[0]) setBulkFile(e.target.files[0]); }} />
                 </label>
               )}
-              <button onClick={handleBulkUpload} disabled={!bulkFile} className="w-full py-2 bg-[#0066B8] text-white rounded text-sm font-medium disabled:opacity-50 hover:bg-[#005299]">Upload & Add Suppliers</button>
+              <button onClick={handleBulkUpload} disabled={!bulkFile} className="w-full py-2 bg-[#4F8DFF] text-white rounded text-sm font-medium disabled:opacity-50 hover:bg-[#3A7AE8]">Upload & Add Suppliers</button>
             </div>
           </div>
         </div>

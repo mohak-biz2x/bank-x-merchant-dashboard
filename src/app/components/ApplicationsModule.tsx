@@ -287,7 +287,7 @@ export function ApplicationsModule({ onSecurityOnboarding, embedded }: Applicati
                                       <span className="text-[11px] text-green-700">{doc.fileName}</span>
                                     </div>
                                   ) : (
-                                    <label className="flex items-center gap-1 px-2.5 py-1 bg-[#0066B8] text-white rounded hover:bg-[#00549a] cursor-pointer text-[11px] font-medium">
+                                    <label className="flex items-center gap-1 px-2.5 py-1 bg-[#4F8DFF] text-white rounded hover:bg-[#3A7AE8] cursor-pointer text-[11px] font-medium">
                                       <Upload className="w-3 h-3" /> Upload
                                       <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleDocUpload(app.id, doc.id, e)} />
                                     </label>
@@ -311,7 +311,7 @@ export function ApplicationsModule({ onSecurityOnboarding, embedded }: Applicati
       {showSecurityModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded max-w-2xl w-full max-h-[85vh] overflow-y-auto">
-            <div className="px-5 py-3 flex items-center justify-between bg-[#312B6B] text-white rounded-t">
+            <div className="px-5 py-3 flex items-center justify-between bg-[#000000] text-white rounded-t">
               <h3 className="text-base font-semibold text-white">{isStp ? "E-sign Agreements" : "Security Onboarding"}</h3>
               <button onClick={() => setShowSecurityModal(false)} className="text-white/60 hover:text-white"><X className="w-5 h-5" /></button>
             </div>
@@ -322,7 +322,7 @@ export function ApplicationsModule({ onSecurityOnboarding, embedded }: Applicati
               <div className="flex items-center justify-center gap-2 mb-6">
                 {[{ id: 1, name: "Digital Agreements" }, { id: 2, name: "Security" }].map((s, i) => (
                   <div key={s.id} className="flex items-center gap-2">
-                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium ${securityStep > s.id ? "bg-green-600 text-white" : securityStep === s.id ? "bg-[#0066B8] text-white" : "bg-gray-200 text-gray-500"}`}>
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium ${securityStep > s.id ? "bg-green-600 text-white" : securityStep === s.id ? "bg-[#4F8DFF] text-white" : "bg-gray-200 text-gray-500"}`}>
                       {securityStep > s.id ? <CheckCircle className="w-3.5 h-3.5" /> : s.id}
                     </div>
                     <span className={`text-xs ${securityStep === s.id ? "font-medium text-gray-900" : "text-gray-500"}`}>{s.name}</span>
@@ -351,7 +351,7 @@ export function ApplicationsModule({ onSecurityOnboarding, embedded }: Applicati
                         {signedAgreements[ag.key] ? (
                           <span className="flex items-center gap-1 px-2.5 py-1 bg-green-100 text-green-700 rounded-lg text-xs font-medium"><CheckCircle className="w-3.5 h-3.5" /> Signed</span>
                         ) : (
-                          <button onClick={() => { setSignedAgreements(prev => ({ ...prev, [ag.key]: true })); showToast("success", `${ag.label} signed successfully.`); }} className="flex items-center gap-1 px-3 py-1.5 bg-[#0066B8] text-white rounded-lg hover:bg-[#00549a] text-xs"><PenTool className="w-3.5 h-3.5" /> Sign</button>
+                          <button onClick={() => { setSignedAgreements(prev => ({ ...prev, [ag.key]: true })); showToast("success", `${ag.label} signed successfully.`); }} className="flex items-center gap-1 px-3 py-1.5 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] text-xs"><PenTool className="w-3.5 h-3.5" /> Sign</button>
                         )}
                       </div>
                     </div>
@@ -370,7 +370,7 @@ export function ApplicationsModule({ onSecurityOnboarding, embedded }: Applicati
                       else { setSecurityStep(2); }
                     }}
                     disabled={!signedAgreements.financing || !signedAgreements.assignmentReceivables}
-                    className={`px-5 py-2 rounded-lg text-sm font-medium ${signedAgreements.financing && signedAgreements.assignmentReceivables ? "bg-[#0066B8] text-white hover:bg-[#00549a]" : "bg-gray-200 text-gray-400 cursor-not-allowed"}`}
+                    className={`px-5 py-2 rounded-lg text-sm font-medium ${signedAgreements.financing && signedAgreements.assignmentReceivables ? "bg-[#4F8DFF] text-white hover:bg-[#3A7AE8]" : "bg-gray-200 text-gray-400 cursor-not-allowed"}`}
                   >{isStp ? "Submit" : "Continue"}</button>
                 </div>
               </div>
@@ -427,7 +427,7 @@ export function ApplicationsModule({ onSecurityOnboarding, embedded }: Applicati
                       showToast("success", "Security documents submitted successfully. Verification in progress.");
                     }}
                     disabled={!(securityMethod === "cheque" ? !!securityChequeFile : mandateConfirmed)}
-                    className={`px-5 py-2 rounded-lg text-sm font-medium ${(securityMethod === "cheque" ? !!securityChequeFile : mandateConfirmed) ? "bg-[#0066B8] text-white hover:bg-[#00549a]" : "bg-gray-200 text-gray-400 cursor-not-allowed"}`}
+                    className={`px-5 py-2 rounded-lg text-sm font-medium ${(securityMethod === "cheque" ? !!securityChequeFile : mandateConfirmed) ? "bg-[#4F8DFF] text-white hover:bg-[#3A7AE8]" : "bg-gray-200 text-gray-400 cursor-not-allowed"}`}
                   >Submit</button>
                 </div>
               </div>

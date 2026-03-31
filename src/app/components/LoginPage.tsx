@@ -28,14 +28,14 @@ export function LoginPage() {
             <Wallet className="w-6 h-6 text-blue-600" />
           </div>
           <div>
-            <h1 className="text-2xl font-semibold">Bank X</h1>
+            <h1 className="text-2xl font-semibold">Mal</h1>
           </div>
         </div>
 
         {/* Main Message */}
         <div className="space-y-6">
           <h2 className="text-3xl font-semibold leading-tight">
-            Streamline your supply chain financing with Bank X
+            Streamline your supply chain financing with Mal
           </h2>
           <p className="text-lg text-blue-100 leading-relaxed">
             Access powerful financing tools, manage invoices seamlessly, and grow your business with trusted payment solutions.
@@ -83,11 +83,11 @@ export function LoginPage() {
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
           <div className="lg:hidden flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 bg-[#0066B8] rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-[#4F8DFF] rounded-lg flex items-center justify-center">
               <Wallet className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-semibold text-gray-900">Bank X</h1>
+              <h1 className="text-xl font-semibold text-gray-900">Mal</h1>
             </div>
           </div>
 
@@ -143,7 +143,7 @@ export function LoginPage() {
 
               <button
                 type="submit"
-                className="w-full bg-[#0066B8] text-white py-3 rounded-lg font-medium hover:bg-[#005299] transition-colors mt-6"
+                className="w-full bg-[#4F8DFF] text-white py-3 rounded-lg font-medium hover:bg-[#3A7AE8] transition-colors mt-6"
               >
                 Log in
               </button>

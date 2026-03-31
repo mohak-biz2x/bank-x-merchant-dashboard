@@ -64,7 +64,7 @@ export function PremiumBuyerDashboard() {
               <div className="flex justify-between py-2"><span className="text-sm text-gray-600">Onboarding Pending</span><span className="text-sm font-medium text-orange-600">2</span></div>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <Link to="/pb/suppliers" className="bg-[#0066B8] text-white py-2 px-4 rounded text-sm text-center font-medium hover:bg-[#005299] flex items-center justify-center gap-1.5"><Eye className="w-4 h-4" /> View</Link>
+              <Link to="/pb/suppliers" className="bg-[#4F8DFF] text-white py-2 px-4 rounded text-sm text-center font-medium hover:bg-[#3A7AE8] flex items-center justify-center gap-1.5"><Eye className="w-4 h-4" /> View</Link>
               <Link to="/pb/suppliers?add=true" className="border border-gray-300 text-gray-700 py-2 px-4 rounded text-sm text-center font-medium hover:bg-gray-50 flex items-center justify-center gap-1.5"><Plus className="w-4 h-4" /> Add New</Link>
             </div>
           </div>
@@ -78,7 +78,7 @@ export function PremiumBuyerDashboard() {
               <div className="flex justify-between py-2 border-b border-gray-100"><span className="text-sm text-gray-600">Pending Approval</span><span className="text-sm font-medium text-orange-600">3</span></div>
               <div className="flex justify-between py-2"><span className="text-sm text-gray-600">Approved</span><span className="text-sm font-medium text-green-600">42</span></div>
             </div>
-            <Link to="/pb/invoices" className="w-full bg-[#0066B8] text-white py-2 px-4 rounded text-sm text-center font-medium hover:bg-[#005299] flex items-center justify-center gap-1.5"><Eye className="w-4 h-4" /> View Invoices</Link>
+            <Link to="/pb/invoices" className="w-full bg-[#4F8DFF] text-white py-2 px-4 rounded text-sm text-center font-medium hover:bg-[#3A7AE8] flex items-center justify-center gap-1.5"><Eye className="w-4 h-4" /> View Invoices</Link>
           </div>
         </div>
       </div>

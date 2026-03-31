@@ -241,7 +241,7 @@ export function PremiumBuyerSupplierDashboard() {
             </div>
             <button
               onClick={() => setShowAddModal(true)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-[#0066B8] text-white rounded-lg hover:bg-[#005299] transition-colors text-sm font-medium"
+              className="flex items-center gap-2 px-4 py-2.5 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] transition-colors text-sm font-medium"
             >
               <Plus className="w-4 h-4" /> New Invoice Request
             </button>
@@ -321,7 +321,7 @@ export function PremiumBuyerSupplierDashboard() {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded max-w-3xl w-full max-h-[90vh] overflow-y-auto">
               {/* Header */}
-              <div className="px-5 py-3 flex items-center justify-between sticky top-0 bg-[#312B6B] text-white rounded-t">
+              <div className="px-5 py-3 flex items-center justify-between sticky top-0 bg-[#000000] text-white rounded-t">
                 <div>
                   <h3 className="text-base font-semibold text-white">New Invoice Request</h3>
                 </div>
@@ -341,7 +341,7 @@ export function PremiumBuyerSupplierDashboard() {
                   </p>
                   <button
                     onClick={resetForm}
-                    className="px-6 py-2 bg-[#0066B8] text-white rounded-lg hover:bg-[#00549a] transition-colors font-medium"
+                    className="px-6 py-2 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] transition-colors font-medium"
                   >
                     Done
                   </button>
@@ -502,7 +502,7 @@ export function PremiumBuyerSupplierDashboard() {
                       disabled={!isFormValid}
                       className={`flex-1 px-4 py-2 rounded-lg transition-colors font-medium ${
                         isFormValid
-                          ? "bg-[#0066B8] text-white hover:bg-[#00549a]"
+                          ? "bg-[#4F8DFF] text-white hover:bg-[#3A7AE8]"
                           : "bg-gray-200 text-gray-400 cursor-not-allowed"
                       }`}
                     >
@@ -520,7 +520,7 @@ export function PremiumBuyerSupplierDashboard() {
       {viewRequest && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded max-w-lg w-full max-h-[90vh] overflow-y-auto">
-            <div className="px-5 py-3 flex items-center justify-between bg-[#312B6B] text-white rounded-t">
+            <div className="px-5 py-3 flex items-center justify-between bg-[#000000] text-white rounded-t">
               <div>
                 <h3 className="text-base font-semibold text-white">Invoice Request Details</h3>
                 <p className="text-xs text-white/60 mt-0.5">{viewRequest.id}</p>
@@ -577,7 +577,7 @@ export function PremiumBuyerSupplierDashboard() {
             <div className="px-5 py-3 border-t border-gray-200">
               <button 
                 onClick={() => setViewRequest(null)} 
-                className="w-full py-2 bg-[#0066B8] text-white rounded hover:bg-[#005299] text-sm font-medium"
+                className="w-full py-2 bg-[#4F8DFF] text-white rounded hover:bg-[#3A7AE8] text-sm font-medium"
               >
                 Close
               </button>

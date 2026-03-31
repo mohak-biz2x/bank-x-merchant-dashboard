@@ -67,10 +67,10 @@ export function PremiumBuyerLayout() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <header className="sticky top-0 z-50">
-        <div className="bg-[#312B6B] px-6 py-3">
+        <div className="bg-[#000000] px-6 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-5">
-              <h1 className="text-xl font-bold text-white tracking-tight">BANK<span className="text-blue-400">X</span></h1>
+              <h1 className="text-xl font-bold text-white tracking-tight">Mal</h1>
               <div className="h-6 w-px bg-white/20" />
               <p className="text-sm text-white/90">Gulf Trading Enterprises LLC</p>
               <span className="px-2 py-0.5 bg-amber-400/20 text-amber-300 text-xs font-medium rounded">Premium Buyer</span>

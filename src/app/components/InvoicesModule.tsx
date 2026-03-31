@@ -303,7 +303,7 @@ export function InvoicesModule() {
           </div>
           <button
             onClick={() => setShowAddForm(true)}
-            className="flex items-center gap-2 bg-[#0066B8] text-white px-4 py-2 rounded-lg hover:bg-[#00549a] transition-colors font-medium"
+            className="flex items-center gap-2 bg-[#4F8DFF] text-white px-4 py-2 rounded-lg hover:bg-[#3A7AE8] transition-colors font-medium"
           >
             <Plus className="w-4 h-4" />
             Add Invoice Request
@@ -419,7 +419,7 @@ export function InvoicesModule() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded max-w-3xl w-full max-h-[90vh] overflow-y-auto">
             {/* Header */}
-            <div className="px-5 py-3 flex items-center justify-between sticky top-0 bg-[#312B6B] text-white rounded-t">
+            <div className="px-5 py-3 flex items-center justify-between sticky top-0 bg-[#000000] text-white rounded-t">
               <div>
                 <h3 className="text-base font-semibold text-white">Add Invoice Request</h3>
                 {!showSuccess && <p className="text-xs text-white/60 mt-0.5">Step {currentStep} of 3</p>}
@@ -438,7 +438,7 @@ export function InvoicesModule() {
                 </p>
                 <button
                   onClick={() => resetForm()}
-                  className="px-6 py-2 bg-[#0066B8] text-white rounded-lg hover:bg-[#00549a] transition-colors font-medium"
+                  className="px-6 py-2 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] transition-colors font-medium"
                 >
                   Done
                 </button>
@@ -458,7 +458,7 @@ export function InvoicesModule() {
                       <div
                         className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                           currentStep >= item.step
-                            ? "bg-[#0066B8] text-white"
+                            ? "bg-[#4F8DFF] text-white"
                             : "bg-gray-200 text-gray-600"
                         }`}
                       >
@@ -727,7 +727,7 @@ export function InvoicesModule() {
                     (currentStep === 1 && !buyerName.trim()) ||
                     (currentStep === 2 && (lineItems.every(i => !i.invoiceNumber.trim() || !i.invoiceAmount) || lineItems.every(i => !i.invoiceCopy || !i.deliveryNote)))
                   }
-                  className="flex-1 px-4 py-2 bg-[#0066B8] text-white rounded-lg hover:bg-[#00549a] transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-2 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Continue
                 </button>
@@ -750,7 +750,7 @@ export function InvoicesModule() {
       {viewInvoice && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded max-w-lg w-full max-h-[90vh] overflow-y-auto">
-            <div className="px-5 py-3 flex items-center justify-between bg-[#312B6B] text-white rounded-t">
+            <div className="px-5 py-3 flex items-center justify-between bg-[#000000] text-white rounded-t">
               <div>
                 <h3 className="text-base font-semibold text-white">Invoice Request Details</h3>
                 <p className="text-xs text-white/60 mt-0.5">{viewInvoice.id}</p>
@@ -775,7 +775,7 @@ export function InvoicesModule() {
               )}
             </div>
             <div className="px-5 py-3 border-t border-gray-200">
-              <button onClick={() => setViewInvoice(null)} className="w-full py-2 bg-[#0066B8] text-white rounded hover:bg-[#005299] text-sm font-medium">Close</button>
+              <button onClick={() => setViewInvoice(null)} className="w-full py-2 bg-[#4F8DFF] text-white rounded hover:bg-[#3A7AE8] text-sm font-medium">Close</button>
             </div>
           </div>
         </div>

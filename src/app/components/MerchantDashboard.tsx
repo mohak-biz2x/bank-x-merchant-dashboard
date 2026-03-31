@@ -119,7 +119,7 @@ export function MerchantDashboard() {
       icon: Building2,
       iconBg: "bg-indigo-100",
       iconColor: "text-indigo-600",
-      btnBg: "bg-[#0066B8] hover:bg-[#00549a]",
+      btnBg: "bg-[#4F8DFF] hover:bg-[#3A7AE8]",
       roles: ["both", "payable"] as MerchantRole[],
       rows: [
         { label: "Total Suppliers", value: "6" },
@@ -134,7 +134,7 @@ export function MerchantDashboard() {
       icon: FileText,
       iconBg: "bg-green-100",
       iconColor: "text-green-600",
-      btnBg: "bg-[#0066B8] hover:bg-[#00549a]",
+      btnBg: "bg-[#4F8DFF] hover:bg-[#3A7AE8]",
       roles: ["both", "receivable"] as MerchantRole[],
       rows: [
         { label: "Total Invoices", value: "50" },
@@ -149,7 +149,7 @@ export function MerchantDashboard() {
       icon: FileText,
       iconBg: "bg-amber-100",
       iconColor: "text-amber-600",
-      btnBg: "bg-[#0066B8] hover:bg-[#00549a]",
+      btnBg: "bg-[#4F8DFF] hover:bg-[#3A7AE8]",
       roles: ["both", "payable"] as MerchantRole[],
       rows: [
         { label: "Total Invoices", value: "33" },
@@ -272,7 +272,7 @@ export function MerchantDashboard() {
                         ) : (
                           <button
                             onClick={() => { setDocuSignDoc({ key: agreement.key, label: agreement.label }); setDocuSignStep("review"); setDocuSignChecked(false); }}
-                            className="flex items-center gap-1.5 px-4 py-2 bg-[#0066B8] text-white rounded-lg hover:bg-[#00549a] transition-colors text-sm"
+                            className="flex items-center gap-1.5 px-4 py-2 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] transition-colors text-sm"
                           >
                             <PenTool className="w-4 h-4" /> Sign
                           </button>
@@ -294,7 +294,7 @@ export function MerchantDashboard() {
                     }
                   }}
                   disabled={!allSigned}
-                  className={`px-6 py-2.5 rounded-lg transition-colors text-sm font-medium ${allSigned ? "bg-[#0066B8] text-white hover:bg-[#00549a]" : "bg-gray-200 text-gray-400 cursor-not-allowed"}`}
+                  className={`px-6 py-2.5 rounded-lg transition-colors text-sm font-medium ${allSigned ? "bg-[#4F8DFF] text-white hover:bg-[#3A7AE8]" : "bg-gray-200 text-gray-400 cursor-not-allowed"}`}
                 >
                   Continue
                 </button>
@@ -398,7 +398,7 @@ export function MerchantDashboard() {
                     navigate('/applications');
                   }}
                   disabled={!securityComplete}
-                  className={`px-6 py-2.5 rounded-lg transition-colors text-sm font-medium ${securityComplete ? "bg-[#0066B8] text-white hover:bg-[#00549a]" : "bg-gray-200 text-gray-400 cursor-not-allowed"}`}
+                  className={`px-6 py-2.5 rounded-lg transition-colors text-sm font-medium ${securityComplete ? "bg-[#4F8DFF] text-white hover:bg-[#3A7AE8]" : "bg-gray-200 text-gray-400 cursor-not-allowed"}`}
                 >
                   Continue
                 </button>
@@ -459,13 +459,13 @@ export function MerchantDashboard() {
                       {/* Mock document preview */}
                       <div className="border border-gray-200 rounded-lg bg-gray-50 p-8 space-y-6">
                         <div className="text-center border-b border-gray-300 pb-4">
-                          <p className="text-xs text-gray-400 uppercase tracking-wider">Bank X - Confidential</p>
+                          <p className="text-xs text-gray-400 uppercase tracking-wider">Mal - Confidential</p>
                           <h4 className="text-xl font-bold text-gray-900 mt-2">{docuSignDoc.label}</h4>
                           <p className="text-xs text-gray-500 mt-1">Document ID: DOC-{Math.random().toString(36).substr(2, 8).toUpperCase()}</p>
                         </div>
 
                         <div className="space-y-4 text-sm text-gray-700 leading-relaxed">
-                          <p>This agreement ("Agreement") is entered into between Bank X ("the Bank") and Al Masraf Industries LLC ("the Client") on this date.</p>
+                          <p>This agreement ("Agreement") is entered into between Mal ("the Bank") and Al Masraf Industries LLC ("the Client") on this date.</p>
 
                           <div>
                             <h5 className="font-semibold text-gray-900 mb-1">1. Definitions</h5>
@@ -491,8 +491,8 @@ export function MerchantDashboard() {
                         <div className="border-t border-gray-300 pt-4 mt-6">
                           <div className="grid grid-cols-2 gap-8">
                             <div>
-                              <p className="text-xs text-gray-500 mb-1">Bank X Representative</p>
-                              <div className="border-b-2 border-gray-400 pb-1 italic text-gray-400 text-sm">Bank X Authorized Signatory</div>
+                              <p className="text-xs text-gray-500 mb-1">Mal Representative</p>
+                              <div className="border-b-2 border-gray-400 pb-1 italic text-gray-400 text-sm">Mal Authorized Signatory</div>
                               <p className="text-xs text-gray-400 mt-1">Date: {new Date().toLocaleDateString()}</p>
                             </div>
                             <div>
@@ -613,7 +613,7 @@ export function MerchantDashboard() {
                       {/* Mock mandate document preview */}
                       <div className="border border-gray-200 rounded-lg bg-gray-50 p-8 space-y-6">
                         <div className="text-center border-b border-gray-300 pb-4">
-                          <p className="text-xs text-gray-400 uppercase tracking-wider">Bank X - Direct Debit Authorization</p>
+                          <p className="text-xs text-gray-400 uppercase tracking-wider">Mal - Direct Debit Authorization</p>
                           <h4 className="text-xl font-bold text-gray-900 mt-2">Direct Debit Mandate</h4>
                           <p className="text-xs text-gray-500 mt-1">Mandate Reference: DDM-{Math.random().toString(36).substr(2, 6).toUpperCase()}</p>
                         </div>
@@ -622,7 +622,7 @@ export function MerchantDashboard() {
                           <div className="grid grid-cols-2 gap-4">
                             <div>
                               <p className="text-gray-500 text-xs">Creditor</p>
-                              <p className="font-medium text-gray-900">Bank X</p>
+                              <p className="font-medium text-gray-900">Mal</p>
                             </div>
                             <div>
                               <p className="text-gray-500 text-xs">Debtor</p>
@@ -640,7 +640,7 @@ export function MerchantDashboard() {
 
                           <div>
                             <h5 className="font-semibold text-gray-900 mb-1">1. Authorization</h5>
-                            <p>I/We hereby authorize Bank X to debit my/our account for the amount specified above. This mandate serves as security for the credit facility and will only be executed in case of default on the financing agreement.</p>
+                            <p>I/We hereby authorize Mal to debit my/our account for the amount specified above. This mandate serves as security for the credit facility and will only be executed in case of default on the financing agreement.</p>
                           </div>
 
                           <div>
@@ -662,8 +662,8 @@ export function MerchantDashboard() {
                         <div className="border-t border-gray-300 pt-4 mt-6">
                           <div className="grid grid-cols-2 gap-8">
                             <div>
-                              <p className="text-xs text-gray-500 mb-1">Bank X Representative</p>
-                              <div className="border-b-2 border-gray-400 pb-1 italic text-gray-400 text-sm">Bank X Authorized Signatory</div>
+                              <p className="text-xs text-gray-500 mb-1">Mal Representative</p>
+                              <div className="border-b-2 border-gray-400 pb-1 italic text-gray-400 text-sm">Mal Authorized Signatory</div>
                               <p className="text-xs text-gray-400 mt-1">Date: {new Date().toLocaleDateString()}</p>
                             </div>
                             <div>
@@ -1100,7 +1100,7 @@ function SupplierOnlyDashboard() {
         {selectedRequest && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded max-w-lg w-full max-h-[90vh] overflow-y-auto">
-              <div className="px-5 py-3 flex items-center justify-between bg-[#312B6B] text-white rounded-t">
+              <div className="px-5 py-3 flex items-center justify-between bg-[#000000] text-white rounded-t">
                 <div>
                   <h3 className="text-base font-semibold text-white">Invoice Request Details</h3>
                   <p className="text-xs text-white/60 mt-0.5">{selectedRequest.id}</p>
@@ -1163,7 +1163,7 @@ function SupplierOnlyDashboard() {
               <div className="px-5 py-3 border-t border-gray-200">
                 <button 
                   onClick={() => setSelectedRequest(null)} 
-                  className="w-full py-2 bg-[#0066B8] text-white rounded hover:bg-[#005299] text-sm font-medium"
+                  className="w-full py-2 bg-[#4F8DFF] text-white rounded hover:bg-[#3A7AE8] text-sm font-medium"
                 >
                   Close
                 </button>

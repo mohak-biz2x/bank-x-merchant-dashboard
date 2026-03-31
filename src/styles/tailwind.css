@@ -3,7 +3,7 @@
 
 @import 'tw-animate-css';
 
-/* Bank X Theme - Global overrides */
+/* Mal Theme - Global overrides */
 @keyframes slide-in {
   from { transform: translateX(100%); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }
@@ -43,15 +43,15 @@
     padding-right: 0.875rem !important;
   }
 
-  /* Modal headers - dark blue like Bank X */
+  /* Modal headers - dark blue like Mal */
   div[class*="rounded-xl"][class*="shadow-xl"] > div:first-child {
     border-radius: 0.5rem 0.5rem 0 0;
   }
 }
 
-/* Bank X modal header style */
-.bankx-modal-header {
-  background: #312B6B;
+/* Mal modal header style */
+.mal-modal-header {
+  background: #000000;
   color: white;
   padding: 0.75rem 1.25rem;
   border-radius: 0.5rem 0.5rem 0 0;
@@ -70,7 +70,7 @@ label {
   font-size: 0.75rem !important;
 }
 
-/* Bank X Table Style */
+/* Mal Table Style */
 table thead tr {
   background: #CFD1D2 !important;
 }

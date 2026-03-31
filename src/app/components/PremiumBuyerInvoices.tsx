@@ -172,7 +172,7 @@ export function PremiumBuyerInvoices() {
       {viewInv && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded max-w-lg w-full max-h-[90vh] overflow-y-auto">
-            <div className="px-5 py-3 flex items-center justify-between bg-[#312B6B] text-white rounded-t sticky top-0">
+            <div className="px-5 py-3 flex items-center justify-between bg-[#000000] text-white rounded-t sticky top-0">
               <div>
                 <h3 className="text-base font-semibold text-white">Invoice Request Details</h3>
                 <p className="text-xs text-white/60 mt-0.5">{viewInv.id}</p>
@@ -233,7 +233,7 @@ export function PremiumBuyerInvoices() {
                   <button onClick={() => setApproveInv(viewInv)} className="flex-1 py-2 bg-green-600 text-white rounded text-sm font-medium hover:bg-green-700">Approve</button>
                 </div>
               ) : (
-                <button onClick={() => setViewInv(null)} className="w-full py-2 bg-[#0066B8] text-white rounded text-sm font-medium">Close</button>
+                <button onClick={() => setViewInv(null)} className="w-full py-2 bg-[#4F8DFF] text-white rounded text-sm font-medium">Close</button>
               )}
             </div>
           </div>
@@ -245,7 +245,7 @@ export function PremiumBuyerInvoices() {
         <div className="fixed inset-0 bg-gray-500/30 flex items-center justify-center z-[60] p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
             {/* Header */}
-            <div className="px-5 py-3 bg-[#312B6B] rounded-t-lg flex items-center justify-between">
+            <div className="px-5 py-3 bg-[#000000] rounded-t-lg flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <h3 className="text-sm font-semibold text-white">Approve & Sign NOA</h3>
                 <span className="text-xs text-white/50">·</span>

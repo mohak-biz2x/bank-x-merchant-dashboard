@@ -324,7 +324,7 @@ export function SupplierJourneyPage() {
                     <button
                       onClick={startKybVerification}
                       disabled={!tlNumber.trim()}
-                      className="px-5 py-2.5 bg-[#0066B8] text-white rounded-lg hover:bg-[#005299] disabled:opacity-50 text-sm font-medium flex items-center gap-2"
+                      className="px-5 py-2.5 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] disabled:opacity-50 text-sm font-medium flex items-center gap-2"
                     >
                       <ShieldCheck className="w-4 h-4" /> Verify
                     </button>
@@ -345,7 +345,7 @@ export function SupplierJourneyPage() {
                   </div>
                   <div className="w-full h-2.5 bg-gray-200 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-[#0066B8] rounded-full transition-all"
+                      className="h-full bg-[#4F8DFF] rounded-full transition-all"
                       style={{ width: `${kybProgress}%` }}
                     />
                   </div>
@@ -640,7 +640,7 @@ export function SupplierJourneyPage() {
                 />
                 <div className="text-sm text-gray-700">
                   <p className="font-medium text-gray-900 mb-1">I confirm that all the information provided is accurate</p>
-                  <p>I hereby approve my registration as a supplier on the Bank X Supply Chain Finance platform. I confirm that the company details, documents, and bank account information are correct and up to date.</p>
+                  <p>I hereby approve my registration as a supplier on the Mal Supply Chain Finance platform. I confirm that the company details, documents, and bank account information are correct and up to date.</p>
                 </div>
               </label>
             </div>
@@ -655,10 +655,10 @@ export function SupplierJourneyPage() {
   return (
     <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
       {/* Header */}
-      <header className="bg-[#312B6B] px-6 py-3">
+      <header className="bg-[#000000] px-6 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-5">
-            <h1 className="text-xl font-bold text-white tracking-tight">BANK<span className="text-blue-400">X</span></h1>
+            <h1 className="text-xl font-bold text-white tracking-tight">Mal</h1>
             <div className="h-6 w-px bg-white/20"></div>
             <p className="text-sm text-white/90">Supplier Verification</p>
           </div>
@@ -678,7 +678,7 @@ export function SupplierJourneyPage() {
             const isCompleted = step.id < currentStep;
             return (
               <div key={step.id} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${isActive ? "bg-blue-50 border border-blue-200" : isCompleted ? "text-green-700" : "text-gray-500"}`}>
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0 ${isCompleted ? "bg-green-100 text-green-700" : isActive ? "bg-[#0066B8] text-white" : "bg-gray-100 text-gray-400"}`}>
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0 ${isCompleted ? "bg-green-100 text-green-700" : isActive ? "bg-[#4F8DFF] text-white" : "bg-gray-100 text-gray-400"}`}>
                   {isCompleted ? <Check className="w-3.5 h-3.5" /> : step.id}
                 </div>
                 <span className={`text-sm ${isActive ? "font-semibold text-blue-900" : isCompleted ? "font-medium" : ""}`}>{step.name}</span>
@@ -701,7 +701,7 @@ export function SupplierJourneyPage() {
           </div>
           <div className="flex items-center gap-2">
             <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
-              <div className="h-full bg-[#0066B8] rounded-full transition-all duration-300" style={{ width: `${(currentStep / steps.length) * 100}%` }} />
+              <div className="h-full bg-[#4F8DFF] rounded-full transition-all duration-300" style={{ width: `${(currentStep / steps.length) * 100}%` }} />
             </div>
             <span className="text-xs text-gray-500">{Math.round((currentStep / steps.length) * 100)}%</span>
           </div>
@@ -735,7 +735,7 @@ export function SupplierJourneyPage() {
                 ? confirmed
                   ? "bg-green-600 text-white hover:bg-green-700"
                   : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                : "bg-[#0066B8] text-white hover:bg-[#005299]"
+                : "bg-[#4F8DFF] text-white hover:bg-[#3A7AE8]"
             }`}
           >
             {currentStep === 5 ? "Review & Submit" : "Next"}
@@ -748,7 +748,7 @@ export function SupplierJourneyPage() {
       {showOtpModal && (
         <div className="fixed inset-0 bg-gray-500/30 flex items-center justify-center z-50">
           <div className="bg-white rounded shadow-xl max-w-lg w-full mx-4">
-            <div className="px-5 py-3 flex items-center justify-between bg-[#312B6B] text-white rounded-t">
+            <div className="px-5 py-3 flex items-center justify-between bg-[#000000] text-white rounded-t">
               <h2 className="text-base font-semibold text-white">Verify Contact Information</h2>
               <button onClick={() => setShowOtpModal(false)} className="text-white/60 hover:text-white"><X className="w-5 h-5" /></button>
             </div>
@@ -776,7 +776,7 @@ export function SupplierJourneyPage() {
                       className="w-10 h-10 text-center text-base font-semibold border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
                   ))}
                   <button onClick={verifyEmailOtp} disabled={emailOtp.some(d => !d) || verifyingEmail}
-                    className="ml-2 px-4 py-2 bg-[#0066B8] text-white rounded-lg text-sm font-medium hover:bg-[#005299] transition-colors disabled:opacity-50 flex items-center gap-2">
+                    className="ml-2 px-4 py-2 bg-[#4F8DFF] text-white rounded-lg text-sm font-medium hover:bg-[#3A7AE8] transition-colors disabled:opacity-50 flex items-center gap-2">
                     {verifyingEmail ? <><Loader2 className="w-4 h-4 animate-spin" /> Verifying...</> : "Verify"}
                   </button>
                 </div>
@@ -806,7 +806,7 @@ export function SupplierJourneyPage() {
                       className="w-10 h-10 text-center text-base font-semibold border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
                   ))}
                   <button onClick={verifyPhoneOtp} disabled={phoneOtp.some(d => !d) || verifyingPhone}
-                    className="ml-2 px-4 py-2 bg-[#0066B8] text-white rounded-lg text-sm font-medium hover:bg-[#005299] transition-colors disabled:opacity-50 flex items-center gap-2">
+                    className="ml-2 px-4 py-2 bg-[#4F8DFF] text-white rounded-lg text-sm font-medium hover:bg-[#3A7AE8] transition-colors disabled:opacity-50 flex items-center gap-2">
                     {verifyingPhone ? <><Loader2 className="w-4 h-4 animate-spin" /> Verifying...</> : "Verify"}
                   </button>
                 </div>

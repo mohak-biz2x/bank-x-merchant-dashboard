@@ -338,7 +338,7 @@ export function CustomerJourneyPage() {
             <label className="block text-sm font-medium text-gray-700 mb-2">Trade License Number</label>
             <div className="flex gap-3">
               <input type="text" value={tlNumber} onChange={e => setTlNumber(e.target.value)} placeholder="e.g. TL-345678" className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm" />
-              <button onClick={startKybVerification} disabled={!tlNumber.trim()} className="px-5 py-2.5 bg-[#0066B8] text-white rounded-lg hover:bg-[#005299] transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium flex items-center gap-2">
+              <button onClick={startKybVerification} disabled={!tlNumber.trim()} className="px-5 py-2.5 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4" /> Verify Business
               </button>
             </div>
@@ -474,7 +474,7 @@ export function CustomerJourneyPage() {
             <input type="checkbox" checked={aecbConsent} onChange={e => setAecbConsent(e.target.checked)} className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
             <div className="text-sm text-gray-700">
               <p className="font-medium text-gray-900 mb-1">I authorize AECB Credit Check</p>
-              <p>I hereby authorize Bank X to perform a credit check on my company ({companyInfo.legalBusinessName || profileData.companyLegalName}) using the TRN number ({aecbTrnNumber || companyInfo.trnNumber}) provided. I understand that this check is necessary for the evaluation of my supply chain financing application and consent to the retrieval of my company's credit information from the Al Etihad Credit Bureau (AECB).</p>
+              <p>I hereby authorize Mal to perform a credit check on my company ({companyInfo.legalBusinessName || profileData.companyLegalName}) using the TRN number ({aecbTrnNumber || companyInfo.trnNumber}) provided. I understand that this check is necessary for the evaluation of my supply chain financing application and consent to the retrieval of my company's credit information from the Al Etihad Credit Bureau (AECB).</p>
             </div>
           </label>
         </div>
@@ -507,7 +507,7 @@ export function CustomerJourneyPage() {
       </div>
       <div className="mt-10 pt-6 border-t border-gray-200">
         <p className="text-sm text-gray-400 leading-relaxed">This financing application is for business purposes only. Financing for personal, family, and/or household purposes is prohibited under business credit lines.</p>
-        <p className="text-sm text-gray-400 leading-relaxed mt-2 uppercase font-medium">Credit approval is subject to verification of information and may require receipt of additional documentation at the sole discretion of Bank X.</p>
+        <p className="text-sm text-gray-400 leading-relaxed mt-2 uppercase font-medium">Credit approval is subject to verification of information and may require receipt of additional documentation at the sole discretion of Mal.</p>
       </div>
     </div>
   );
@@ -575,7 +575,7 @@ export function CustomerJourneyPage() {
                 <button onClick={() => setBusinessDocs(prev => ({ ...prev, lastSixInvoices: null }))} className="text-gray-400 hover:text-red-500"><X className="w-4 h-4" /></button>
               </div>
             ) : (
-              <label className="flex items-center gap-2 px-4 py-2 bg-[#0066B8] text-white rounded-lg hover:bg-[#005299] cursor-pointer text-sm">
+              <label className="flex items-center gap-2 px-4 py-2 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] cursor-pointer text-sm">
                 <Upload className="w-4 h-4" /> Upload
                 <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png,.zip" onChange={e => { if (e.target.files?.[0]) setBusinessDocs(prev => ({ ...prev, lastSixInvoices: e.target.files![0] })); }} />
               </label>
@@ -598,7 +598,7 @@ export function CustomerJourneyPage() {
                   <button onClick={() => setBusinessDocs(prev => ({ ...prev, auditedPnl: null }))} className="text-gray-400 hover:text-red-500"><X className="w-4 h-4" /></button>
                 </div>
               ) : (
-                <label className="flex items-center gap-2 px-4 py-2 bg-[#0066B8] text-white rounded-lg hover:bg-[#005299] cursor-pointer text-sm">
+                <label className="flex items-center gap-2 px-4 py-2 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] cursor-pointer text-sm">
                   <Upload className="w-4 h-4" /> Upload
                   <input type="file" className="hidden" accept=".pdf" onChange={e => { if (e.target.files?.[0]) setBusinessDocs(prev => ({ ...prev, auditedPnl: e.target.files![0] })); }} />
                 </label>
@@ -729,7 +729,7 @@ export function CustomerJourneyPage() {
               <div><label className="block text-xs font-medium text-gray-500 mb-1">Emirates ID</label><input type="text" value={customSignatory.emiratesId} onChange={e => setCustomSignatory({ ...customSignatory, emiratesId: e.target.value })} placeholder="784-XXXX-XXXXXXX-X" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500" /></div>
             </div>
             <div className="flex gap-2">
-              <button onClick={addCustomSignatory} disabled={!customSignatory.name.trim()} className="px-4 py-1.5 bg-[#0066B8] text-white rounded-lg text-sm hover:bg-[#005299] disabled:opacity-50">Add</button>
+              <button onClick={addCustomSignatory} disabled={!customSignatory.name.trim()} className="px-4 py-1.5 bg-[#4F8DFF] text-white rounded-lg text-sm hover:bg-[#3A7AE8] disabled:opacity-50">Add</button>
               <button onClick={() => setShowAddSignatory(false)} className="px-4 py-1.5 border border-gray-300 rounded-lg text-sm hover:bg-gray-50">Cancel</button>
             </div>
           </div>
@@ -866,10 +866,10 @@ export function CustomerJourneyPage() {
   return (
     <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
       {/* Header */}
-      <header className="bg-[#312B6B] px-6 py-3">
+      <header className="bg-[#000000] px-6 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-5">
-            <h1 className="text-xl font-bold text-white tracking-tight">BANK<span className="text-blue-400">X</span></h1>
+            <h1 className="text-xl font-bold text-white tracking-tight">Mal</h1>
             {currentStep > 1 && (<><div className="h-6 w-px bg-white/20"></div><div className="flex items-center gap-2"><Building2 className="w-4 h-4 text-white/60" /><p className="text-sm text-white/90">{profileData.companyLegalName}</p></div></>)}
           </div>
           <div className="flex items-center gap-3">
@@ -909,7 +909,7 @@ export function CustomerJourneyPage() {
                 return (
                   <button key={step.id} onClick={() => { if (isClickable) setCurrentStep(step.id); }} disabled={!isClickable}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors ${isActive ? 'bg-blue-50 border-l-2 border-blue-600 text-blue-700' : isCompleted ? 'text-gray-700 hover:bg-gray-50' : 'text-gray-400 cursor-not-allowed'}`}>
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0 ${isActive ? 'bg-[#0066B8] text-white' : isCompleted ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0 ${isActive ? 'bg-[#4F8DFF] text-white' : isCompleted ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
                       {isCompleted ? <Check className="w-3 h-3" /> : index + 1}
                     </div>
                     <span className="text-sm">{step.name}</span>
@@ -938,7 +938,7 @@ export function CustomerJourneyPage() {
                 currentStep === 8 ? acceptedAgreements ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 : (currentStep === 4 && !selectedProduct) ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 : (currentStep === 3 && !aecbConsent) ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                : 'bg-[#0066B8] text-white hover:bg-[#005299]'
+                : 'bg-[#4F8DFF] text-white hover:bg-[#3A7AE8]'
               }`}>
               {currentStep === 8 ? 'Submit Application' : currentStep === 1 ? 'Create Profile' : 'Continue'}
             </button>
@@ -952,7 +952,7 @@ export function CustomerJourneyPage() {
           <div ref={otpModalRef} className="bg-white rounded shadow-xl w-full max-w-lg">
             {!profileCreated ? (
               <>
-                <div className="px-5 py-3 flex items-center justify-between bg-[#312B6B] text-white rounded-t">
+                <div className="px-5 py-3 flex items-center justify-between bg-[#000000] text-white rounded-t">
                   <h3 className="text-base font-semibold text-white">Verify Your Identity</h3>
                   <button onClick={() => setShowOtpModal(false)} className="text-white/60 hover:text-white"><X className="w-5 h-5" /></button>
                 </div>
@@ -967,7 +967,7 @@ export function CustomerJourneyPage() {
                           className={`w-10 h-10 text-center border rounded-lg text-sm font-medium focus:ring-2 focus:ring-blue-500 ${emailVerified ? 'border-green-300 bg-green-50 text-green-700' : 'border-gray-300'}`} disabled={emailVerified} />
                       ))}
                     </div>
-                    {!emailVerified && <button onClick={verifyEmailOtp} disabled={verifyingEmail} className="px-4 py-2 bg-[#0066B8] text-white rounded-lg hover:bg-[#005299] text-sm disabled:opacity-50 flex items-center gap-2">{verifyingEmail ? <Loader2 className="w-4 h-4 animate-spin" /> : null}{verifyingEmail ? 'Verifying...' : 'Verify'}</button>}
+                    {!emailVerified && <button onClick={verifyEmailOtp} disabled={verifyingEmail} className="px-4 py-2 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] text-sm disabled:opacity-50 flex items-center gap-2">{verifyingEmail ? <Loader2 className="w-4 h-4 animate-spin" /> : null}{verifyingEmail ? 'Verifying...' : 'Verify'}</button>}
                   </div>
                   {!emailVerified && <div className="mt-2">{emailResendTimer > 0 ? <p className="text-xs text-gray-400">Resend code in {emailResendTimer}s</p> : <button onClick={resendEmailOtp} className="text-xs text-blue-600 hover:text-blue-700 font-medium">Resend Code</button>}</div>}
                 </div>
@@ -981,11 +981,11 @@ export function CustomerJourneyPage() {
                           className={`w-10 h-10 text-center border rounded-lg text-sm font-medium focus:ring-2 focus:ring-blue-500 ${mobileVerified ? 'border-green-300 bg-green-50 text-green-700' : 'border-gray-300'}`} disabled={mobileVerified} />
                       ))}
                     </div>
-                    {!mobileVerified && <button onClick={verifyMobileOtp} disabled={verifyingMobile} className="px-4 py-2 bg-[#0066B8] text-white rounded-lg hover:bg-[#005299] text-sm disabled:opacity-50 flex items-center gap-2">{verifyingMobile ? <Loader2 className="w-4 h-4 animate-spin" /> : null}{verifyingMobile ? 'Verifying...' : 'Verify'}</button>}
+                    {!mobileVerified && <button onClick={verifyMobileOtp} disabled={verifyingMobile} className="px-4 py-2 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] text-sm disabled:opacity-50 flex items-center gap-2">{verifyingMobile ? <Loader2 className="w-4 h-4 animate-spin" /> : null}{verifyingMobile ? 'Verifying...' : 'Verify'}</button>}
                   </div>
                   {!mobileVerified && <div className="mt-2">{mobileResendTimer > 0 ? <p className="text-xs text-gray-400">Resend code in {mobileResendTimer}s</p> : <button onClick={resendMobileOtp} className="text-xs text-blue-600 hover:text-blue-700 font-medium">Resend Code</button>}</div>}
                 </div>
-                <button onClick={handleOtpComplete} disabled={!emailVerified || !mobileVerified} className="w-full py-2.5 bg-[#0066B8] text-white rounded hover:bg-[#005299] text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors">Complete Verification</button>
+                <button onClick={handleOtpComplete} disabled={!emailVerified || !mobileVerified} className="w-full py-2.5 bg-[#4F8DFF] text-white rounded hover:bg-[#3A7AE8] text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors">Complete Verification</button>
                 </div>
               </>
             ) : (
@@ -996,7 +996,7 @@ export function CustomerJourneyPage() {
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
                   <div className="flex items-start gap-2"><Mail className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" /><p className="text-sm text-blue-800">We have sent you a welcome email at <span className="font-medium">{profileData.email}</span> with a temporary password.</p></div>
                 </div>
-                <button onClick={handleProfileSuccessContinue} className="px-6 py-2.5 bg-[#0066B8] text-white rounded-lg hover:bg-[#005299] text-sm font-medium transition-colors">Continue</button>
+                <button onClick={handleProfileSuccessContinue} className="px-6 py-2.5 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] text-sm font-medium transition-colors">Continue</button>
                 <p className="text-xs text-gray-400 mt-3">Auto-redirecting in {profileRedirectTimer}s</p>
               </div>
             )}
@@ -1008,7 +1008,7 @@ export function CustomerJourneyPage() {
       {showConnectModal && (
         <div className="fixed inset-0 bg-gray-500/30 flex items-center justify-center z-50">
           <div className="bg-white rounded shadow-xl w-full max-w-md">
-            <div className="px-5 py-3 flex items-center justify-between bg-[#312B6B] text-white rounded-t">
+            <div className="px-5 py-3 flex items-center justify-between bg-[#000000] text-white rounded-t">
               <h3 className="text-base font-semibold text-white">{connectStep === 'bank-select' ? 'Connect via Lean' : connectStep === 'auth' ? 'Authenticate' : 'Connected'}</h3>
               <button onClick={closeConnectModal} className="text-white/60 hover:text-white"><X className="w-5 h-5" /></button>
             </div>
@@ -1020,12 +1020,12 @@ export function CustomerJourneyPage() {
                     <Building2 className="w-5 h-5 text-gray-400" /><span className="text-sm font-medium text-gray-900">{bank}</span>{selectedBank === bank && <CheckCircle className="w-4 h-4 text-blue-600 ml-auto" />}
                   </button>
                 ))}
-                <button onClick={handleConnectBank} disabled={!selectedBank} className="w-full mt-4 py-2.5 bg-[#0066B8] text-white rounded-lg hover:bg-[#005299] text-sm font-medium disabled:opacity-50 transition-colors">Connect to {selectedBank || 'Bank'}</button>
+                <button onClick={handleConnectBank} disabled={!selectedBank} className="w-full mt-4 py-2.5 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] text-sm font-medium disabled:opacity-50 transition-colors">Connect to {selectedBank || 'Bank'}</button>
               </div>
             )}
             {connectStep === 'auth' && (
               <div className="text-center py-6">
-                {isConnecting ? (<><Loader2 className="w-10 h-10 text-blue-600 animate-spin mx-auto mb-4" /><p className="text-sm text-gray-600">Connecting to {selectedBank}...</p></>) : (<><Building2 className="w-10 h-10 text-blue-600 mx-auto mb-4" /><p className="text-sm text-gray-600 mb-4">You will be redirected to {selectedBank}'s secure portal.</p><button onClick={handleAuthenticate} className="px-6 py-2.5 bg-[#0066B8] text-white rounded-lg hover:bg-[#005299] text-sm font-medium">Authenticate with {selectedBank}</button></>)}
+                {isConnecting ? (<><Loader2 className="w-10 h-10 text-blue-600 animate-spin mx-auto mb-4" /><p className="text-sm text-gray-600">Connecting to {selectedBank}...</p></>) : (<><Building2 className="w-10 h-10 text-blue-600 mx-auto mb-4" /><p className="text-sm text-gray-600 mb-4">You will be redirected to {selectedBank}'s secure portal.</p><button onClick={handleAuthenticate} className="px-6 py-2.5 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] text-sm font-medium">Authenticate with {selectedBank}</button></>)}
               </div>
             )}
             {connectStep === 'success' && (
@@ -1033,7 +1033,7 @@ export function CustomerJourneyPage() {
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4"><CheckCircle className="w-8 h-8 text-green-600" /></div>
                 <h4 className="text-lg font-semibold text-gray-900 mb-2">Bank Connected</h4>
                 <p className="text-sm text-gray-500 mb-4">Your {selectedBank} statements have been fetched successfully.</p>
-                <button onClick={closeConnectModal} className="px-6 py-2.5 bg-[#0066B8] text-white rounded-lg hover:bg-[#005299] text-sm font-medium">Done</button>
+                <button onClick={closeConnectModal} className="px-6 py-2.5 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] text-sm font-medium">Done</button>
               </div>
             )}
             </div>
@@ -1045,10 +1045,10 @@ export function CustomerJourneyPage() {
       {showTermsModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded max-w-lg w-full max-h-[80vh] overflow-y-auto">
-            <div className="px-5 py-3 flex items-center justify-between bg-[#312B6B] text-white rounded-t"><h3 className="text-base font-semibold text-white">Terms and Conditions</h3><button onClick={() => setShowTermsModal(false)} className="text-white/60 hover:text-white"><X className="w-5 h-5" /></button></div>
+            <div className="px-5 py-3 flex items-center justify-between bg-[#000000] text-white rounded-t"><h3 className="text-base font-semibold text-white">Terms and Conditions</h3><button onClick={() => setShowTermsModal(false)} className="text-white/60 hover:text-white"><X className="w-5 h-5" /></button></div>
             <div className="p-5">
-            <p className="text-sm text-gray-600 leading-relaxed">These Terms and Conditions govern your use of the Bank X Supply Chain Finance platform. By submitting your application, you agree to provide accurate information and authorize Bank X to verify your business details through third-party services.</p>
-            <button onClick={() => setShowTermsModal(false)} className="mt-6 w-full py-2.5 bg-[#0066B8] text-white rounded hover:bg-[#005299] text-sm font-medium">Close</button>
+            <p className="text-sm text-gray-600 leading-relaxed">These Terms and Conditions govern your use of the Mal Supply Chain Finance platform. By submitting your application, you agree to provide accurate information and authorize Mal to verify your business details through third-party services.</p>
+            <button onClick={() => setShowTermsModal(false)} className="mt-6 w-full py-2.5 bg-[#4F8DFF] text-white rounded hover:bg-[#3A7AE8] text-sm font-medium">Close</button>
             </div>
           </div>
         </div>
@@ -1058,10 +1058,10 @@ export function CustomerJourneyPage() {
       {showPrivacyModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded max-w-lg w-full max-h-[80vh] overflow-y-auto">
-            <div className="px-5 py-3 flex items-center justify-between bg-[#312B6B] text-white rounded-t"><h3 className="text-base font-semibold text-white">Privacy Policy</h3><button onClick={() => setShowPrivacyModal(false)} className="text-white/60 hover:text-white"><X className="w-5 h-5" /></button></div>
+            <div className="px-5 py-3 flex items-center justify-between bg-[#000000] text-white rounded-t"><h3 className="text-base font-semibold text-white">Privacy Policy</h3><button onClick={() => setShowPrivacyModal(false)} className="text-white/60 hover:text-white"><X className="w-5 h-5" /></button></div>
             <div className="p-5">
-            <p className="text-sm text-gray-600 leading-relaxed">Bank X is committed to protecting your privacy. We collect and process your business information solely for the purpose of evaluating your supply chain financing application. Your data is stored securely and shared only with authorized verification partners.</p>
-            <button onClick={() => setShowPrivacyModal(false)} className="mt-6 w-full py-2.5 bg-[#0066B8] text-white rounded hover:bg-[#005299] text-sm font-medium">Close</button>
+            <p className="text-sm text-gray-600 leading-relaxed">Mal is committed to protecting your privacy. We collect and process your business information solely for the purpose of evaluating your supply chain financing application. Your data is stored securely and shared only with authorized verification partners.</p>
+            <button onClick={() => setShowPrivacyModal(false)} className="mt-6 w-full py-2.5 bg-[#4F8DFF] text-white rounded hover:bg-[#3A7AE8] text-sm font-medium">Close</button>
             </div>
           </div>
         </div>
@@ -1076,12 +1076,12 @@ export function CustomerJourneyPage() {
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-3">Application Submitted Successfully</h3>
             <p className="text-sm text-gray-600 mb-6 max-w-sm mx-auto">
-              Your application is submitted and is under review. You can check for the latest updates to your application from your Bank X Merchant Portal.
+              Your application is submitted and is under review. You can check for the latest updates to your application from your Mal Merchant Portal.
             </p>
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
               <p className="text-sm text-blue-800">Redirecting you to portal in <span className="font-semibold">{submitRedirectTimer}</span> seconds...</p>
             </div>
-            <button onClick={() => navigate('/applications')} className="px-6 py-2.5 bg-[#0066B8] text-white rounded-lg hover:bg-[#005299] text-sm font-medium transition-colors">
+            <button onClick={() => navigate('/applications')} className="px-6 py-2.5 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] text-sm font-medium transition-colors">
               Go to Portal Now
             </button>
           </div>

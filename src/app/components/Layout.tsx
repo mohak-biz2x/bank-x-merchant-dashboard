@@ -72,11 +72,11 @@ export function Layout() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <header className="sticky top-0 z-50">
         {/* Dark header bar */}
-        <div className="bg-[#312B6B] px-6 py-3">
+        <div className="bg-[#000000] px-6 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-5">
               <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold text-white tracking-tight">BANK<span className="text-blue-400">X</span></h1>
+                <h1 className="text-xl font-bold text-white tracking-tight">Mal</h1>
               </div>
               <div className="h-6 w-px bg-white/20"></div>
               <div className="flex items-center gap-2">

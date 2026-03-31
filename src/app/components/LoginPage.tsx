@@ -71,7 +71,7 @@ export function LoginPage() {
 
       {/* Right Side - Login Form */}
       <div className="flex-1 flex items-center justify-center p-8 bg-gray-50">
-        <div className="w-full max-w-md">
+        <div className="w-full max-w-sm">
           {/* Mobile Logo */}
           <div className="lg:hidden mb-8">
             <MalLogo height={36} />
@@ -113,6 +113,7 @@ export function LoginPage() {
               <div className="flex items-center justify-end">
                 <button
                   type="button"
+                  onClick={() => navigate("/forgot-password")}
                   className="text-sm text-blue-600 hover:text-blue-700 font-medium"
                 >
                   Forgot password?
@@ -140,7 +141,14 @@ export function LoginPage() {
             <a href="#/disclaimer" target="_blank" className="text-xs text-gray-500 hover:text-gray-700">Disclaimer</a>
             <a href="#/tnc" target="_blank" className="text-xs text-gray-500 hover:text-gray-700">Terms & conditions</a>
           </div>
-          <p className="text-xs text-gray-400 flex items-center gap-1">&copy; Mal 2026. All rights reserved. <span className="mx-1">|</span> Powered by <img src={biz2xLogo} alt="Biz2X" className="inline-block h-4 ml-1" /></p>
+          <div className="flex items-center gap-2">
+            <p className="text-xs text-gray-400">&copy; Mal 2026. All rights reserved.</p>
+            <span className="text-xs text-gray-300">|</span>
+            <div className="flex flex-col items-center">
+              <span className="text-[10px] text-gray-400 leading-tight">Powered by</span>
+              <img src={biz2xLogo} alt="Biz2X" className="h-4" />
+            </div>
+          </div>
         </div>
       </footer>
     </div>

@@ -41,6 +41,8 @@ export function PremiumBuyerJourney() {
   // T&C state
   const [acceptedTnc, setAcceptedTnc] = useState(false);
   const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
 
   // Success state
   const [showSuccess, setShowSuccess] = useState(false);
@@ -192,11 +194,11 @@ export function PremiumBuyerJourney() {
           <div className="bg-white border border-gray-200 rounded p-5 space-y-4">
             <label className="flex items-start gap-3 cursor-pointer">
               <input type="checkbox" checked={acceptedTnc} onChange={e => setAcceptedTnc(e.target.checked)} className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
-              <span className="text-sm text-gray-700">I have read and agree to the <a href="#/tnc" target="_blank" className="text-blue-600 hover:underline">Terms and Conditions</a> of Mal Supply Chain Finance platform.</span>
+              <span className="text-sm text-gray-700">I have read and agree to the <button type="button" onClick={() => setShowTermsModal(true)} className="text-blue-600 hover:underline">Terms and Conditions</button> of Mal Supply Chain Finance platform.</span>
             </label>
             <label className="flex items-start gap-3 cursor-pointer">
               <input type="checkbox" checked={acceptedPrivacy} onChange={e => setAcceptedPrivacy(e.target.checked)} className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
-              <span className="text-sm text-gray-700">I have read and agree to the <a href="#/privacy" target="_blank" className="text-blue-600 hover:underline">Privacy Policy</a> and consent to the processing of my business data.</span>
+              <span className="text-sm text-gray-700">I have read and agree to the <button type="button" onClick={() => setShowPrivacyModal(true)} className="text-blue-600 hover:underline">Privacy Policy</button> and consent to the processing of my business data.</span>
             </label>
           </div>
         </div>
@@ -211,8 +213,7 @@ export function PremiumBuyerJourney() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-5">
             <MalLogo height={28} className="text-gray-900" />
-            <div className="h-6 w-px bg-gray-400"></div>
-            {currentStep > 1 && (<><div className="flex items-center gap-2"><Building2 className="w-4 h-4 text-gray-500" /><p className="text-sm text-gray-700">{profileData.companyLegalName}</p></div></>)}
+            {currentStep > 1 && (<><div className="h-6 w-px bg-gray-400"></div><div className="flex items-center gap-2"><Building2 className="w-4 h-4 text-gray-500" /><p className="text-sm text-gray-700">{profileData.companyLegalName}</p></div></>)}
           </div>
           <div className="flex items-center gap-3">
             <p className="text-sm text-gray-700">{currentStep > 1 ? (profileData.contactFullName || "Sarah Al-Mansouri") : "New Merchant"}</p>
@@ -303,10 +304,13 @@ export function PremiumBuyerJourney() {
             ) : (
               <div className="p-8 text-center">
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4"><CheckCircle className="w-8 h-8 text-green-600" /></div>
-                <h3 className="text-base font-semibold text-gray-900 mb-2">Profile Created</h3>
-                <p className="text-sm text-gray-500 mb-4">Your identity has been verified.</p>
-                <button onClick={handleProfileContinue} className="px-6 py-2 bg-[#4F8DFF] text-white rounded text-sm font-medium">Continue</button>
-                <p className="text-xs text-gray-400 mt-2">Auto-redirecting in {profileRedirectTimer}s</p>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Profile Created Successfully</h3>
+                <p className="text-sm text-gray-500 mb-4">Your identity has been verified and your profile has been created.</p>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
+                  <div className="flex items-start gap-2"><Mail className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" /><p className="text-sm text-blue-800">We have sent you a welcome email at <span className="font-medium">{profileData.email}</span> with a temporary password.</p></div>
+                </div>
+                <button onClick={handleProfileContinue} className="px-6 py-2.5 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] text-sm font-medium transition-colors">Continue</button>
+                <p className="text-xs text-gray-400 mt-3">Auto-redirecting in {profileRedirectTimer}s</p>
               </div>
             )}
           </div>
@@ -324,6 +328,30 @@ export function PremiumBuyerJourney() {
               <p className="text-sm text-blue-800">Redirecting to dashboard in <span className="font-semibold">{successTimer}</span> seconds...</p>
             </div>
             <div className="flex items-center justify-center gap-2 text-green-600"><Loader2 className="w-4 h-4 animate-spin" /><span className="text-sm font-medium">Activating your account...</span></div>
+          </div>
+        </div>
+      )}
+
+      {showTermsModal && (
+        <div className="fixed inset-0 bg-[#CBD2DD]/[.72] flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded max-w-lg w-full max-h-[80vh] overflow-y-auto">
+            <div className="px-5 py-3 flex items-center justify-between bg-[#C3D2E7] text-gray-900 rounded-t"><h3 className="text-base font-semibold text-gray-900">Terms and Conditions</h3><button onClick={() => setShowTermsModal(false)} className="text-gray-500 hover:text-gray-900"><X className="w-5 h-5" /></button></div>
+            <div className="p-5">
+            <p className="text-sm text-gray-600 leading-relaxed">These Terms and Conditions govern your use of the Mal Supply Chain Finance platform. By submitting your application, you agree to provide accurate information and authorize Mal to verify your business details through third-party services.</p>
+            <button onClick={() => setShowTermsModal(false)} className="mt-6 w-full py-2.5 bg-[#4F8DFF] text-white rounded hover:bg-[#3A7AE8] text-sm font-medium">Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showPrivacyModal && (
+        <div className="fixed inset-0 bg-[#CBD2DD]/[.72] flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded max-w-lg w-full max-h-[80vh] overflow-y-auto">
+            <div className="px-5 py-3 flex items-center justify-between bg-[#C3D2E7] text-gray-900 rounded-t"><h3 className="text-base font-semibold text-gray-900">Privacy Policy</h3><button onClick={() => setShowPrivacyModal(false)} className="text-gray-500 hover:text-gray-900"><X className="w-5 h-5" /></button></div>
+            <div className="p-5">
+            <p className="text-sm text-gray-600 leading-relaxed">Mal is committed to protecting your privacy. We collect and process your business information solely for the purpose of evaluating your supply chain financing application. Your data is stored securely and shared only with authorized verification partners.</p>
+            <button onClick={() => setShowPrivacyModal(false)} className="mt-6 w-full py-2.5 bg-[#4F8DFF] text-white rounded hover:bg-[#3A7AE8] text-sm font-medium">Close</button>
+            </div>
           </div>
         </div>
       )}

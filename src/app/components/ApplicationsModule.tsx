@@ -259,9 +259,9 @@ export function ApplicationsModule({ onSecurityOnboarding, embedded }: Applicati
                                 <ShieldCheck className="w-3.5 h-3.5 text-amber-600" /> Complete Security
                               </button>
                             )}
-                            <button onClick={() => setActionMenuOpen(null)} className="w-full px-3 py-2 text-left text-xs text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-                              <FileText className="w-3.5 h-3.5 text-blue-600" /> View Details
-                            </button>
+                            {app.status !== "security_onboarding" && (
+                              <p className="px-3 py-2 text-xs text-gray-400">No actions accessible</p>
+                            )}
                           </div>
                         )}
                       </td>

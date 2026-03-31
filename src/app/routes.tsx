@@ -8,6 +8,7 @@ import { BuyerInvoicesModule } from "./components/BuyerInvoicesModule";
 import { ApplicationsModule } from "./components/ApplicationsModule";
 import { PrivacyPage, DisclaimerPage, TncPage } from "./components/LegalPages";
 import { LoginPage } from "./components/LoginPage";
+import { ForgotPasswordPage } from "./components/ForgotPasswordPage";
 import { CustomerJourneyPage } from "./components/CustomerJourneyPage";
 import { SupplierJourneyPage } from "./components/SupplierJourneyPage";
 import { PremiumBuyerJourney } from "./components/PremiumBuyerJourney";
@@ -20,6 +21,10 @@ export const router = createHashRouter([
   {
     path: "/login",
     Component: LoginPage,
+  },
+  {
+    path: "/forgot-password",
+    Component: ForgotPasswordPage,
   },
   {
     path: "/privacy",

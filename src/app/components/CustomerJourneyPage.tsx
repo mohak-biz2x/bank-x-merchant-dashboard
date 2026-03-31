@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { Building2, X, FileText, Upload, CheckCircle, ArrowLeft, Check, Info, Plus, UserCheck, ReceiptText, Mail, Phone, Loader2, LogOut, Settings, ShieldCheck } from "lucide-react";
+import { Building2, X, FileText, Upload, CheckCircle, ArrowLeft, Check, Info, Plus, UserCheck, ReceiptText, Mail, Phone, Loader2, LogOut, ShieldCheck } from "lucide-react";
 import { MalLogo } from "./MalLogo";
 
 interface BankStatement {
@@ -72,7 +72,7 @@ export function CustomerJourneyPage() {
   const [selectedProduct, setSelectedProduct] = useState<"receivable" | "payable" | null>(null);
 
   // Business Documents state
-  const [businessDocs, setBusinessDocs] = useState<{ bankStatements: File[]; lastSixInvoices: File | null; auditedPnl: File | null }>({ bankStatements: [], lastSixInvoices: null, auditedPnl: null });
+  const [businessDocs, setBusinessDocs] = useState<{ bankStatements: File[]; lastSixInvoices: File[]; auditedPnl: File[] }>({ bankStatements: [], lastSixInvoices: [], auditedPnl: [] });
   const [showConnectModal, setShowConnectModal] = useState(false);
   const [connectStep, setConnectStep] = useState<'bank-select' | 'auth' | 'success'>('bank-select');
   const [selectedBank, setSelectedBank] = useState('');
@@ -564,47 +564,51 @@ export function CustomerJourneyPage() {
 
         {/* Last 6 Invoices */}
         <div className="bg-white border border-gray-200 rounded-lg p-5">
-          <div className="flex items-start justify-between">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0"><ReceiptText className="w-5 h-5 text-blue-600" /></div>
-              <div><h3 className="text-sm font-medium text-gray-900">Last 6 Invoices</h3><p className="text-xs text-gray-500 mt-0.5">Upload your most recent 6 invoices for assessment</p></div>
-            </div>
-            {businessDocs.lastSixInvoices ? (
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-500" />
-                <span className="text-xs text-green-700 font-medium">{businessDocs.lastSixInvoices.name}</span>
-                <button onClick={() => setBusinessDocs(prev => ({ ...prev, lastSixInvoices: null }))} className="text-gray-400 hover:text-red-500"><X className="w-4 h-4" /></button>
-              </div>
-            ) : (
-              <label className="flex items-center gap-2 px-4 py-2 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] cursor-pointer text-sm">
-                <Upload className="w-4 h-4" /> Upload
-                <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png,.zip" onChange={e => { if (e.target.files?.[0]) setBusinessDocs(prev => ({ ...prev, lastSixInvoices: e.target.files![0] })); }} />
-              </label>
-            )}
+          <div className="flex items-start gap-3 mb-3">
+            <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0"><ReceiptText className="w-5 h-5 text-blue-600" /></div>
+            <div><h3 className="text-sm font-medium text-gray-900">Last 6 Invoices</h3><p className="text-xs text-gray-500 mt-0.5">Upload your most recent 6 invoices for assessment</p></div>
           </div>
+          {businessDocs.lastSixInvoices.length > 0 && (
+            <div className="space-y-2 mb-3">
+              {businessDocs.lastSixInvoices.map((file, idx) => (
+                <div key={idx} className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+                  <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+                  <span className="text-sm text-green-700 truncate flex-1">{file.name}</span>
+                  <button onClick={() => setBusinessDocs(prev => ({ ...prev, lastSixInvoices: prev.lastSixInvoices.filter((_, i) => i !== idx) }))} className="text-gray-400 hover:text-red-500"><X className="w-4 h-4" /></button>
+                </div>
+              ))}
+            </div>
+          )}
+          <label className="flex items-center gap-2 border border-dashed border-gray-300 rounded-lg px-3 py-2 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors">
+            <Upload className="w-4 h-4 text-gray-400" />
+            <span className="text-sm text-gray-500">Upload Invoice</span>
+            <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png" onChange={e => { const f = e.target.files?.[0]; if (f) setBusinessDocs(prev => ({ ...prev, lastSixInvoices: [...prev.lastSixInvoices, f] })); }} />
+          </label>
         </div>
 
         {/* Audited P&L - only for Payable */}
         {selectedProduct === "payable" && (
           <div className="bg-white border border-gray-200 rounded-lg p-5">
-            <div className="flex items-start justify-between">
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center flex-shrink-0"><FileText className="w-5 h-5 text-amber-600" /></div>
-                <div><h3 className="text-sm font-medium text-gray-900">Audited P&L Statement</h3><p className="text-xs text-gray-500 mt-0.5">Required for Payable Invoice Financing applicants</p></div>
-              </div>
-              {businessDocs.auditedPnl ? (
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-500" />
-                  <span className="text-xs text-green-700 font-medium">{businessDocs.auditedPnl.name}</span>
-                  <button onClick={() => setBusinessDocs(prev => ({ ...prev, auditedPnl: null }))} className="text-gray-400 hover:text-red-500"><X className="w-4 h-4" /></button>
-                </div>
-              ) : (
-                <label className="flex items-center gap-2 px-4 py-2 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] cursor-pointer text-sm">
-                  <Upload className="w-4 h-4" /> Upload
-                  <input type="file" className="hidden" accept=".pdf" onChange={e => { if (e.target.files?.[0]) setBusinessDocs(prev => ({ ...prev, auditedPnl: e.target.files![0] })); }} />
-                </label>
-              )}
+            <div className="flex items-start gap-3 mb-3">
+              <div className="w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center flex-shrink-0"><FileText className="w-5 h-5 text-amber-600" /></div>
+              <div><h3 className="text-sm font-medium text-gray-900">Audited P&L Statement</h3><p className="text-xs text-gray-500 mt-0.5">Required for Payable Invoice Financing applicants</p></div>
             </div>
+            {businessDocs.auditedPnl.length > 0 && (
+              <div className="space-y-2 mb-3">
+                {businessDocs.auditedPnl.map((file, idx) => (
+                  <div key={idx} className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+                    <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+                    <span className="text-sm text-green-700 truncate flex-1">{file.name}</span>
+                    <button onClick={() => setBusinessDocs(prev => ({ ...prev, auditedPnl: prev.auditedPnl.filter((_, i) => i !== idx) }))} className="text-gray-400 hover:text-red-500"><X className="w-4 h-4" /></button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <label className="flex items-center gap-2 border border-dashed border-gray-300 rounded-lg px-3 py-2 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors">
+              <Upload className="w-4 h-4 text-gray-400" />
+              <span className="text-sm text-gray-500">Upload P&L Statement</span>
+              <input type="file" className="hidden" accept=".pdf" onChange={e => { const f = e.target.files?.[0]; if (f) setBusinessDocs(prev => ({ ...prev, auditedPnl: [...prev.auditedPnl, f] })); }} />
+            </label>
           </div>
         )}
       </div>
@@ -798,13 +802,13 @@ export function CustomerJourneyPage() {
               <span className={businessDocs.bankStatements.length > 0 || leanConnectedStatements.length > 0 ? "text-gray-900" : "text-gray-400"}>Bank Statements ({businessDocs.bankStatements.length + leanConnectedStatements.length})</span>
             </div>
             <div className="flex items-center gap-2">
-              {businessDocs.lastSixInvoices ? <CheckCircle className="w-4 h-4 text-green-500" /> : <X className="w-4 h-4 text-gray-300" />}
-              <span className={businessDocs.lastSixInvoices ? "text-gray-900" : "text-gray-400"}>Last 6 Invoices</span>
+              {businessDocs.lastSixInvoices.length > 0 ? <CheckCircle className="w-4 h-4 text-green-500" /> : <X className="w-4 h-4 text-gray-300" />}
+              <span className={businessDocs.lastSixInvoices.length > 0 ? "text-gray-900" : "text-gray-400"}>Last 6 Invoices ({businessDocs.lastSixInvoices.length} file{businessDocs.lastSixInvoices.length !== 1 ? "s" : ""})</span>
             </div>
             {selectedProduct === "payable" && (
               <div className="flex items-center gap-2">
-                {businessDocs.auditedPnl ? <CheckCircle className="w-4 h-4 text-green-500" /> : <X className="w-4 h-4 text-gray-300" />}
-                <span className={businessDocs.auditedPnl ? "text-gray-900" : "text-gray-400"}>Audited P&L Statement</span>
+                {businessDocs.auditedPnl.length > 0 ? <CheckCircle className="w-4 h-4 text-green-500" /> : <X className="w-4 h-4 text-gray-300" />}
+                <span className={businessDocs.auditedPnl.length > 0 ? "text-gray-900" : "text-gray-400"}>Audited P&L Statement ({businessDocs.auditedPnl.length} file{businessDocs.auditedPnl.length !== 1 ? "s" : ""})</span>
               </div>
             )}
           </div>
@@ -871,8 +875,7 @@ export function CustomerJourneyPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-5">
             <MalLogo height={28} className="text-gray-900" />
-            <div className="h-6 w-px bg-gray-400"></div>
-            {currentStep > 1 && (<><div className="flex items-center gap-2"><Building2 className="w-4 h-4 text-gray-500" /><p className="text-sm text-gray-700">{profileData.companyLegalName}</p></div></>)}
+            {currentStep > 1 && (<><div className="h-6 w-px bg-gray-400"></div><div className="flex items-center gap-2"><Building2 className="w-4 h-4 text-gray-500" /><p className="text-sm text-gray-700">{profileData.companyLegalName}</p></div></>)}
           </div>
           <div className="flex items-center gap-3">
             <p className="text-sm text-gray-700">{currentStep > 1 ? profileData.contactFullName : "New Merchant"}</p>
@@ -888,8 +891,6 @@ export function CustomerJourneyPage() {
               </button>
               {showProfileMenu && currentStep > 1 && (
                 <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                  <button onClick={() => setShowProfileMenu(false)} className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3"><Settings className="w-4 h-4 text-gray-500" /> Account Settings</button>
-                  <div className="border-t border-gray-200 my-2"></div>
                   <button onClick={() => { setShowProfileMenu(false); navigate('/login'); }} className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-3"><LogOut className="w-4 h-4" /> Logout</button>
                 </div>
               )}
@@ -991,12 +992,12 @@ export function CustomerJourneyPage() {
                 </div>
               </>
             ) : (
-              <div className="text-center py-6">
+              <div className="text-center py-6 px-6">
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4"><CheckCircle className="w-8 h-8 text-green-600" /></div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Profile Created Successfully</h3>
                 <p className="text-sm text-gray-500 mb-4">Your identity has been verified and your profile has been created.</p>
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
-                  <div className="flex items-start gap-2"><Mail className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" /><p className="text-sm text-blue-800">We have sent you a welcome email at <span className="font-medium">{profileData.email}</span> with a temporary password.</p></div>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-5 mb-6 text-left">
+                  <div className="flex items-start gap-3"><Mail className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" /><p className="text-sm text-blue-800">We have sent you a welcome email at <span className="font-medium">{profileData.email}</span> with a temporary password.</p></div>
                 </div>
                 <button onClick={handleProfileSuccessContinue} className="px-6 py-2.5 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] text-sm font-medium transition-colors">Continue</button>
                 <p className="text-xs text-gray-400 mt-3">Auto-redirecting in {profileRedirectTimer}s</p>

@@ -22,7 +22,14 @@ function LegalPage({ title, children }: { title: string; children: React.ReactNo
             <a href="#/disclaimer" target="_blank" className="text-xs text-gray-500 hover:text-gray-700">Disclaimer</a>
             <a href="#/tnc" target="_blank" className="text-xs text-gray-500 hover:text-gray-700">Terms & conditions</a>
           </div>
-          <p className="text-xs text-gray-400 flex items-center gap-1">&copy; Mal 2026. All rights reserved. <span className="mx-1">|</span> Powered by <img src={biz2xLogo} alt="Biz2X" className="inline-block h-4 ml-1" /></p>
+          <div className="flex items-center gap-2">
+            <p className="text-xs text-gray-400">&copy; Mal 2026. All rights reserved.</p>
+            <span className="text-xs text-gray-300">|</span>
+            <div className="flex flex-col items-center">
+              <span className="text-[10px] text-gray-400 leading-tight">Powered by</span>
+              <img src={biz2xLogo} alt="Biz2X" className="h-4" />
+            </div>
+          </div>
         </div>
       </footer>
     </div>

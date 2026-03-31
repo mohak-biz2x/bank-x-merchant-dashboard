@@ -45,6 +45,7 @@ export function BuyerInvoicesModule() {
   useEffect(() => { if (searchParams.get("add") === "true") setShowAddForm(true); }, [searchParams]);
   const [verifying, setVerifying] = useState(false);
   const [verificationResult, setVerificationResult] = useState<"pending_disbursement" | "pending_risk_validation" | null>(null);
+  const [submittedApprovedAmount, setSubmittedApprovedAmount] = useState(0);
   const [viewRequest, setViewRequest] = useState<InvoiceRequest | null>(null);
   const [selectedSupplier, setSelectedSupplier] = useState("SUP-001");
   const [financingTenor, setFinancingTenor] = useState("60");
@@ -223,7 +224,7 @@ export function BuyerInvoicesModule() {
 
   const selectedSupplierData = approvedSuppliers.find(s => s.id === selectedSupplier);
   const usedLimit = invoiceRequests
-    .filter(r => r.supplierId === selectedSupplier && r.status !== "rejected")
+    .filter(r => r.supplierId === selectedSupplier && r.status !== "rejected" && r.status !== "disbursed")
     .reduce((sum, r) => sum + r.totalAmount, 0);
   const remainingLimit = (selectedSupplierData?.assignedLimit || 0) - usedLimit;
   const approvedAmount = Math.min(totalAmount, Math.max(0, remainingLimit));
@@ -238,6 +239,7 @@ export function BuyerInvoicesModule() {
 
     setVerifying(true);
     setVerificationResult(null);
+    setSubmittedApprovedAmount(approvedAmount);
 
     setTimeout(() => {
       const isNormal = flowType !== "exception";
@@ -270,6 +272,7 @@ export function BuyerInvoicesModule() {
     setShowSuccess(false);
     setVerifying(false);
     setVerificationResult(null);
+    setSubmittedApprovedAmount(0);
     setSelectedSupplier("");
     setFinancingTenor("");
     setRepaymentStructure("bullet");
@@ -439,7 +442,7 @@ export function BuyerInvoicesModule() {
                       Your invoice financing request has been automatically approved and is now pending disbursement.
                     </p>
                     <p className="text-sm font-medium text-green-700 mb-6">
-                      Approved Amount: {formatCurrency(approvedAmount)}
+                      Approved Amount: {formatCurrency(submittedApprovedAmount)}
                     </p>
                     <button
                       onClick={resetForm}

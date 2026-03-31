@@ -1,6 +1,7 @@
 import React from "react";
 
 import { MalLogo } from "./MalLogo";
+import biz2xLogo from "@/assets/biz2X-m-logo.svg";
 
 function LegalPage({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -21,7 +22,7 @@ function LegalPage({ title, children }: { title: string; children: React.ReactNo
             <a href="#/disclaimer" target="_blank" className="text-xs text-gray-500 hover:text-gray-700">Disclaimer</a>
             <a href="#/tnc" target="_blank" className="text-xs text-gray-500 hover:text-gray-700">Terms & conditions</a>
           </div>
-          <p className="text-xs text-gray-400 flex items-center gap-1">&copy; Mal 2026. All rights reserved. <span className="mx-1">|</span> Powered by <img src="/src/assets/biz2X-m-logo.svg" alt="Biz2X" className="inline-block h-4 ml-1" /></p>
+          <p className="text-xs text-gray-400 flex items-center gap-1">&copy; Mal 2026. All rights reserved. <span className="mx-1">|</span> Powered by <img src={biz2xLogo} alt="Biz2X" className="inline-block h-4 ml-1" /></p>
         </div>
       </footer>
     </div>

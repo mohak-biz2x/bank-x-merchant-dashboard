@@ -129,7 +129,7 @@ export function LoginPage() {
 
               <button
                 type="submit"
-                className="w-full bg-[#4F8DFF] text-white py-3 rounded-lg font-medium hover:bg-[#3A7AE8] transition-colors mt-6"
+                className="w-full bg-gray-900 text-white py-3 rounded-lg font-medium hover:bg-gray-800 transition-colors mt-6"
               >
                 Log in
               </button>
@@ -158,7 +158,7 @@ export function LoginPage() {
             <a href="#/disclaimer" target="_blank" className="text-xs text-gray-500 hover:text-gray-700">Disclaimer</a>
             <a href="#/tnc" target="_blank" className="text-xs text-gray-500 hover:text-gray-700">Terms & conditions</a>
           </div>
-          <p className="text-xs text-gray-400 flex items-center gap-1">&copy; Mal 2026. All rights reserved. <span className="mx-1">|</span> Powered by <img src="/src/assets/biz2X-m-logo.svg" alt="Biz2X" className="inline-block h-4 ml-1" /></p>
+          <p className="text-xs text-gray-400 flex items-center gap-1">&copy; Mal 2026. All rights reserved. <span className="mx-1">|</span> Powered by <img src={biz2xLogo} alt="Biz2X" className="inline-block h-4 ml-1" /></p>
         </div>
       </footer>
     </div>

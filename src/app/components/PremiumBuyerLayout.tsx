@@ -73,9 +73,11 @@ export function PremiumBuyerLayout() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-5">
               <MalLogo height={28} className="text-gray-900" />
-              <div className="h-6 w-[2px] bg-gray-500" />
-              <Building2 className="w-4 h-4 text-gray-500" />
-              <p className="text-sm text-gray-700">Gulf Trading Enterprises LLC</p>
+              <div style={{ width: '1px', height: '24px', backgroundColor: '#6b7280' }} />
+              <div className="flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-gray-500" />
+                <p className="text-sm text-gray-700">Gulf Trading Enterprises LLC</p>
+              </div>
               <span className="px-2 py-0.5 bg-amber-100 text-amber-800 text-xs font-medium rounded border border-amber-300">Premium Buyer</span>
             </div>
             <div className="flex items-center gap-3">

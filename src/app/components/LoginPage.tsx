@@ -1,6 +1,7 @@
 import { Wallet, Lock, CheckCircle, Shield } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { MalLogo } from "./MalLogo";
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -21,15 +22,10 @@ export function LoginPage() {
     <div className="min-h-screen flex flex-col">
     <div className="flex flex-1">
       {/* Left Side - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 px-28 py-12 flex-col justify-between text-white">
+      <div className="hidden lg:flex lg:w-1/2 bg-[#C3D2E7] px-28 py-12 flex-col justify-between text-gray-900">
         {/* Logo */}
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-            <Wallet className="w-6 h-6 text-blue-600" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-semibold">Mal</h1>
-          </div>
+        <div>
+          <MalLogo height={40} />
         </div>
 
         {/* Main Message */}
@@ -37,13 +33,13 @@ export function LoginPage() {
           <h2 className="text-3xl font-semibold leading-tight">
             Streamline your supply chain financing with Mal
           </h2>
-          <p className="text-lg text-blue-100 leading-relaxed">
+          <p className="text-lg text-gray-600 leading-relaxed">
             Access powerful financing tools, manage invoices seamlessly, and grow your business with trusted payment solutions.
           </p>
           <div className="flex justify-center">
             <button
               onClick={() => navigate("/custjour")}
-              className="mt-4 w-3/4 px-8 py-3 bg-white text-blue-900 rounded-lg text-lg font-medium hover:bg-blue-50 transition-colors"
+              className="mt-4 w-3/4 px-8 py-3 bg-gray-900 text-white rounded-lg text-lg font-medium hover:bg-gray-800 transition-colors"
             >
               Get Started
             </button>
@@ -55,24 +51,24 @@ export function LoginPage() {
           <div className="flex gap-8">
             <div className="flex flex-col items-center gap-2">
               <div className="w-12 h-12 bg-blue-700/50 rounded-lg flex items-center justify-center">
-                <Lock className="w-6 h-6" />
+                <Lock className="w-6 h-6 text-white" />
               </div>
               <p className="text-xs uppercase tracking-wide">Private</p>
             </div>
             <div className="flex flex-col items-center gap-2">
               <div className="w-12 h-12 bg-blue-700/50 rounded-lg flex items-center justify-center">
-                <CheckCircle className="w-6 h-6" />
+                <CheckCircle className="w-6 h-6 text-white" />
               </div>
               <p className="text-xs uppercase tracking-wide">Trusted</p>
             </div>
             <div className="flex flex-col items-center gap-2">
               <div className="w-12 h-12 bg-blue-700/50 rounded-lg flex items-center justify-center">
-                <Shield className="w-6 h-6" />
+                <Shield className="w-6 h-6 text-white" />
               </div>
               <p className="text-xs uppercase tracking-wide">Secure</p>
             </div>
           </div>
-          <div className="text-sm text-blue-200">
+          <div className="text-sm text-gray-500">
             Your information is secured with 256-bit encryption across systems.
           </div>
         </div>
@@ -82,13 +78,8 @@ export function LoginPage() {
       <div className="flex-1 flex items-center justify-center p-8 bg-gray-50">
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
-          <div className="lg:hidden flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 bg-[#4F8DFF] rounded-lg flex items-center justify-center">
-              <Wallet className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl font-semibold text-gray-900">Mal</h1>
-            </div>
+          <div className="lg:hidden mb-8">
+            <MalLogo height={36} />
           </div>
 
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">

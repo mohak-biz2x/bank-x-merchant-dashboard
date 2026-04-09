@@ -3,15 +3,7 @@ import { useNavigate } from "react-router";
 import { Building2, X, FileText, Upload, CheckCircle, ArrowLeft, Check, Info, Plus, UserCheck, ReceiptText, Mail, Phone, Loader2, LogOut, ShieldCheck } from "lucide-react";
 import { MalLogo } from "./MalLogo";
 
-interface BankStatement {
-  id: string;
-  fileName: string;
-  bankName?: string;
-  accountNumber?: string;
-  period?: string;
-  fileSize?: string;
-  uploadDate: Date;
-}
+
 
 export function CustomerJourneyPage() {
   const navigate = useNavigate();
@@ -73,11 +65,6 @@ export function CustomerJourneyPage() {
 
   // Business Documents state
   const [businessDocs, setBusinessDocs] = useState<{ bankStatements: File[]; lastSixInvoices: File[]; auditedPnl: File[] }>({ bankStatements: [], lastSixInvoices: [], auditedPnl: [] });
-  const [showConnectModal, setShowConnectModal] = useState(false);
-  const [connectStep, setConnectStep] = useState<'bank-select' | 'auth' | 'success'>('bank-select');
-  const [selectedBank, setSelectedBank] = useState('');
-  const [isConnecting, setIsConnecting] = useState(false);
-  const [leanConnectedStatements, setLeanConnectedStatements] = useState<BankStatement[]>([]);
 
   // KYC Documents state
   const [kycDocs, setKycDocs] = useState<Record<string, { emiratesId: File | null; passport: File | null }>>({});
@@ -218,25 +205,6 @@ export function CustomerJourneyPage() {
     setBusinessDocs(prev => ({ ...prev, bankStatements: prev.bankStatements.filter((_, i) => i !== index) }));
   };
 
-  const handleBankSelect = (bank: string) => setSelectedBank(bank);
-  const handleConnectBank = () => setConnectStep('auth');
-  const handleAuthenticate = () => {
-    setIsConnecting(true);
-    setTimeout(() => {
-      setIsConnecting(false);
-      setConnectStep('success');
-      setLeanConnectedStatements(prev => [...prev, {
-        id: `lean-${Date.now()}`,
-        fileName: `${selectedBank}_Connected_Statement.pdf`,
-        bankName: selectedBank,
-        accountNumber: '****' + Math.floor(1000 + Math.random() * 9000),
-        period: 'Auto-fetched via Lean',
-        uploadDate: new Date(),
-        fileSize: 'Connected',
-      }]);
-    }, 2000);
-  };
-  const closeConnectModal = () => { setShowConnectModal(false); setConnectStep('bank-select'); setSelectedBank(''); };
 
   // Signatory pool from shareholders + custom
   const [customSignatories, setCustomSignatories] = useState<{ id: string; name: string; designation: string; emiratesId: string }[]>([]);
@@ -524,45 +492,32 @@ export function CustomerJourneyPage() {
       <div className="space-y-4">
         {/* Bank Statements */}
         <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
-          <div className="flex items-center gap-2"><FileText className="w-5 h-5 text-blue-600" /><h3 className="text-sm font-medium text-gray-900">Business Bank Statements</h3></div>
-          <p className="text-xs text-gray-500">Upload bank statements for the last 6 months or connect via Lean</p>
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0"><FileText className="w-5 h-5 text-blue-600" /></div>
+            <div><h3 className="text-sm font-medium text-gray-900">Business Bank Statements</h3><p className="text-xs text-gray-500 mt-0.5">Upload bank statements for the last 6 months</p></div>
+          </div>
 
-          {(businessDocs.bankStatements.length > 0 || leanConnectedStatements.length > 0) && (
+          {businessDocs.bankStatements.length > 0 && (
             <div className="space-y-2">
               {businessDocs.bankStatements.map((f, i) => (
-                <div key={i} className="flex items-center gap-3 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg">
-                  <FileText className="w-4 h-4 text-gray-500" />
-                  <span className="text-sm text-gray-700 flex-1 truncate">{f.name}</span>
-                  <span className="text-xs text-gray-400">{(f.size / (1024 * 1024)).toFixed(1)} MB</span>
-                  <button onClick={() => removeBankStatement(i)} className="p-1 text-gray-400 hover:text-red-600"><X className="w-4 h-4" /></button>
-                </div>
-              ))}
-              {leanConnectedStatements.map(stmt => (
-                <div key={stmt.id} className="flex items-center gap-3 px-3 py-2 bg-green-50 border border-green-200 rounded-lg">
-                  <CheckCircle className="w-4 h-4 text-green-500" />
-                  <span className="text-sm text-green-700 flex-1 truncate">{stmt.bankName} — {stmt.period}</span>
-                  <span className="text-xs text-green-600">Connected</span>
+                <div key={i} className="flex items-center gap-3 px-3 py-2 bg-green-50 border border-green-200 rounded-lg">
+                  <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+                  <span className="text-sm text-green-700 flex-1 truncate">{f.name}</span>
+                  <button onClick={() => removeBankStatement(i)} className="text-gray-400 hover:text-red-500"><X className="w-4 h-4" /></button>
                 </div>
               ))}
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-3">
-            <label className="flex flex-col items-center gap-2 p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50/30 transition-colors cursor-pointer">
-              <Upload className="w-6 h-6 text-gray-400" />
-              <span className="text-sm text-gray-700 font-medium">Upload Manually</span>
-              <span className="text-xs text-gray-400">PDF or CSV</span>
-              <input type="file" className="hidden" accept=".pdf,.csv" multiple onChange={handleBankStatementUpload} />
-            </label>
-            <button onClick={() => setShowConnectModal(true)} className="flex flex-col items-center gap-2 p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50/30 transition-colors">
-              <Building2 className="w-6 h-6 text-gray-400" />
-              <span className="text-sm text-gray-700 font-medium">Connect via Lean</span>
-              <span className="text-xs text-gray-400">Auto-fetch statements</span>
-            </button>
-          </div>
+          <label className="flex items-center gap-2 border border-dashed border-gray-300 rounded-lg px-3 py-2 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors">
+            <Upload className="w-4 h-4 text-gray-400" />
+            <span className="text-sm text-gray-500">Upload Bank Statement</span>
+            <input type="file" className="hidden" accept=".pdf,.csv" multiple onChange={handleBankStatementUpload} />
+          </label>
         </div>
 
-        {/* Last 6 Invoices */}
+        {/* Last 6 Invoices - only for Receivable */}
+        {selectedProduct === "receivable" && (
         <div className="bg-white border border-gray-200 rounded-lg p-5">
           <div className="flex items-start gap-3 mb-3">
             <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0"><ReceiptText className="w-5 h-5 text-blue-600" /></div>
@@ -585,6 +540,7 @@ export function CustomerJourneyPage() {
             <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png" onChange={e => { const f = e.target.files?.[0]; if (f) setBusinessDocs(prev => ({ ...prev, lastSixInvoices: [...prev.lastSixInvoices, f] })); }} />
           </label>
         </div>
+        )}
 
         {/* Audited P&L - only for Payable */}
         {selectedProduct === "payable" && (
@@ -798,13 +754,15 @@ export function CustomerJourneyPage() {
           </div>
           <div className="space-y-1 text-sm">
             <div className="flex items-center gap-2">
-              {(businessDocs.bankStatements.length > 0 || leanConnectedStatements.length > 0) ? <CheckCircle className="w-4 h-4 text-green-500" /> : <X className="w-4 h-4 text-gray-300" />}
-              <span className={businessDocs.bankStatements.length > 0 || leanConnectedStatements.length > 0 ? "text-gray-900" : "text-gray-400"}>Bank Statements ({businessDocs.bankStatements.length + leanConnectedStatements.length})</span>
+              {businessDocs.bankStatements.length > 0 ? <CheckCircle className="w-4 h-4 text-green-500" /> : <X className="w-4 h-4 text-gray-300" />}
+              <span className={businessDocs.bankStatements.length > 0 ? "text-gray-900" : "text-gray-400"}>Bank Statements ({businessDocs.bankStatements.length})</span>
             </div>
+            {selectedProduct === "receivable" && (
             <div className="flex items-center gap-2">
               {businessDocs.lastSixInvoices.length > 0 ? <CheckCircle className="w-4 h-4 text-green-500" /> : <X className="w-4 h-4 text-gray-300" />}
               <span className={businessDocs.lastSixInvoices.length > 0 ? "text-gray-900" : "text-gray-400"}>Last 6 Invoices ({businessDocs.lastSixInvoices.length} file{businessDocs.lastSixInvoices.length !== 1 ? "s" : ""})</span>
             </div>
+            )}
             {selectedProduct === "payable" && (
               <div className="flex items-center gap-2">
                 {businessDocs.auditedPnl.length > 0 ? <CheckCircle className="w-4 h-4 text-green-500" /> : <X className="w-4 h-4 text-gray-300" />}
@@ -1003,43 +961,6 @@ export function CustomerJourneyPage() {
                 <p className="text-xs text-gray-400 mt-3">Auto-redirecting in {profileRedirectTimer}s</p>
               </div>
             )}
-          </div>
-        </div>
-      )}
-
-      {/* Connect Bank (Lean) Modal */}
-      {showConnectModal && (
-        <div className="fixed inset-0 bg-[#CBD2DD]/[.72] flex items-center justify-center z-50">
-          <div className="bg-white rounded shadow-xl w-full max-w-md">
-            <div className="px-5 py-3 flex items-center justify-between bg-[#C3D2E7] text-gray-900 rounded-t">
-              <h3 className="text-base font-semibold text-gray-900">{connectStep === 'bank-select' ? 'Connect via Lean' : connectStep === 'auth' ? 'Authenticate' : 'Connected'}</h3>
-              <button onClick={closeConnectModal} className="text-gray-500 hover:text-gray-900"><X className="w-5 h-5" /></button>
-            </div>
-            <div className="p-5">
-            {connectStep === 'bank-select' && (
-              <div className="space-y-2">
-                {['Emirates NBD', 'ADCB', 'FAB', 'Mashreq', 'DIB', 'RAKBANK'].map(bank => (
-                  <button key={bank} onClick={() => handleBankSelect(bank)} className={`w-full flex items-center gap-3 px-4 py-3 border rounded-lg text-left transition-colors ${selectedBank === bank ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}>
-                    <Building2 className="w-5 h-5 text-gray-400" /><span className="text-sm font-medium text-gray-900">{bank}</span>{selectedBank === bank && <CheckCircle className="w-4 h-4 text-blue-600 ml-auto" />}
-                  </button>
-                ))}
-                <button onClick={handleConnectBank} disabled={!selectedBank} className="w-full mt-4 py-2.5 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] text-sm font-medium disabled:opacity-50 transition-colors">Connect to {selectedBank || 'Bank'}</button>
-              </div>
-            )}
-            {connectStep === 'auth' && (
-              <div className="text-center py-6">
-                {isConnecting ? (<><Loader2 className="w-10 h-10 text-blue-600 animate-spin mx-auto mb-4" /><p className="text-sm text-gray-600">Connecting to {selectedBank}...</p></>) : (<><Building2 className="w-10 h-10 text-blue-600 mx-auto mb-4" /><p className="text-sm text-gray-600 mb-4">You will be redirected to {selectedBank}'s secure portal.</p><button onClick={handleAuthenticate} className="px-6 py-2.5 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] text-sm font-medium">Authenticate with {selectedBank}</button></>)}
-              </div>
-            )}
-            {connectStep === 'success' && (
-              <div className="text-center py-6">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4"><CheckCircle className="w-8 h-8 text-green-600" /></div>
-                <h4 className="text-lg font-semibold text-gray-900 mb-2">Bank Connected</h4>
-                <p className="text-sm text-gray-500 mb-4">Your {selectedBank} statements have been fetched successfully.</p>
-                <button onClick={closeConnectModal} className="px-6 py-2.5 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] text-sm font-medium">Done</button>
-              </div>
-            )}
-            </div>
           </div>
         </div>
       )}

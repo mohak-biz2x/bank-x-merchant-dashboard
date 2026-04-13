@@ -62,6 +62,8 @@ export function CustomerJourneyPage() {
 
   // Loan Product state
   const [selectedProduct, setSelectedProduct] = useState<"receivable" | "payable" | null>(null);
+  const [journeyType, setJourneyType] = useState<"loan" | "account_opening" | null>(null);
+  const [showAccountOpeningPlaceholder, setShowAccountOpeningPlaceholder] = useState(false);
 
   // Business Documents state
   const [businessDocs, setBusinessDocs] = useState<{ bankStatements: File[]; lastSixInvoices: File[]; auditedPnl: File[] }>({ bankStatements: [], lastSixInvoices: [], auditedPnl: [] });
@@ -84,14 +86,15 @@ export function CustomerJourneyPage() {
     { id: 1, name: "Profile Creation", hidden: true },
     { id: 2, name: "KYB Verification" },
     { id: 3, name: "AECB Credit Consent" },
-    { id: 4, name: "Loan Product" },
-    { id: 5, name: "Business Documents" },
-    { id: 6, name: "KYC Documents" },
-    { id: 7, name: "Authorized Signatory" },
-    { id: 8, name: "Review & Submit" },
+    { id: 4, name: "Product Selection" },
+    { id: 5, name: "Loan Product" },
+    { id: 6, name: "Business Documents" },
+    { id: 7, name: "KYC Documents" },
+    { id: 8, name: "Authorized Signatory" },
+    { id: 9, name: "Review & Submit" },
   ];
 
-  const visibleSteps = steps.filter(s => !s.hidden && !(currentStep >= 4 && s.id <= 3));
+  const visibleSteps = steps.filter(s => !s.hidden && !(currentStep >= 5 && s.id <= 3) && !(currentStep <= 4 && s.id >= 5));
 
   const getEffectiveType = (s: { ownershipPercent: string; type: "direct" | "ubo" }) => {
     if (s.type === "direct" && parseFloat(s.ownershipPercent) >= 25) return "Direct & UBO";
@@ -178,8 +181,12 @@ export function CustomerJourneyPage() {
   const handleNext = () => {
     if (currentStep === 1) { setShowOtpModal(true); return; }
     if (currentStep === 3 && !aecbConsent) return;
-    if (currentStep === 4 && !selectedProduct) return;
-    if (currentStep === 8) {
+    if (currentStep === 4) {
+      if (!journeyType) return;
+      if (journeyType === "account_opening") { setShowAccountOpeningPlaceholder(true); return; }
+    }
+    if (currentStep === 5 && !selectedProduct) return;
+    if (currentStep === 9) {
       if (acceptedAgreements) {
         localStorage.setItem("merchant_underwriting_status", "pending");
         localStorage.setItem("selected_product", selectedProduct || "receivable");
@@ -228,11 +235,12 @@ export function CustomerJourneyPage() {
       case 1: return renderProfileCreation();
       case 2: return renderKybVerification();
       case 3: return renderAecbConsent();
-      case 4: return renderLoanProduct();
-      case 5: return renderBusinessDocuments();
-      case 6: return renderKycDocuments();
-      case 7: return renderAuthorizedSignatory();
-      case 8: return renderReviewSubmit();
+      case 4: return renderProductSelection();
+      case 5: return renderLoanProduct();
+      case 6: return renderBusinessDocuments();
+      case 7: return renderKycDocuments();
+      case 8: return renderAuthorizedSignatory();
+      case 9: return renderReviewSubmit();
       default: return null;
     }
   };
@@ -447,6 +455,30 @@ export function CustomerJourneyPage() {
             </div>
           </label>
         </div>
+      </div>
+    </div>
+  );
+
+  const renderProductSelection = () => (
+    <div>
+      <div className="flex items-center gap-3 mb-1">
+        <div className="w-1 h-7 bg-blue-600 rounded-full"></div>
+        <h2 className="text-lg font-semibold text-gray-900">What would you like to do?</h2>
+      </div>
+      <p className="text-sm text-gray-500 mb-8 ml-4">Select whether you want to open an account or apply for financing</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
+        <button onClick={() => setJourneyType("loan")} className={`relative bg-white border rounded-xl px-6 pt-8 pb-8 transition-all text-center ${journeyType === "loan" ? "border-blue-600 ring-2 ring-blue-100" : "border-gray-200 hover:border-gray-300"}`}>
+          <div className="absolute top-3 right-3"><div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${journeyType === "loan" ? "border-blue-600" : "border-gray-300"}`}>{journeyType === "loan" && <div className="w-2.5 h-2.5 rounded-full bg-blue-600"></div>}</div></div>
+          <div className="flex justify-center mb-5"><FileText className="w-14 h-14 text-blue-400" /></div>
+          <h3 className="text-base font-semibold text-gray-900 mb-3">Apply for Financing</h3>
+          <p className="text-sm text-gray-500 leading-relaxed">Apply for supply chain financing — receivable or payable invoice financing.</p>
+        </button>
+        <button onClick={() => setJourneyType("account_opening")} className={`relative bg-white border rounded-xl px-6 pt-8 pb-8 transition-all text-center ${journeyType === "account_opening" ? "border-blue-600 ring-2 ring-blue-100" : "border-gray-200 hover:border-gray-300"}`}>
+          <div className="absolute top-3 right-3"><div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${journeyType === "account_opening" ? "border-blue-600" : "border-gray-300"}`}>{journeyType === "account_opening" && <div className="w-2.5 h-2.5 rounded-full bg-blue-600"></div>}</div></div>
+          <div className="flex justify-center mb-5"><Building2 className="w-14 h-14 text-green-400" /></div>
+          <h3 className="text-base font-semibold text-gray-900 mb-3">Open an Account</h3>
+          <p className="text-sm text-gray-500 leading-relaxed">Open a business account with Mal Bank.</p>
+        </button>
       </div>
     </div>
   );
@@ -729,7 +761,7 @@ export function CustomerJourneyPage() {
         <div className="bg-white border border-gray-200 rounded-lg p-5">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-medium text-gray-900">Loan Product</h3>
-            <button onClick={() => setCurrentStep(4)} className="text-xs text-blue-600 hover:text-blue-800">Edit</button>
+            <button onClick={() => setCurrentStep(5)} className="text-xs text-blue-600 hover:text-blue-800">Edit</button>
           </div>
           <p className="text-sm text-gray-700">{selectedProduct === "receivable" ? "Receivable Invoice Financing" : selectedProduct === "payable" ? "Payable Invoice Financing" : "Not selected"}</p>
         </div>
@@ -750,7 +782,7 @@ export function CustomerJourneyPage() {
         <div className="bg-white border border-gray-200 rounded-lg p-5">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-medium text-gray-900">Business Documents</h3>
-            <button onClick={() => setCurrentStep(5)} className="text-xs text-blue-600 hover:text-blue-800">Edit</button>
+            <button onClick={() => setCurrentStep(6)} className="text-xs text-blue-600 hover:text-blue-800">Edit</button>
           </div>
           <div className="space-y-1 text-sm">
             <div className="flex items-center gap-2">
@@ -776,7 +808,7 @@ export function CustomerJourneyPage() {
         <div className="bg-white border border-gray-200 rounded-lg p-5">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-medium text-gray-900">KYC Documents</h3>
-            <button onClick={() => setCurrentStep(6)} className="text-xs text-blue-600 hover:text-blue-800">Edit</button>
+            <button onClick={() => setCurrentStep(7)} className="text-xs text-blue-600 hover:text-blue-800">Edit</button>
           </div>
           <div className="space-y-2 text-sm">
             {shareholders.map(sh => (
@@ -810,7 +842,7 @@ export function CustomerJourneyPage() {
         <div className="bg-white border border-gray-200 rounded-lg p-5">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-medium text-gray-900">Authorized Signatory</h3>
-            <button onClick={() => setCurrentStep(7)} className="text-xs text-blue-600 hover:text-blue-800">Edit</button>
+            <button onClick={() => setCurrentStep(8)} className="text-xs text-blue-600 hover:text-blue-800">Edit</button>
           </div>
           <p className="text-sm text-gray-700">{signatoryPool.find(p => p.id === selectedSignatoryId)?.name || "Not selected"}</p>
         </div>
@@ -894,14 +926,15 @@ export function CustomerJourneyPage() {
             </button>
             <div className="text-xs text-gray-400">{currentStep === 1 ? '' : `Step ${visibleSteps.findIndex(s => s.id === currentStep) + 1} of ${visibleSteps.length}`}</div>
             <button onClick={handleNext}
-              disabled={(currentStep === 8 && !acceptedAgreements) || (currentStep === 4 && !selectedProduct) || (currentStep === 3 && !aecbConsent)}
+              disabled={(currentStep === 9 && !acceptedAgreements) || (currentStep === 5 && !selectedProduct) || (currentStep === 4 && !journeyType) || (currentStep === 3 && !aecbConsent)}
               className={`px-6 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                currentStep === 8 ? acceptedAgreements ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                : (currentStep === 4 && !selectedProduct) ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                currentStep === 9 ? acceptedAgreements ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                : (currentStep === 5 && !selectedProduct) ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                : (currentStep === 4 && !journeyType) ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 : (currentStep === 3 && !aecbConsent) ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 : 'bg-[#4F8DFF] text-white hover:bg-[#3A7AE8]'
               }`}>
-              {currentStep === 8 ? 'Submit Application' : currentStep === 1 ? 'Create Profile' : 'Continue'}
+              {currentStep === 9 ? 'Submit Application' : currentStep === 1 ? 'Create Profile' : 'Continue'}
             </button>
           </div>
         </div>
@@ -958,6 +991,23 @@ export function CustomerJourneyPage() {
                 <p className="text-xs text-gray-400 mt-3">Auto-redirecting in {profileRedirectTimer}s</p>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Account Opening Placeholder */}
+      {showAccountOpeningPlaceholder && (
+        <div className="fixed inset-0 bg-[#CBD2DD]/[.72] flex items-center justify-center z-50">
+          <div className="bg-white rounded shadow-xl w-full max-w-lg p-8 text-center">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5">
+              <Building2 className="w-8 h-8 text-green-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">Account Opening</h3>
+            <p className="text-sm text-gray-500 mb-6">The account opening journey is coming soon. This feature is currently under development.</p>
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+              <p className="text-sm text-amber-800">This is a placeholder page. The full account opening flow will be available in a future release.</p>
+            </div>
+            <button onClick={() => { setShowAccountOpeningPlaceholder(false); setJourneyType(null); }} className="px-6 py-2.5 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] text-sm font-medium">Go Back</button>
           </div>
         </div>
       )}

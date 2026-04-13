@@ -954,9 +954,6 @@ export function CustomerJourneyPage() {
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4"><CheckCircle className="w-8 h-8 text-green-600" /></div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Profile Created Successfully</h3>
                 <p className="text-sm text-gray-500 mb-4">Your identity has been verified and your profile has been created.</p>
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-5 mb-6 text-left">
-                  <div className="flex items-start gap-3"><Mail className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" /><p className="text-sm text-blue-800">We have sent you a welcome email at <span className="font-medium">{profileData.email}</span> with a temporary password.</p></div>
-                </div>
                 <button onClick={handleProfileSuccessContinue} className="px-6 py-2.5 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] text-sm font-medium transition-colors">Continue</button>
                 <p className="text-xs text-gray-400 mt-3">Auto-redirecting in {profileRedirectTimer}s</p>
               </div>

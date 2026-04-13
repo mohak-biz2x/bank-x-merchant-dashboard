@@ -91,7 +91,7 @@ export function CustomerJourneyPage() {
     { id: 8, name: "Review & Submit" },
   ];
 
-  const visibleSteps = steps.filter(s => !s.hidden);
+  const visibleSteps = steps.filter(s => !s.hidden && !(currentStep >= 4 && s.id <= 3));
 
   const getEffectiveType = (s: { ownershipPercent: string; type: "direct" | "ubo" }) => {
     if (s.type === "direct" && parseFloat(s.ownershipPercent) >= 25) return "Direct & UBO";

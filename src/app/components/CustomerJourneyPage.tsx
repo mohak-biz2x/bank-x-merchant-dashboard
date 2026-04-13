@@ -465,7 +465,17 @@ export function CustomerJourneyPage() {
         <div className="w-1 h-7 bg-blue-600 rounded-full"></div>
         <h2 className="text-lg font-semibold text-gray-900">What would you like to do?</h2>
       </div>
-      <p className="text-sm text-gray-500 mb-8 ml-4">Select whether you want to open an account or apply for financing</p>
+      <p className="text-sm text-gray-500 mb-6 ml-4">Select whether you want to open an account or apply for financing</p>
+      {/* Demo Message */}
+      <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
+        <div className="flex gap-3">
+          <Info className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-medium text-purple-900 mb-1">Demo Only</p>
+            <p className="text-sm text-purple-800">This step will be implemented on the MAL Bank system. The data collected here will be passed to Biz2X at the Loan Product step.</p>
+          </div>
+        </div>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
         <button onClick={() => setJourneyType("loan")} className={`relative bg-white border rounded-xl px-6 pt-8 pb-8 transition-all text-center ${journeyType === "loan" ? "border-blue-600 ring-2 ring-blue-100" : "border-gray-200 hover:border-gray-300"}`}>
           <div className="absolute top-3 right-3"><div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${journeyType === "loan" ? "border-blue-600" : "border-gray-300"}`}>{journeyType === "loan" && <div className="w-2.5 h-2.5 rounded-full bg-blue-600"></div>}</div></div>

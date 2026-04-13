@@ -161,7 +161,7 @@ export function CustomerJourneyPage() {
   const resendEmailOtp = () => { setEmailOtp(["", "", "", "", "", ""]); setEmailResendTimer(30); };
   const verifyMobileOtp = () => { setVerifyingMobile(true); setTimeout(() => { setVerifyingMobile(false); setMobileVerified(true); }, 1200); };
   const resendMobileOtp = () => { setMobileOtp(["", "", "", "", "", ""]); setMobileResendTimer(30); };
-  const handleOtpComplete = () => { setProfileCreated(true); setProfileRedirectTimer(10); };
+  const handleOtpComplete = () => { setShowOtpModal(false); setCurrentStep(2); };
 
   useEffect(() => { if (emailResendTimer > 0 && !emailVerified) { const t = setTimeout(() => setEmailResendTimer(emailResendTimer - 1), 1000); return () => clearTimeout(t); } }, [emailResendTimer, emailVerified]);
   useEffect(() => { if (mobileResendTimer > 0 && !mobileVerified) { const t = setTimeout(() => setMobileResendTimer(mobileResendTimer - 1), 1000); return () => clearTimeout(t); } }, [mobileResendTimer, mobileVerified]);

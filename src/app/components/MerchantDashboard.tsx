@@ -7,7 +7,7 @@ import { PremiumBuyerSupplierDashboard } from "./PremiumBuyerSupplierDashboard";
 export type MerchantRole = "both" | "receivable" | "payable" | "supplier-only" | "premium-buyer" | "premium-buyer-supplier";
 
 export function getMerchantRole(): MerchantRole {
-  return (localStorage.getItem("demo_merchant_role") as MerchantRole) || "both";
+  return (localStorage.getItem("demo_merchant_role") as MerchantRole) || "receivable";
 }
 
 export function getUnderwritingStatus(): string {
@@ -19,8 +19,23 @@ export function getStpEligibility(): string {
 }
 
 export function MerchantDashboard() {
+  // Always force Limit Approved state when dashboard loads
+  let needsEvent = false;
+  if (localStorage.getItem("merchant_underwriting_status") !== "none") {
+    localStorage.setItem("merchant_underwriting_status", "none");
+    needsEvent = true;
+  }
+  if (!localStorage.getItem("demo_merchant_role") || localStorage.getItem("demo_merchant_role") === "both") {
+    localStorage.setItem("demo_merchant_role", "receivable");
+    needsEvent = true;
+  }
+  if (needsEvent) {
+    // Defer so Layout can re-read updated localStorage
+    setTimeout(() => window.dispatchEvent(new Event("demo-role-change")), 0);
+  }
+
   const [role, setRole] = useState<MerchantRole>(getMerchantRole);
-  const [uwStatus, setUwStatus] = useState(getUnderwritingStatus);
+  const [uwStatus, setUwStatus] = useState<string>("none");
 
   // STP state
   const [stpEligibility, setStpEligibility] = useState(getStpEligibility);

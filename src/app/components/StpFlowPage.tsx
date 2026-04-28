@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { CheckCircle, Loader2, FileText, Info, ArrowRight, DollarSign, Calendar, Building2 } from "lucide-react";
 import { MalLogo } from "./MalLogo";
+import { DocuSignModal } from "./DocuSignModal";
 
 type Phase = "processing" | "approved" | "signing";
 
@@ -23,6 +24,7 @@ export function StpFlowPage() {
     { id: "debit", title: "Direct Debit Agreement", description: "Authorization for automatic debit of repayment amounts from your account", signed: false },
   ]);
   const [redirectCountdown, setRedirectCountdown] = useState(5);
+  const [docuSignDoc, setDocuSignDoc] = useState<{ id: string; title: string } | null>(null);
 
   const allSigned = agreements.every((a) => a.signed);
 
@@ -64,6 +66,7 @@ export function StpFlowPage() {
           clearInterval(interval);
           localStorage.setItem("merchant_underwriting_status", "none");
           localStorage.setItem("demo_merchant_role", localStorage.getItem("selected_product") || "receivable");
+          localStorage.setItem("stp_just_completed", "true");
           window.dispatchEvent(new Event("demo-role-change"));
           navigate("/");
           return 0;
@@ -247,7 +250,7 @@ export function StpFlowPage() {
                           </span>
                         ) : (
                           <button
-                            onClick={() => handleSign(agreement.id)}
+                            onClick={() => setDocuSignDoc({ id: agreement.id, title: agreement.title })}
                             className="bg-[#4F8DFF] text-white px-5 py-2 rounded-lg hover:bg-[#3A7AE8] transition-colors text-sm font-medium"
                           >
                             Sign
@@ -276,6 +279,20 @@ export function StpFlowPage() {
           )}
         </div>
       </main>
+
+      {/* DocuSign Simulation Modal */}
+      {docuSignDoc && (
+        <DocuSignModal
+          documentTitle={docuSignDoc.title}
+          entityName="Al Masraf Industries LLC"
+          referenceId="STP-APP-2025"
+          onSign={() => {
+            handleSign(docuSignDoc.id);
+            setDocuSignDoc(null);
+          }}
+          onClose={() => setDocuSignDoc(null)}
+        />
+      )}
     </div>
   );
 }

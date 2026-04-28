@@ -2,6 +2,7 @@ import { useState, Fragment, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { FileText, ChevronDown, ChevronUp, Upload, CheckCircle, Clock, AlertCircle, MoreVertical, X, ShieldCheck, ArrowLeft, PenTool, Loader2, Zap } from "lucide-react";
 import { showToast } from "./Toast";
+import { DocuSignModal } from "./DocuSignModal";
 
 type AppStatus = "under_review" | "in_progress" | "kyc_verification" | "analysis" | "credit_decisioning" | "invoice_processing" | "security_onboarding" | "security_verification" | "limit_approved" | "rejected";
 
@@ -134,6 +135,7 @@ export function ApplicationsModule({ onSecurityOnboarding, embedded }: Applicati
   const [securityChequeFile, setSecurityChequeFile] = useState<File | null>(null);
   const [showStpSuccess, setShowStpSuccess] = useState(false);
   const [stpTimer, setStpTimer] = useState(10);
+  const [docuSignDoc, setDocuSignDoc] = useState<{ key: string; label: string } | null>(null);
   const isStp = (localStorage.getItem("demo_stp_eligibility") || "approved") === "approved";
 
   useEffect(() => {
@@ -348,7 +350,7 @@ export function ApplicationsModule({ onSecurityOnboarding, embedded }: Applicati
                         {signedAgreements[ag.key] ? (
                           <span className="flex items-center gap-1 px-2.5 py-1 bg-green-100 text-green-700 rounded-lg text-xs font-medium"><CheckCircle className="w-3.5 h-3.5" /> Signed</span>
                         ) : (
-                          <button onClick={() => { setSignedAgreements(prev => ({ ...prev, [ag.key]: true })); showToast("success", `${ag.label} signed successfully.`); }} className="flex items-center gap-1 px-3 py-1.5 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] text-xs"><PenTool className="w-3.5 h-3.5" /> Sign</button>
+                          <button onClick={() => setDocuSignDoc({ key: ag.key, label: ag.label })} className="flex items-center gap-1 px-3 py-1.5 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] text-xs"><PenTool className="w-3.5 h-3.5" /> Sign</button>
                         )}
                       </div>
                     </div>
@@ -423,6 +425,21 @@ export function ApplicationsModule({ onSecurityOnboarding, embedded }: Applicati
           </div>
           </div>
         </div>
+      )}
+
+      {/* DocuSign Simulation Modal */}
+      {docuSignDoc && (
+        <DocuSignModal
+          documentTitle={docuSignDoc.label}
+          entityName="Al Masraf Industries LLC"
+          referenceId="APP-2025-001"
+          onSign={() => {
+            setSignedAgreements(prev => ({ ...prev, [docuSignDoc.key]: true }));
+            showToast("success", `${docuSignDoc.label} signed successfully via DocuSign.`);
+            setDocuSignDoc(null);
+          }}
+          onClose={() => setDocuSignDoc(null)}
+        />
       )}
     </div>
   );

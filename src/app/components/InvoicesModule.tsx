@@ -1,7 +1,9 @@
-import { FileText, Plus, Upload, X, CheckCircle, Clock, AlertCircle, DollarSign, Eye, Download, MoreVertical, ArrowLeft, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { FileText, Plus, Upload, X, CheckCircle, Clock, AlertCircle, DollarSign, Eye, Download, MoreVertical, ArrowLeft, ChevronLeft, ChevronRight, Loader2, PenTool } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router";
 import { showToast } from "./Toast";
+import { DocuSignModal } from "./DocuSignModal";
+import { Spotlight } from "./Spotlight";
 
 type GroupStatus = "verification_in_progress" | "manual_verification_required" | "verification_complete" | "contract_generated" | "contract_esign_pending" | "contract_esign_complete" | "sent_to_lms" | "disbursed";
 type InvoiceStatus = "pending" | "refer" | "approved" | "rejected";
@@ -36,7 +38,10 @@ interface LineItem {
   deliveryNote: File | null;
   parsed: boolean;
   parsingFailed: boolean;
+  expanded: boolean;
 }
+
+type AddInvoicePhase = "upload" | "parsing" | "review" | "validating";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -109,15 +114,34 @@ export function InvoicesModule() {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [buyerName, setBuyerName] = useState("");
   const [repaymentStructure, setRepaymentStructure] = useState<"bullet" | "installments">("bullet");
-  const [parsingIndex, setParsingIndex] = useState<number | null>(null);
+  const [addPhase, setAddPhase] = useState<AddInvoicePhase>("upload");
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
-  const [lineItems, setLineItems] = useState<LineItem[]>([
-    { invoiceNumber: "", invoiceDate: "", invoiceAmount: "", paymentDueDate: "", invoiceCopy: null, deliveryNote: null, parsed: false, parsingFailed: false },
-  ]);
+  const [lineItems, setLineItems] = useState<LineItem[]>([]);
+  const [showMurabahaSign, setShowMurabahaSign] = useState(false);
+  const [showCommodityExchange, setShowCommodityExchange] = useState(false);
+  const [spotlightTarget, setSpotlightTarget] = useState<"murabaha" | null>(null);
+  const murabahaBtnRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (searchParams.get("add") === "true") setShowAddForm(true);
   }, [searchParams]);
+
+  // Auto-update group status based on invoice statuses
+  useEffect(() => {
+    setGroups(prev => prev.map(g => {
+      if (g.invoices.length === 0 || g.status === "contract_esign_complete" || g.status === "sent_to_lms" || g.status === "disbursed") return g;
+      const allApproved = g.invoices.every(inv => inv.status === "approved");
+      const hasReferOrRejected = g.invoices.some(inv => inv.status === "refer" || inv.status === "rejected");
+      if (allApproved && g.status !== "contract_esign_pending") {
+        return { ...g, status: "contract_esign_pending" };
+      }
+      if (hasReferOrRejected && g.status !== "manual_verification_required") {
+        return { ...g, status: "manual_verification_required" };
+      }
+      return g;
+    }));
+  }, [groups]);
 
   useEffect(() => {
     if (openMenuId) {
@@ -161,58 +185,72 @@ export function InvoicesModule() {
     return actions;
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, idx: number, type: "invoiceCopy" | "deliveryNote") => {
-    const file = e.target.files?.[0] || null;
-    setLineItems(prev => {
-      const updated = prev.map((item, i) => i === idx ? { ...item, [type]: file } : item);
-      const item = updated[idx];
-      if (type === "invoiceCopy" && file && !item.parsed && parsingIndex === null) {
-        setTimeout(() => handleParseInvoice(idx), 300);
-      }
-      return updated;
-    });
+  const handleBulkUpload = (files: FileList | null) => {
+    if (!files) return;
+    const newFiles = Array.from(files).slice(0, 10 - uploadedFiles.length);
+    setUploadedFiles(prev => [...prev, ...newFiles].slice(0, 10));
   };
 
-  const removeFile = (idx: number, type: "invoiceCopy" | "deliveryNote") => {
-    setLineItems(prev => prev.map((item, i) => i === idx ? { ...item, [type]: null } : item));
+  const removeUploadedFile = (idx: number) => {
+    setUploadedFiles(prev => prev.filter((_, i) => i !== idx));
   };
 
-  const handleParseInvoice = (idx: number) => {
-    setParsingIndex(idx);
+  const handleParseAll = () => {
+    if (uploadedFiles.length === 0) return;
+    setAddPhase("parsing");
     setTimeout(() => {
-      const isPartialFailure = Math.random() < 0.2;
-      setLineItems(prev => prev.map((item, i) => {
-        if (i !== idx) return item;
+      const parsed: LineItem[] = uploadedFiles.map((file) => {
+        const isFailed = Math.random() < 0.15;
         const num = String(Math.floor(Math.random() * 9000) + 1000);
         const today = new Date().toISOString().split("T")[0];
         const due = new Date(Date.now() + 90 * 86400000).toISOString().split("T")[0];
-        if (isPartialFailure) {
-          return { ...item, invoiceNumber: `INV-2024-${num}`, invoiceDate: today, invoiceAmount: "", paymentDueDate: "", parsed: true, parsingFailed: true };
+        if (isFailed) {
+          return { invoiceNumber: "", invoiceDate: "", invoiceAmount: "", paymentDueDate: "", invoiceCopy: file, deliveryNote: null, parsed: true, parsingFailed: true, expanded: true };
         }
         const amount = String(Math.floor(Math.random() * 250000) + 50000);
-        return { ...item, invoiceNumber: `INV-2024-${num}`, invoiceDate: today, invoiceAmount: amount, paymentDueDate: due, parsed: true, parsingFailed: false };
-      }));
-      setParsingIndex(null);
-    }, 2000);
-  };
-
-  const handleAddLineItem = () => {
-    if (lineItems.length < 10) {
-      setLineItems(prev => [...prev, { invoiceNumber: "", invoiceDate: "", invoiceAmount: "", paymentDueDate: "", invoiceCopy: null, deliveryNote: null, parsed: false, parsingFailed: false }]);
-    }
-  };
-
-  const handleRemoveLineItem = (idx: number) => {
-    if (lineItems.length > 1) setLineItems(prev => prev.filter((_, i) => i !== idx));
+        return { invoiceNumber: `INV-2024-${num}`, invoiceDate: today, invoiceAmount: amount, paymentDueDate: due, invoiceCopy: file, deliveryNote: null, parsed: true, parsingFailed: false, expanded: false };
+      });
+      setLineItems(parsed);
+      setAddPhase("review");
+    }, 10000);
   };
 
   const handleLineItemChange = (idx: number, field: keyof LineItem, value: string) => {
     setLineItems(prev => prev.map((item, i) => i === idx ? { ...item, [field]: value } : item));
   };
 
+  const toggleExpand = (idx: number) => {
+    setLineItems(prev => prev.map((item, i) => i === idx ? { ...item, expanded: !item.expanded } : item));
+  };
+
+  const handleRemoveLineItem = (idx: number) => {
+    if (lineItems.length > 1) setLineItems(prev => prev.filter((_, i) => i !== idx));
+  };
+
+  const handleDeliveryNoteUpload = (e: React.ChangeEvent<HTMLInputElement>, idx: number) => {
+    const file = e.target.files?.[0] || null;
+    setLineItems(prev => prev.map((item, i) => i === idx ? { ...item, deliveryNote: file } : item));
+  };
+
   const totalAmount = lineItems.reduce((sum, item) => sum + (Number(item.invoiceAmount) || 0), 0);
 
+  const getInvoiceStatuses = (count: number): InvoiceStatus[] => {
+    const outcome = localStorage.getItem("demo_invoice_outcome") || "all_approved";
+    if (outcome === "all_approved") return Array(count).fill("approved");
+    if (outcome === "all_rejected") return Array(count).fill("rejected");
+    if (outcome === "one_rejected") {
+      const statuses: InvoiceStatus[] = Array(count).fill("approved");
+      statuses[Math.floor(Math.random() * count)] = "rejected";
+      return statuses;
+    }
+    // one_refer
+    const statuses: InvoiceStatus[] = Array(count).fill("approved");
+    statuses[Math.floor(Math.random() * count)] = "refer";
+    return statuses;
+  };
+
   const handleSubmit = () => {
+    setAddPhase("validating");
     setSubmitting(true);
     const validItems = lineItems.filter(item => item.invoiceNumber.trim());
     if (addToExistingGroup) {
@@ -233,15 +271,25 @@ export function InvoicesModule() {
         setSubmitting(false);
         setGroups(prev => prev.map(g => {
           if (g.id !== addToExistingGroup) return g;
-          return { ...g, invoices: g.invoices.map(inv => {
+          return { ...g, invoices: g.invoices.map((inv, idx) => {
             if (inv.status !== "pending") return inv;
-            const r = Math.random();
-            return { ...inv, status: (r < 0.7 ? "approved" : r < 0.9 ? "refer" : "rejected") as InvoiceStatus };
+            const pendingInvs = g.invoices.filter(i => i.status === "pending");
+            const pendingIdx = pendingInvs.indexOf(inv);
+            const statuses = getInvoiceStatuses(pendingInvs.length);
+            return { ...inv, status: statuses[pendingIdx] };
           }) };
         }));
-        showToast("success", "Invoice(s) submitted successfully.");
-        resetForm();
-      }, 3000);
+        showToast("success", "Invoice(s) submitted and validated successfully.");
+        setShowAddForm(false);
+        setAddToExistingGroup(null);
+        setSubmitting(false);
+        setAddPhase("upload");
+        setUploadedFiles([]);
+        setLineItems([]);
+        setViewingGroup(addToExistingGroup);
+        setSearchTerm("");
+        setCurrentPage(1);
+      }, 5000);
     } else {
       const groupNum = String(groups.length + 1).padStart(3, "0");
       const groupId = `GRP-R${groupNum}`;
@@ -269,14 +317,24 @@ export function InvoicesModule() {
         setSubmitting(false);
         setGroups(prev => prev.map(g => {
           if (g.id !== groupId) return g;
-          return { ...g, invoices: g.invoices.map(inv => {
-            const r = Math.random();
-            return { ...inv, status: (r < 0.7 ? "approved" : r < 0.9 ? "refer" : "rejected") as InvoiceStatus };
-          }) };
+          return { ...g, invoices: (() => {
+            const statuses = getInvoiceStatuses(g.invoices.length);
+            return g.invoices.map((inv, idx) => ({ ...inv, status: statuses[idx] }));
+          })() };
         }));
-        showToast("success", "Invoice(s) submitted successfully.");
-        resetForm();
-      }, 3000);
+        showToast("success", "Invoice(s) submitted and validated successfully.");
+        setShowAddForm(false);
+        setAddToExistingGroup(null);
+        setSubmitting(false);
+        setBuyerName("");
+        setRepaymentStructure("bullet");
+        setAddPhase("upload");
+        setUploadedFiles([]);
+        setLineItems([]);
+        setViewingGroup(groupId);
+        setSearchTerm("");
+        setCurrentPage(1);
+      }, 5000);
     }
   };
 
@@ -287,8 +345,9 @@ export function InvoicesModule() {
     setSubmitting(false);
     setBuyerName("");
     setRepaymentStructure("bullet");
-    setParsingIndex(null);
-    setLineItems([{ invoiceNumber: "", invoiceDate: "", invoiceAmount: "", paymentDueDate: "", invoiceCopy: null, deliveryNote: null, parsed: false, parsingFailed: false }]);
+    setAddPhase("upload");
+    setUploadedFiles([]);
+    setLineItems([]);
   };
 
   const stats = [
@@ -299,6 +358,13 @@ export function InvoicesModule() {
   ];
 
   const activeGroup = viewingGroup ? groups.find(g => g.id === viewingGroup) : null;
+
+  // Show spotlight on Murabaha button when group becomes contract_esign_pending
+  useEffect(() => {
+    if (activeGroup && activeGroup.status === "contract_esign_pending" && viewingGroup && !showMurabahaSign && !showCommodityExchange) {
+      setSpotlightTarget("murabaha");
+    }
+  }, [activeGroup?.status, viewingGroup]);
 
   const filteredGroups = groups.filter(g =>
     g.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -323,98 +389,170 @@ export function InvoicesModule() {
 
   const existingGroupForForm = addToExistingGroup ? groups.find(g => g.id === addToExistingGroup) : null;
 
+  const failedCount = lineItems.filter(i => i.parsingFailed).length;
+
   /* ───── Inline Add Invoice Form ───── */
-  const renderInvoiceLineItems = () => (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
-      <h3 className="text-base font-semibold text-gray-900 mb-5">Invoices</h3>
-      <div className="space-y-6">
-        {lineItems.map((item, index) => (
-          <div key={index} className="border border-gray-200 rounded-lg p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h4 className="text-sm font-semibold text-gray-900">Invoice {index + 1}</h4>
-              {lineItems.length > 1 && (
-                <button onClick={() => handleRemoveLineItem(index)} className="text-red-500 hover:text-red-700 text-xs font-medium flex items-center gap-1"><X className="w-3.5 h-3.5" /> Remove</button>
+  const renderAddInvoiceContent = () => {
+    // Phase: Upload
+    if (addPhase === "upload") {
+      return (
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <h3 className="text-base font-semibold text-gray-900 mb-1">Upload Invoices</h3>
+          <p className="text-xs text-gray-500 mb-5">Upload up to 10 invoice documents. They will be parsed automatically.</p>
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 hover:bg-blue-50/30 transition-colors cursor-pointer" onClick={() => { const inp = document.createElement("input"); inp.type = "file"; inp.accept = ".pdf,.jpg,.jpeg,.png"; inp.multiple = true; inp.onchange = () => handleBulkUpload(inp.files); inp.click(); }}>
+            <Upload className="w-10 h-10 text-gray-400 mx-auto mb-3" />
+            <p className="text-sm font-medium text-gray-700">Click to upload invoice documents</p>
+            <p className="text-xs text-gray-400 mt-1">PDF, JPG, PNG accepted · Up to 10 files</p>
+          </div>
+          {uploadedFiles.length > 0 && (
+            <div className="mt-4 space-y-2">
+              <p className="text-xs font-medium text-gray-600">{uploadedFiles.length} file{uploadedFiles.length !== 1 ? "s" : ""} selected</p>
+              {uploadedFiles.map((file, idx) => (
+                <div key={idx} className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <FileText className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                    <span className="text-sm text-gray-700 truncate">{file.name}</span>
+                  </div>
+                  <button onClick={(e) => { e.stopPropagation(); removeUploadedFile(idx); }} className="text-gray-400 hover:text-red-500 shrink-0 ml-2"><X className="w-4 h-4" /></button>
+                </div>
+              ))}
+              {uploadedFiles.length < 10 && (
+                <button onClick={() => { const inp = document.createElement("input"); inp.type = "file"; inp.accept = ".pdf,.jpg,.jpeg,.png"; inp.multiple = true; inp.onchange = () => handleBulkUpload(inp.files); inp.click(); }} className="text-sm text-blue-600 hover:text-blue-700 font-medium">+ Add more files</button>
               )}
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Invoice Copy *</label>
-                {item.invoiceCopy ? (
-                  <div className="flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded-lg">
-                    <FileText className="w-4 h-4 text-green-600 flex-shrink-0" />
-                    <span className="text-xs text-green-700 truncate flex-1">{item.invoiceCopy.name}</span>
-                    <button onClick={() => removeFile(index, "invoiceCopy")} className="text-red-500 hover:text-red-700"><X className="w-3.5 h-3.5" /></button>
-                  </div>
-                ) : (
-                  <>
-                    <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleFileUpload(e, index, "invoiceCopy")} className="hidden" id={`r-inv-copy-${index}`} />
-                    <label htmlFor={`r-inv-copy-${index}`} className="flex items-center justify-center gap-2 w-full px-3 py-3 border-2 border-dashed border-gray-300 rounded-lg text-xs text-gray-500 hover:border-blue-400 hover:text-blue-600 cursor-pointer transition-colors">
-                      <Upload className="w-3.5 h-3.5" /> Upload Invoice Copy
-                    </label>
-                  </>
-                )}
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Delivery Note</label>
-                {item.deliveryNote ? (
-                  <div className="flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded-lg">
-                    <FileText className="w-4 h-4 text-green-600 flex-shrink-0" />
-                    <span className="text-xs text-green-700 truncate flex-1">{item.deliveryNote.name}</span>
-                    <button onClick={() => removeFile(index, "deliveryNote")} className="text-red-500 hover:text-red-700"><X className="w-3.5 h-3.5" /></button>
-                  </div>
-                ) : (
-                  <>
-                    <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleFileUpload(e, index, "deliveryNote")} className="hidden" id={`r-del-note-${index}`} />
-                    <label htmlFor={`r-del-note-${index}`} className="flex items-center justify-center gap-2 w-full px-3 py-3 border-2 border-dashed border-gray-300 rounded-lg text-xs text-gray-500 hover:border-blue-400 hover:text-blue-600 cursor-pointer transition-colors">
-                      <Upload className="w-3.5 h-3.5" /> Upload Delivery Note
-                    </label>
-                  </>
-                )}
-              </div>
+          )}
+          {uploadedFiles.length > 0 && (
+            <div className="mt-5 flex justify-end">
+              <button onClick={handleParseAll} className="px-5 py-2.5 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] font-medium text-sm">Parse Invoices</button>
             </div>
-            {item.invoiceCopy && !item.parsed && parsingIndex !== index && (
-              <div className="flex items-center gap-2 mb-4 text-sm text-gray-500">Preparing to parse invoice...</div>
-            )}
-            {parsingIndex === index && (
-              <div className="flex items-center gap-2 mb-4 text-sm text-blue-600"><Loader2 className="w-4 h-4 animate-spin" /> Parsing invoice...</div>
-            )}
-            {item.parsed && item.parsingFailed && (
-              <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700">Some fields could not be parsed. Please enter the missing details manually.</div>
-            )}
-            {(item.parsed || item.invoiceNumber) && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Invoice Number *</label>
-                  <input type="text" value={item.invoiceNumber} onChange={e => handleLineItemChange(index, "invoiceNumber", e.target.value)} placeholder="e.g. INV-2024-001" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          )}
+        </div>
+      );
+    }
+
+    // Phase: Parsing
+    if (addPhase === "parsing") {
+      return (
+        <div className="bg-white rounded-lg border border-gray-200 p-10 flex flex-col items-center text-center">
+          <div className="relative mb-6">
+            <div className="absolute inset-0 w-16 h-16 bg-blue-100 rounded-full animate-ping opacity-30" style={{ animationDuration: "2s" }} />
+            <Loader2 className="relative w-16 h-16 text-[#4F8DFF] animate-spin" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Parsing Invoices</h3>
+          <p className="text-sm text-gray-500 max-w-sm">Your {uploadedFiles.length} invoice{uploadedFiles.length !== 1 ? "s are" : " is"} being parsed. Please wait, this may take a few moments.</p>
+        </div>
+      );
+    }
+
+    // Phase: Validating
+    if (addPhase === "validating") {
+      return (
+        <div className="bg-white rounded-lg border border-gray-200 p-10 flex flex-col items-center text-center">
+          <div className="relative mb-6">
+            <div className="absolute inset-0 w-16 h-16 bg-green-100 rounded-full animate-ping opacity-30" style={{ animationDuration: "2s" }} />
+            <Loader2 className="relative w-16 h-16 text-green-600 animate-spin" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Validating Invoices</h3>
+          <p className="text-sm text-gray-500 max-w-sm">Running invoice validation rules in the rule engine. Please wait...</p>
+        </div>
+      );
+    }
+
+    // Phase: Review
+    return (
+      <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <h3 className="text-base font-semibold text-gray-900">Review Invoices</h3>
+            <p className="text-xs text-gray-500 mt-0.5">{lineItems.length} invoice{lineItems.length !== 1 ? "s" : ""} parsed{failedCount > 0 ? ` · ${failedCount} failed — please fill in details manually` : ""}</p>
+          </div>
+        </div>
+        {failedCount > 0 && (
+          <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700 flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+            <span>{failedCount} invoice{failedCount !== 1 ? "s" : ""} could not be parsed. The document{failedCount !== 1 ? "s have" : " has"} been uploaded but details need to be entered manually.</span>
+          </div>
+        )}
+        <div className="space-y-3">
+          {lineItems.map((item, index) => (
+            <div key={index} className={`border rounded-lg ${item.parsingFailed ? "border-amber-300 bg-amber-50/30" : "border-gray-200"}`}>
+              <div className="flex items-center justify-between px-5 py-3 cursor-pointer" onClick={() => toggleExpand(index)}>
+                <div className="flex items-center gap-3">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${item.parsingFailed ? "bg-amber-100 text-amber-700" : item.invoiceNumber ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+                    {item.parsingFailed ? "!" : index + 1}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{item.invoiceNumber || `Invoice ${index + 1}`}{item.parsingFailed ? " — Parse Failed" : ""}</p>
+                    <p className="text-xs text-gray-500">{item.invoiceCopy?.name || "No file"}{item.invoiceAmount ? ` · AED ${Number(item.invoiceAmount).toLocaleString()}` : ""}</p>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Invoice Date *</label>
-                  <input type="date" value={item.invoiceDate} onChange={e => handleLineItemChange(index, "invoiceDate", e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Invoice Amount (AED) *</label>
-                  <input type="number" value={item.invoiceAmount} onChange={e => handleLineItemChange(index, "invoiceAmount", e.target.value)} placeholder="0" min="0" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Payment Due Date *</label>
-                  <input type="date" value={item.paymentDueDate} onChange={e => handleLineItemChange(index, "paymentDueDate", e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <div className="flex items-center gap-2">
+                  {item.parsingFailed && <span className="text-xs text-amber-600 font-medium">Manual entry required</span>}
+                  {!item.parsingFailed && item.invoiceNumber && <CheckCircle className="w-4 h-4 text-green-500" />}
+                  {lineItems.length > 1 && <button onClick={(e) => { e.stopPropagation(); handleRemoveLineItem(index); }} className="text-red-400 hover:text-red-600 p-1"><X className="w-3.5 h-3.5" /></button>}
+                  <svg className={`w-4 h-4 text-gray-400 transition-transform ${item.expanded ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                 </div>
               </div>
-            )}
-          </div>
-        ))}
-        {lineItems.some(i => i.invoiceNumber.trim()) && lineItems.length < 10 && (
-          <button type="button" onClick={handleAddLineItem} className="text-sm text-blue-600 hover:text-blue-700 font-medium">+ Add Another Invoice</button>
-        )}
+              {item.expanded && (
+                <div className="px-5 pb-5 border-t border-gray-100 pt-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Invoice Copy</label>
+                      <div className="flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded-lg">
+                        <FileText className="w-4 h-4 text-green-600 flex-shrink-0" />
+                        <span className="text-xs text-green-700 truncate flex-1">{item.invoiceCopy?.name || "Uploaded"}</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Delivery Note</label>
+                      {item.deliveryNote ? (
+                        <div className="flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded-lg">
+                          <FileText className="w-4 h-4 text-green-600 flex-shrink-0" />
+                          <span className="text-xs text-green-700 truncate flex-1">{item.deliveryNote.name}</span>
+                          <button onClick={() => setLineItems(prev => prev.map((it, i) => i === index ? { ...it, deliveryNote: null } : it))} className="text-red-500 hover:text-red-700"><X className="w-3.5 h-3.5" /></button>
+                        </div>
+                      ) : (
+                        <>
+                          <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleDeliveryNoteUpload(e, index)} className="hidden" id={`r-del-note-${index}`} />
+                          <label htmlFor={`r-del-note-${index}`} className="flex items-center justify-center gap-2 w-full px-3 py-3 border-2 border-dashed border-gray-300 rounded-lg text-xs text-gray-500 hover:border-blue-400 hover:text-blue-600 cursor-pointer transition-colors">
+                            <Upload className="w-3.5 h-3.5" /> Upload Delivery Note
+                          </label>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Invoice Number *</label>
+                      <input type="text" value={item.invoiceNumber} onChange={e => handleLineItemChange(index, "invoiceNumber", e.target.value)} placeholder="Invoice Number" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Invoice Date *</label>
+                      <input type="date" value={item.invoiceDate} onChange={e => handleLineItemChange(index, "invoiceDate", e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Invoice Amount (AED) *</label>
+                      <input type="number" value={item.invoiceAmount} onChange={e => handleLineItemChange(index, "invoiceAmount", e.target.value)} placeholder="0" min="0" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Payment Due Date *</label>
+                      <input type="date" value={item.paymentDueDate} onChange={e => handleLineItemChange(index, "paymentDueDate", e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
         {lineItems.some(i => i.invoiceAmount) && (
-          <div className="bg-gray-50 rounded-lg p-3 flex justify-between items-center">
+          <div className="bg-gray-50 rounded-lg p-3 flex justify-between items-center mt-4">
             <span className="text-sm text-gray-600">Total Amount ({lineItems.filter(i => i.invoiceAmount).length} invoice{lineItems.filter(i => i.invoiceAmount).length !== 1 ? "s" : ""})</span>
             <span className="text-sm font-semibold text-gray-900">{formatCurrency(totalAmount)}</span>
           </div>
         )}
       </div>
-    </div>
-  );
+    );
+  };
 
   /* ───── Inline Add Form Page ───── */
   if (showAddForm) {
@@ -430,46 +568,27 @@ export function InvoicesModule() {
         <div className="space-y-6">
           {/* Group Details Section */}
           {addToExistingGroup && existingGroupForForm ? (
-            <div className="bg-gray-50 rounded-lg border border-gray-200 p-5">
-              <h3 className="text-base font-semibold text-gray-900 mb-3">Group Details</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                <div><span className="text-gray-500">Group ID:</span> <span className="font-medium text-gray-900">{existingGroupForForm.id}</span></div>
-                <div><span className="text-gray-500">Buyer:</span> <span className="font-medium text-gray-900">{existingGroupForForm.buyerName}</span></div>
-                <div><span className="text-gray-500">Repayment:</span> <span className="font-medium text-gray-900 capitalize">{existingGroupForForm.repaymentStructure}</span></div>
-                <div><span className="text-gray-500">Current Total:</span> <span className="font-medium text-gray-900">{formatCurrency(existingGroupForForm.totalInvoiceAmount)}</span></div>
-              </div>
+            <div className="bg-gray-50 rounded-lg border border-gray-200 px-4 py-2.5 flex items-center gap-3 text-sm">
+              <span className="font-semibold text-gray-900">{existingGroupForForm.id}</span>
+              <span className="text-gray-400">|</span>
+              <span className="text-gray-500">Buyer:</span> <span className="font-medium text-gray-900">{existingGroupForForm.buyerName}</span>
+              <span className="text-gray-400">|</span>
+              <span className="text-gray-500">Repayment:</span> <span className="font-medium text-gray-900 capitalize">{existingGroupForForm.repaymentStructure}</span>
+              <span className="text-gray-400">|</span>
+              <span className="text-gray-500">Total:</span> <span className="font-medium text-gray-900">{formatCurrency(existingGroupForForm.totalInvoiceAmount)}</span>
             </div>
           ) : (
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h3 className="text-base font-semibold text-gray-900 mb-5">Group Details</h3>
-              <div className="space-y-5">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Buyer Name *</label>
-                  <input type="text" value={buyerName} onChange={e => setBuyerName(e.target.value)} placeholder="Enter buyer company name" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <div className="bg-white rounded-lg border border-gray-200 px-4 py-3">
+              <div className="flex items-end gap-4">
+                <div className="flex-1">
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Buyer Name *</label>
+                  <input type="text" value={buyerName} onChange={e => setBuyerName(e.target.value)} placeholder="Buyer Name" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">Repayment Structure *</label>
-                  <div className="grid grid-cols-2 gap-4">
-                    <button type="button" onClick={() => setRepaymentStructure("bullet")} className={`p-4 border-2 rounded-lg text-left transition-colors ${repaymentStructure === "bullet" ? "border-blue-600 bg-blue-50" : "border-gray-200 hover:border-gray-300"}`}>
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${repaymentStructure === "bullet" ? "border-blue-600" : "border-gray-300"}`}>
-                          {repaymentStructure === "bullet" && <div className="w-3 h-3 bg-blue-600 rounded-full" />}
-                        </div>
-                        <DollarSign className="w-5 h-5 text-gray-600" />
-                      </div>
-                      <p className="font-medium text-gray-900">Bullet Payment</p>
-                      <p className="text-xs text-gray-500 mt-1">Full repayment at maturity date</p>
-                    </button>
-                    <button type="button" onClick={() => setRepaymentStructure("installments")} className={`p-4 border-2 rounded-lg text-left transition-colors ${repaymentStructure === "installments" ? "border-blue-600 bg-blue-50" : "border-gray-200 hover:border-gray-300"}`}>
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${repaymentStructure === "installments" ? "border-blue-600" : "border-gray-300"}`}>
-                          {repaymentStructure === "installments" && <div className="w-3 h-3 bg-blue-600 rounded-full" />}
-                        </div>
-                        <Clock className="w-5 h-5 text-gray-600" />
-                      </div>
-                      <p className="font-medium text-gray-900">Installments</p>
-                      <p className="text-xs text-gray-500 mt-1">Repayment in scheduled installments</p>
-                    </button>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Repayment Structure *</label>
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => setRepaymentStructure("bullet")} className={`px-4 py-2 border-2 rounded-lg text-sm font-medium transition-colors ${repaymentStructure === "bullet" ? "border-blue-600 bg-blue-50 text-blue-700" : "border-gray-200 text-gray-700 hover:border-gray-300"}`}>Bullet</button>
+                    <button type="button" onClick={() => setRepaymentStructure("installments")} className={`px-4 py-2 border-2 rounded-lg text-sm font-medium transition-colors ${repaymentStructure === "installments" ? "border-blue-600 bg-blue-50 text-blue-700" : "border-gray-200 text-gray-700 hover:border-gray-300"}`}>Installments</button>
                   </div>
                 </div>
               </div>
@@ -477,19 +596,20 @@ export function InvoicesModule() {
           )}
 
           {/* Invoices Section */}
-          {renderInvoiceLineItems()}
+          {renderAddInvoiceContent()}
 
-          {/* Submit */}
+          {/* Submit — only show in review phase */}
+          {addPhase === "review" && (
           <div className="flex justify-end">
             <button
               onClick={handleSubmit}
               disabled={submitting || !lineItems.some(i => i.invoiceNumber.trim()) || (!addToExistingGroup && !buyerName.trim())}
               className="px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
-              {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
-              {submitting ? "Submitting..." : "Submit"}
+              Submit
             </button>
           </div>
+          )}
         </div>
       </div>
     );
@@ -510,9 +630,9 @@ export function InvoicesModule() {
               <Plus className="w-4 h-4" /> Add Invoice
             </button>
           )}
-          {viewingGroup && activeGroup && (
-            <button onClick={() => { setAddToExistingGroup(activeGroup.id); setShowAddForm(true); }} className="flex items-center gap-2 bg-[#4F8DFF] text-white px-4 py-2 rounded-lg hover:bg-[#3A7AE8] transition-colors font-medium">
-              <Plus className="w-4 h-4" /> Add Invoice
+          {viewingGroup && activeGroup && activeGroup.status === "contract_esign_pending" && (
+            <button ref={murabahaBtnRef} onClick={() => { setShowMurabahaSign(true); setSpotlightTarget(null); }} className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium">
+              <FileText className="w-4 h-4" /> View & E-Sign Murabaha Contract
             </button>
           )}
         </div>
@@ -544,22 +664,26 @@ export function InvoicesModule() {
           <button onClick={() => { setViewingGroup(null); setSearchTerm(""); setCurrentPage(1); }} className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 mb-4">
             <ArrowLeft className="w-4 h-4" /> Back to Invoice Groups
           </button>
-          <div className="bg-white rounded-lg border border-gray-200 p-5 mb-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div>
-                  <p className="text-sm text-gray-500">Group ID</p>
-                  <p className="text-lg font-semibold text-gray-900">{activeGroup.id}</p>
-                </div>
-                <div>{getGroupStatusBadge(activeGroup.status)}</div>
-              </div>
-              <div className="flex items-center gap-6 text-sm">
-                <div><span className="text-gray-500">Buyer:</span> <span className="font-medium text-gray-900">{activeGroup.buyerName}</span></div>
-                <div><span className="text-gray-500">Total:</span> <span className="font-medium text-gray-900">{formatCurrency(activeGroup.totalInvoiceAmount)}</span></div>
-                <div><span className="text-gray-500">Repayment:</span> <span className="font-medium text-gray-900 capitalize">{activeGroup.repaymentStructure}</span></div>
-              </div>
+          <div className="bg-white rounded-lg border border-gray-200 px-4 py-2.5 mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-3 text-sm">
+              <span className="font-semibold text-gray-900">{activeGroup.id}</span>
+              {getGroupStatusBadge(activeGroup.status)}
+              <span className="text-gray-400">|</span>
+              <span className="text-gray-500">Buyer:</span> <span className="font-medium text-gray-900">{activeGroup.buyerName}</span>
+              <span className="text-gray-400">|</span>
+              <span className="text-gray-500">Total:</span> <span className="font-medium text-gray-900">{formatCurrency(activeGroup.totalInvoiceAmount)}</span>
+              <span className="text-gray-400">|</span>
+              <span className="text-gray-500">Repayment:</span> <span className="font-medium text-gray-900 capitalize">{activeGroup.repaymentStructure}</span>
             </div>
           </div>
+
+          {/* Disbursement info banner */}
+          {(activeGroup.status === "sent_to_lms" || activeGroup.status === "disbursed") && (
+            <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-3 mb-4 flex items-start gap-2">
+              <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-green-800">{activeGroup.status === "disbursed" ? "Funds have been disbursed to your account." : "The amount will be disbursed shortly to your account and you will be notified for the same."}</p>
+            </div>
+          )}
 
           {/* FIX 2 & 3: Search only, no button row (button moved to header) */}
           <div className="flex items-center mb-4">
@@ -687,6 +811,52 @@ export function InvoicesModule() {
             <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={safeCurrentPage >= totalPages} className="p-1.5 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"><ChevronRight className="w-4 h-4" /></button>
           </div>
         </div>
+      )}
+
+      {/* DocuSign Simulation Modal for Murabaha Contract */}
+      {showMurabahaSign && activeGroup && (
+        <DocuSignModal
+          documentTitle="Murabaha Contract"
+          entityName={activeGroup.buyerName}
+          referenceId={activeGroup.id}
+          additionalDetails={[
+            { label: "Total Invoice Amount", value: formatCurrency(activeGroup.totalInvoiceAmount) },
+            { label: "Contract ID", value: `MRB-${activeGroup.id.replace("GRP-", "")}` },
+          ]}
+          onSign={() => {
+            setShowMurabahaSign(false);
+            setShowCommodityExchange(true);
+            setTimeout(() => {
+              setGroups(prev => prev.map(g => g.id === activeGroup.id ? { ...g, status: "disbursed" as GroupStatus, totalDisbursementAmount: g.totalInvoiceAmount } : g));
+              showToast("success", "Funds disbursed successfully.");
+              setShowCommodityExchange(false);
+            }, 10000);
+          }}
+          onClose={() => setShowMurabahaSign(false)}
+        />
+      )}
+
+      {/* Commodity Exchange & Contract Execution Loader */}
+      {showCommodityExchange && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl p-10 flex flex-col items-center text-center">
+            <div className="relative mb-6">
+              <div className="absolute inset-0 w-16 h-16 bg-amber-100 rounded-full animate-ping opacity-30" style={{ animationDuration: "2s" }} />
+              <Loader2 className="relative w-16 h-16 text-amber-500 animate-spin" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Commodity Exchange in Progress</h3>
+            <p className="text-sm text-gray-500 max-w-sm mb-4">The exchange of commodities and contract execution is in progress. This may take a few moments.</p>
+            <div className="flex items-center gap-2 text-xs text-gray-400">
+              <div className="w-2 h-2 bg-amber-400 rounded-full animate-pulse" />
+              <span>Processing Murabaha transaction...</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Spotlight overlays */}
+      {spotlightTarget === "murabaha" && murabahaBtnRef.current && (
+        <Spotlight targetRef={murabahaBtnRef} message="All invoices approved! Sign the Murabaha contract to proceed with disbursement." onDismiss={() => setSpotlightTarget(null)} />
       )}
     </div>
   );

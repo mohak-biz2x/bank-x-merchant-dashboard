@@ -30,6 +30,7 @@ export function Layout() {
   const [role, setRole] = useState<MerchantRole>(getMerchantRole);
   const [uwStatus, setUwStatus] = useState(getUnderwritingStatus);
   const [payableFlow, setPayableFlow] = useState(() => localStorage.getItem("demo_payable_invoice_flow") || "normal");
+  const [invoiceOutcome, setInvoiceOutcome] = useState(() => localStorage.getItem("demo_invoice_outcome") || "all_approved");
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const demoPanelRef = useRef<HTMLDivElement>(null);
 
@@ -38,6 +39,7 @@ export function Layout() {
       setRole(getMerchantRole());
       setUwStatus(getUnderwritingStatus());
       setPayableFlow(localStorage.getItem("demo_payable_invoice_flow") || "normal");
+      setInvoiceOutcome(localStorage.getItem("demo_invoice_outcome") || "all_approved");
     };
     window.addEventListener("demo-role-change", onRoleChange);
     return () => window.removeEventListener("demo-role-change", onRoleChange);
@@ -230,6 +232,29 @@ export function Layout() {
                   >
                     Exception
                   </button>
+                </div>
+              </div>
+              {/* Invoice Validation Outcome Toggle */}
+              <div className="mb-1">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <FileText className="w-3 h-3 text-green-600" />
+                  <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Invoice Validation</span>
+                </div>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {([
+                    { key: "all_approved", label: "All Approved", active: "bg-green-100 text-green-800 border-green-300" },
+                    { key: "one_rejected", label: "1+ Rejected", active: "bg-red-100 text-red-700 border-red-300" },
+                    { key: "all_rejected", label: "All Rejected", active: "bg-red-100 text-red-700 border-red-300" },
+                    { key: "one_refer", label: "1+ Refer", active: "bg-blue-100 text-blue-700 border-blue-300" },
+                  ] as const).map(opt => (
+                    <button
+                      key={opt.key}
+                      onClick={() => { localStorage.setItem("demo_invoice_outcome", opt.key); setInvoiceOutcome(opt.key); window.dispatchEvent(new Event("demo-role-change")); }}
+                      className={`px-2 py-1.5 rounded-md text-[11px] font-medium text-center transition-colors border ${invoiceOutcome === opt.key ? opt.active : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"}`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
                 </div>
               </div>
               <div className="border-t border-gray-200 my-1"></div>

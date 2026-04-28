@@ -1,8 +1,9 @@
 import { Wallet, FileText, TrendingUp, Clock, CheckCircle, Building2, Loader2, ShieldCheck, PenTool, Upload, X, CreditCard, Landmark, Zap, DollarSign, Eye, Package, Plus } from "lucide-react";
 import { Link, useNavigate } from "react-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ApplicationsModule } from "./ApplicationsModule";
 import { PremiumBuyerSupplierDashboard } from "./PremiumBuyerSupplierDashboard";
+import { Spotlight } from "./Spotlight";
 
 export type MerchantRole = "both" | "receivable" | "payable" | "supplier-only" | "premium-buyer" | "premium-buyer-supplier";
 
@@ -175,6 +176,20 @@ export function MerchantDashboard() {
   ];
 
   const filteredModules = modules.filter((mod) => mod.roles.includes(role));
+
+  const [showStpSpotlight, setShowStpSpotlight] = useState(false);
+  const stpTargetRef = useRef<HTMLAnchorElement>(null);
+
+  // Determine which path to spotlight based on role
+  const stpSpotlightPath = role === "payable" ? "/suppliers" : "/receivable-invoices";
+
+  useEffect(() => {
+    const stpDone = localStorage.getItem("stp_just_completed");
+    if (stpDone === "true") {
+      setShowStpSpotlight(true);
+      localStorage.removeItem("stp_just_completed");
+    }
+  }, []);
 
   // Premium buyer - redirect to premium buyer dashboard
   if (role === "premium-buyer") {
@@ -871,7 +886,7 @@ export function MerchantDashboard() {
                   <Link to={mod.path} className={`${mod.btnBg} text-white py-2 px-4 rounded-lg transition-colors font-medium text-sm text-center flex items-center justify-center gap-1.5`}>
                     <Eye className="w-4 h-4" /> View
                   </Link>
-                  <Link to={`${mod.path}?add=true`} className="border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm text-center flex items-center justify-center gap-1.5">
+                  <Link to={`${mod.path}?add=true`} ref={mod.path === stpSpotlightPath ? stpTargetRef : undefined} onClick={() => setShowStpSpotlight(false)} className="border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm text-center flex items-center justify-center gap-1.5">
                     <Plus className="w-4 h-4" /> Add New
                   </Link>
                 </div>
@@ -880,6 +895,14 @@ export function MerchantDashboard() {
           ))}
         </div>
 
+        {/* STP Spotlight */}
+        {showStpSpotlight && stpTargetRef.current && (
+          <Spotlight
+            targetRef={stpTargetRef}
+            message={role === "payable" ? "Start by adding your first supplier to begin payable financing." : "Start by adding your first invoice to begin financing."}
+            onDismiss={() => setShowStpSpotlight(false)}
+          />
+        )}
       </div>
     </div>
   );

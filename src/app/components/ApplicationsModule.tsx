@@ -1,6 +1,6 @@
 import { useState, Fragment, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { FileText, ChevronDown, ChevronUp, Upload, CheckCircle, Clock, AlertCircle, MoreVertical, X, ShieldCheck, ArrowLeft, PenTool, CreditCard, Landmark, Loader2, Zap } from "lucide-react";
+import { FileText, ChevronDown, ChevronUp, Upload, CheckCircle, Clock, AlertCircle, MoreVertical, X, ShieldCheck, ArrowLeft, PenTool, Loader2, Zap } from "lucide-react";
 import { showToast } from "./Toast";
 
 type AppStatus = "under_review" | "in_progress" | "kyc_verification" | "analysis" | "credit_decisioning" | "invoice_processing" | "security_onboarding" | "security_verification" | "limit_approved" | "rejected";
@@ -130,10 +130,8 @@ export function ApplicationsModule({ onSecurityOnboarding, embedded }: Applicati
   // Security onboarding modal state
   const [showSecurityModal, setShowSecurityModal] = useState(false);
   const [securityStep, setSecurityStep] = useState(1); // 1=agreements, 2=security
-  const [signedAgreements, setSignedAgreements] = useState<Record<string, boolean>>({ financing: false, assignmentReceivables: false });
-  const [securityMethod, setSecurityMethod] = useState<"cheque" | "mandate" | null>(null);
+  const [signedAgreements, setSignedAgreements] = useState<Record<string, boolean>>({ financing: false, assignmentReceivables: false, directDebit: false });
   const [securityChequeFile, setSecurityChequeFile] = useState<File | null>(null);
-  const [mandateConfirmed, setMandateConfirmed] = useState(false);
   const [showStpSuccess, setShowStpSuccess] = useState(false);
   const [stpTimer, setStpTimer] = useState(10);
   const isStp = (localStorage.getItem("demo_stp_eligibility") || "approved") === "approved";
@@ -250,10 +248,8 @@ export function ApplicationsModule({ onSecurityOnboarding, embedded }: Applicati
                               <button onClick={() => {
                                 setShowSecurityModal(true);
                                 setSecurityStep(1);
-                                setSignedAgreements({ financing: false, assignmentReceivables: false });
-                                setSecurityMethod(null);
+                                setSignedAgreements({ financing: false, assignmentReceivables: false, directDebit: false });
                                 setSecurityChequeFile(null);
-                                setMandateConfirmed(false);
                                 setActionMenuOpen(null);
                               }} className="w-full px-3 py-2 text-left text-xs text-gray-700 hover:bg-gray-50 flex items-center gap-2">
                                 <ShieldCheck className="w-3.5 h-3.5 text-amber-600" /> Complete Security
@@ -320,7 +316,7 @@ export function ApplicationsModule({ onSecurityOnboarding, embedded }: Applicati
             {/* Step indicators */}
             {!isStp && (
               <div className="flex items-center justify-center gap-2 mb-6">
-                {[{ id: 1, name: "Digital Agreements" }, { id: 2, name: "Security" }].map((s, i) => (
+                {[{ id: 1, name: "Digital Agreements" }, { id: 2, name: "Upload Cheque" }].map((s, i) => (
                   <div key={s.id} className="flex items-center gap-2">
                     <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium ${securityStep > s.id ? "bg-green-600 text-white" : securityStep === s.id ? "bg-[#4F8DFF] text-white" : "bg-gray-200 text-gray-500"}`}>
                       {securityStep > s.id ? <CheckCircle className="w-3.5 h-3.5" /> : s.id}
@@ -341,6 +337,7 @@ export function ApplicationsModule({ onSecurityOnboarding, embedded }: Applicati
                   {[
                     { key: "financing", label: "Financing Agreement", desc: "Master financing agreement covering terms, rates, and conditions" },
                     { key: "assignmentReceivables", label: "Assignment of Receivables", desc: "Agreement to assign eligible receivables as collateral" },
+                    { key: "directDebit", label: "Direct Debit Agreement", desc: "Authorization for automatic debit of repayment amounts from your account" },
                   ].map(ag => (
                     <div key={ag.key} className={`border rounded-lg p-4 ${signedAgreements[ag.key] ? "border-green-300 bg-green-50" : "border-gray-200"}`}>
                       <div className="flex items-center justify-between">
@@ -357,7 +354,7 @@ export function ApplicationsModule({ onSecurityOnboarding, embedded }: Applicati
                     </div>
                   ))}
                 </div>
-                {signedAgreements.financing && signedAgreements.assignmentReceivables && isStp && (
+                {signedAgreements.financing && signedAgreements.assignmentReceivables && signedAgreements.directDebit && isStp && (
                   <div className="mt-4 bg-green-50 border border-green-200 rounded-lg p-3 flex items-start gap-2">
                     <Zap className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
                     <p className="text-xs text-green-800">STP Eligible — Security step will be skipped and your account activated immediately.</p>
@@ -369,52 +366,30 @@ export function ApplicationsModule({ onSecurityOnboarding, embedded }: Applicati
                       if (isStp) { setShowStpSuccess(true); setStpTimer(5); }
                       else { setSecurityStep(2); }
                     }}
-                    disabled={!signedAgreements.financing || !signedAgreements.assignmentReceivables}
-                    className={`px-5 py-2 rounded-lg text-sm font-medium ${signedAgreements.financing && signedAgreements.assignmentReceivables ? "bg-[#4F8DFF] text-white hover:bg-[#3A7AE8]" : "bg-gray-200 text-gray-400 cursor-not-allowed"}`}
+                    disabled={!signedAgreements.financing || !signedAgreements.assignmentReceivables || !signedAgreements.directDebit}
+                    className={`px-5 py-2 rounded-lg text-sm font-medium ${signedAgreements.financing && signedAgreements.assignmentReceivables && signedAgreements.directDebit ? "bg-[#4F8DFF] text-white hover:bg-[#3A7AE8]" : "bg-gray-200 text-gray-400 cursor-not-allowed"}`}
                   >{isStp ? "Submit" : "Continue"}</button>
                 </div>
               </div>
             )}
 
-            {/* Step 2: Security (non-STP only) */}
+            {/* Step 2: Upload Cheque (non-STP only) */}
             {securityStep === 2 && (
               <div>
-                <h4 className="text-sm font-semibold text-gray-900 mb-1">Security Requirement</h4>
-                <p className="text-xs text-gray-500 mb-4">Provide security for the approved credit facility.</p>
-                <div className="grid grid-cols-2 gap-3 mb-4">
-                  <button onClick={() => { setSecurityMethod("cheque"); setMandateConfirmed(false); }} className={`border-2 rounded-lg p-4 text-left ${securityMethod === "cheque" ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-gray-300"}`}>
-                    <CreditCard className="w-5 h-5 text-blue-600 mb-2" />
-                    <p className="text-sm font-medium text-gray-900">Upload Security Cheque</p>
-                    <p className="text-xs text-gray-500 mt-0.5">Upload a scanned security cheque</p>
-                  </button>
-                  <button onClick={() => { setSecurityMethod("mandate"); setSecurityChequeFile(null); }} className={`border-2 rounded-lg p-4 text-left ${securityMethod === "mandate" ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-gray-300"}`}>
-                    <Landmark className="w-5 h-5 text-purple-600 mb-2" />
-                    <p className="text-sm font-medium text-gray-900">E-Sign Direct Debit Mandate</p>
-                    <p className="text-xs text-gray-500 mt-0.5">E-sign via DocuSign</p>
-                  </button>
+                <h4 className="text-sm font-semibold text-gray-900 mb-1">Upload Security Cheque</h4>
+                <p className="text-xs text-gray-500 mb-4">Upload a scanned security cheque to complete the security requirement.</p>
+                <div className="border border-gray-200 rounded-lg p-4 mb-4">
+                  {securityChequeFile ? (
+                    <div className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /><span className="text-sm text-green-700">{securityChequeFile.name}</span><button onClick={() => setSecurityChequeFile(null)} className="text-gray-400 hover:text-red-500 ml-auto"><X className="w-4 h-4" /></button></div>
+                  ) : (
+                    <label className="flex flex-col items-center gap-2 py-4 cursor-pointer">
+                      <Upload className="w-6 h-6 text-gray-400" />
+                      <span className="text-sm text-blue-600 font-medium">Upload Security Cheque</span>
+                      <span className="text-xs text-gray-400">PDF, JPG, or PNG</span>
+                      <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png" onChange={e => { if (e.target.files?.[0]) setSecurityChequeFile(e.target.files[0]); }} />
+                    </label>
+                  )}
                 </div>
-                {securityMethod === "cheque" && (
-                  <div className="border border-gray-200 rounded-lg p-4 mb-4">
-                    {securityChequeFile ? (
-                      <div className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /><span className="text-sm text-green-700">{securityChequeFile.name}</span><button onClick={() => setSecurityChequeFile(null)} className="text-gray-400 hover:text-red-500 ml-auto"><X className="w-4 h-4" /></button></div>
-                    ) : (
-                      <label className="flex flex-col items-center gap-2 py-4 cursor-pointer">
-                        <Upload className="w-6 h-6 text-gray-400" />
-                        <span className="text-sm text-blue-600 font-medium">Upload Security Cheque</span>
-                        <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png" onChange={e => { if (e.target.files?.[0]) setSecurityChequeFile(e.target.files[0]); }} />
-                      </label>
-                    )}
-                  </div>
-                )}
-                {securityMethod === "mandate" && (
-                  <div className="border border-gray-200 rounded-lg p-4 mb-4">
-                    {mandateConfirmed ? (
-                      <div className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /><span className="text-sm text-green-700">Direct Debit Mandate Signed</span></div>
-                    ) : (
-                      <button onClick={() => setMandateConfirmed(true)} className="w-full px-4 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm font-medium flex items-center justify-center gap-2"><PenTool className="w-4 h-4" /> E-Sign Mandate via DocuSign</button>
-                    )}
-                  </div>
-                )}
                 <div className="flex justify-between">
                   <button onClick={() => setSecurityStep(1)} className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm">Back</button>
                   <button
@@ -424,10 +399,10 @@ export function ApplicationsModule({ onSecurityOnboarding, embedded }: Applicati
                       localStorage.setItem("merchant_underwriting_status", "security-pending");
                       window.dispatchEvent(new Event("demo-role-change"));
                       setShowSecurityModal(false);
-                      showToast("success", "Security documents submitted successfully. Verification in progress.");
+                      showToast("success", "Security cheque submitted successfully. Verification in progress.");
                     }}
-                    disabled={!(securityMethod === "cheque" ? !!securityChequeFile : mandateConfirmed)}
-                    className={`px-5 py-2 rounded-lg text-sm font-medium ${(securityMethod === "cheque" ? !!securityChequeFile : mandateConfirmed) ? "bg-[#4F8DFF] text-white hover:bg-[#3A7AE8]" : "bg-gray-200 text-gray-400 cursor-not-allowed"}`}
+                    disabled={!securityChequeFile}
+                    className={`px-5 py-2 rounded-lg text-sm font-medium ${securityChequeFile ? "bg-[#4F8DFF] text-white hover:bg-[#3A7AE8]" : "bg-gray-200 text-gray-400 cursor-not-allowed"}`}
                   >Submit</button>
                 </div>
               </div>

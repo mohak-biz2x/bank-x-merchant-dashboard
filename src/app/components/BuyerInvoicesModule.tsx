@@ -54,6 +54,7 @@ const approvedSuppliers: Supplier[] = [
   { id: "SUP-001", name: "Tech Suppliers LLC", tln: "TLN-100234", status: "active" },
   { id: "SUP-002", name: "Industrial Parts Co.", tln: "TLN-100567", status: "active" },
   { id: "SUP-003", name: "Gulf Materials Trading", tln: "TLN-100891", status: "active" },
+  { id: "SUP-006", name: "Newly Added Supplier", tln: "TLN-NEW001", status: "active" },
 ];
 
 const initialGroups: InvoiceGroup[] = [
@@ -138,6 +139,8 @@ export function BuyerInvoicesModule() {
 
   useEffect(() => {
     if (searchParams.get("add") === "true") setShowAddForm(true);
+    const supplierParam = searchParams.get("supplier");
+    if (supplierParam) setSelectedSupplier(supplierParam);
   }, [searchParams]);
 
   useEffect(() => {
@@ -385,7 +388,7 @@ export function BuyerInvoicesModule() {
                 )}
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Delivery Note *</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Delivery Note</label>
                 {item.deliveryNote ? (
                   <div className="flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded-lg">
                     <FileText className="w-4 h-4 text-green-600 flex-shrink-0" />

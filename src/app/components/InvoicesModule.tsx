@@ -355,7 +355,7 @@ export function InvoicesModule() {
                 )}
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Delivery Note *</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Delivery Note</label>
                 {item.deliveryNote ? (
                   <div className="flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded-lg">
                     <FileText className="w-4 h-4 text-green-600 flex-shrink-0" />

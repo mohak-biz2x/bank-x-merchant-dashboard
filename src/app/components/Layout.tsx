@@ -1,7 +1,7 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
-import { LayoutDashboard, FileText, LogOut, Building2, FlaskConical, X, Zap } from "lucide-react";
+import { LayoutDashboard, FileText, LogOut, Building2, FlaskConical, X } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
-import { getMerchantRole, getUnderwritingStatus, getStpEligibility } from "./MerchantDashboard";
+import { getMerchantRole, getUnderwritingStatus } from "./MerchantDashboard";
 import type { MerchantRole } from "./MerchantDashboard";
 
 import { MalLogo } from "./MalLogo";
@@ -29,7 +29,6 @@ export function Layout() {
   const [showDemoPanel, setShowDemoPanel] = useState(false);
   const [role, setRole] = useState<MerchantRole>(getMerchantRole);
   const [uwStatus, setUwStatus] = useState(getUnderwritingStatus);
-  const [stpEligibility, setStpEligibility] = useState(getStpEligibility);
   const [payableFlow, setPayableFlow] = useState(() => localStorage.getItem("demo_payable_invoice_flow") || "normal");
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const demoPanelRef = useRef<HTMLDivElement>(null);
@@ -38,7 +37,6 @@ export function Layout() {
     const onRoleChange = () => {
       setRole(getMerchantRole());
       setUwStatus(getUnderwritingStatus());
-      setStpEligibility(getStpEligibility());
       setPayableFlow(localStorage.getItem("demo_payable_invoice_flow") || "normal");
     };
     window.addEventListener("demo-role-change", onRoleChange);
@@ -192,27 +190,6 @@ export function Layout() {
                   <div className="border-t border-gray-200 my-1"></div>
                 </>
               )}
-              {/* STP Eligibility Toggle */}
-              <div className="mb-1">
-                <div className="flex items-center gap-1.5 mb-1.5">
-                  <Zap className="w-3 h-3 text-green-600" />
-                  <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">STP Eligibility</span>
-                </div>
-                <div className="flex gap-1.5">
-                  <button
-                    onClick={() => { localStorage.setItem("demo_stp_eligibility", "approved"); window.dispatchEvent(new Event("demo-role-change")); }}
-                    className={`flex-1 px-2 py-1.5 rounded-md text-xs font-medium text-center transition-colors ${stpEligibility === "approved" ? "bg-green-100 text-green-800 border border-green-300" : "bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100"}`}
-                  >
-                    STP Approved
-                  </button>
-                  <button
-                    onClick={() => { localStorage.setItem("demo_stp_eligibility", "rejected"); window.dispatchEvent(new Event("demo-role-change")); }}
-                    className={`flex-1 px-2 py-1.5 rounded-md text-xs font-medium text-center transition-colors ${stpEligibility === "rejected" ? "bg-red-100 text-red-700 border border-red-300" : "bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100"}`}
-                  >
-                    STP Rejected
-                  </button>
-                </div>
-              </div>
               {/* Applications Dataset Toggle */}
               <div className="mb-1">
                 <div className="flex items-center gap-1.5 mb-1.5">

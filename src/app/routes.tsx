@@ -12,6 +12,7 @@ import { ForgotPasswordPage } from "./components/ForgotPasswordPage";
 import { CustomerJourneyPage } from "./components/CustomerJourneyPage";
 import { SupplierJourneyPage } from "./components/SupplierJourneyPage";
 import { PremiumBuyerJourney } from "./components/PremiumBuyerJourney";
+import { StpFlowPage } from "./components/StpFlowPage";
 import { PremiumBuyerLayout } from "./components/PremiumBuyerLayout";
 import { PremiumBuyerDashboard } from "./components/PremiumBuyerDashboard";
 import { PremiumBuyerSuppliers } from "./components/PremiumBuyerSuppliers";
@@ -58,6 +59,10 @@ export const router = createHashRouter([
       { path: "suppliers", Component: PremiumBuyerSuppliers },
       { path: "invoices", Component: PremiumBuyerInvoices },
     ],
+  },
+  {
+    path: "/stp",
+    Component: StpFlowPage,
   },
   {
     path: "/",

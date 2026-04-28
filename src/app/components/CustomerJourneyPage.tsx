@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { Building2, X, FileText, Upload, CheckCircle, ArrowLeft, Check, Info, Plus, UserCheck, ReceiptText, Mail, Phone, Loader2, LogOut, ShieldCheck, Landmark } from "lucide-react";
 import { MalLogo } from "./MalLogo";
 
@@ -7,6 +7,7 @@ import { MalLogo } from "./MalLogo";
 
 export function CustomerJourneyPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [currentStep, setCurrentStep] = useState(1);
 
   // Step 1: Profile Creation state
@@ -64,12 +65,13 @@ export function CustomerJourneyPage() {
   const [selectedProduct, setSelectedProduct] = useState<"receivable" | "payable" | null>(null);
   const [journeyType, setJourneyType] = useState<"loan" | "account_opening" | null>(null);
   const [showAccountOpeningPlaceholder, setShowAccountOpeningPlaceholder] = useState(false);
+  const [showTransition, setShowTransition] = useState(false);
 
   // Business Documents state
   const [businessDocs, setBusinessDocs] = useState<{ bankStatements: File[]; lastSixInvoices: File[]; auditedPnl: File[] }>({ bankStatements: [], lastSixInvoices: [], auditedPnl: [] });
 
   // Bank Account Details state
-  const [bankAccountData, setBankAccountData] = useState({ bankName: "", accountName: "", iban: "", swiftCode: "" });
+  const [bankAccountData, setBankAccountData] = useState({ bankName: "Emirates NBD", accountName: "Al Masraf Industries LLC", iban: "AE070331234567890123456", swiftCode: "ABORAEADXXX" });
 
   // KYC Documents state
   const [kycDocs, setKycDocs] = useState<Record<string, { emiratesId: File | null; passport: File | null }>>({});
@@ -93,9 +95,7 @@ export function CustomerJourneyPage() {
     { id: 5, name: "Loan Product" },
     { id: 6, name: "Business Documents" },
     { id: 7, name: "Bank Account Details" },
-    { id: 8, name: "KYC Documents" },
-    { id: 9, name: "Authorized Signatory" },
-    { id: 10, name: "Review & Submit" },
+    { id: 8, name: "Review & Submit" },
   ];
 
   const visibleSteps = steps.filter(s => !s.hidden && !(currentStep >= 5 && s.id <= 4) && !(currentStep <= 4 && s.id >= 5));
@@ -188,16 +188,23 @@ export function CustomerJourneyPage() {
     if (currentStep === 4) {
       if (!journeyType) return;
       if (journeyType === "account_opening") { setShowAccountOpeningPlaceholder(true); return; }
+      setShowTransition(true);
+      setTimeout(() => { setShowTransition(false); setCurrentStep(5); }, 3000);
+      return;
     }
     if (currentStep === 5 && !selectedProduct) return;
     if (currentStep === 7 && (!bankAccountData.bankName || !bankAccountData.accountName || !bankAccountData.iban || !bankAccountData.swiftCode)) return;
-    if (currentStep === 10) {
+    if (currentStep === 8) {
       if (acceptedAgreements) {
         localStorage.setItem("merchant_underwriting_status", "pending");
         localStorage.setItem("selected_product", selectedProduct || "receivable");
         localStorage.setItem("demo_merchant_role", selectedProduct || "receivable");
         localStorage.setItem("demo_app_dataset", "single");
         window.dispatchEvent(new Event("demo-role-change"));
+        if (searchParams.get("stp") === "true") {
+          navigate("/stp");
+          return;
+        }
         setShowSubmitSuccess(true);
         setSubmitRedirectTimer(10);
         return;
@@ -244,9 +251,7 @@ export function CustomerJourneyPage() {
       case 5: return renderLoanProduct();
       case 6: return renderBusinessDocuments();
       case 7: return renderBankAccountDetails();
-      case 8: return renderKycDocuments();
-      case 9: return renderAuthorizedSignatory();
-      case 10: return renderReviewSubmit();
+      case 8: return renderReviewSubmit();
       default: return null;
     }
   };
@@ -631,29 +636,24 @@ export function CustomerJourneyPage() {
       </div>
       <p className="text-sm text-gray-500 mb-6 ml-4">Provide your bank account details for disbursements and repayments</p>
 
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-        <div className="flex items-start gap-3">
-          <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-          <p className="text-sm text-blue-700">These details will be used for all financing disbursements and repayment collections.</p>
-        </div>
-      </div>
-
-      <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-5">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Bank Name *</label>
-          <input type="text" value={bankAccountData.bankName} onChange={e => setBankAccountData(prev => ({ ...prev, bankName: e.target.value }))} placeholder="Bank Name" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Account Name *</label>
-          <input type="text" value={bankAccountData.accountName} onChange={e => setBankAccountData(prev => ({ ...prev, accountName: e.target.value }))} placeholder="Account Name" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">IBAN *</label>
-          <input type="text" value={bankAccountData.iban} onChange={e => setBankAccountData(prev => ({ ...prev, iban: e.target.value.toUpperCase().replace(/[\s-]/g, "") }))} placeholder="IBAN" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">SWIFT/BIC Code *</label>
-          <input type="text" value={bankAccountData.swiftCode} onChange={e => setBankAccountData(prev => ({ ...prev, swiftCode: e.target.value.toUpperCase() }))} placeholder="SWIFT/BIC Code" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Bank Name *</label>
+            <input type="text" value={bankAccountData.bankName} onChange={e => setBankAccountData(prev => ({ ...prev, bankName: e.target.value }))} placeholder="Bank Name" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Account Name *</label>
+            <input type="text" value={bankAccountData.accountName} onChange={e => setBankAccountData(prev => ({ ...prev, accountName: e.target.value }))} placeholder="Account Name" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">IBAN *</label>
+            <input type="text" value={bankAccountData.iban} onChange={e => setBankAccountData(prev => ({ ...prev, iban: e.target.value.toUpperCase().replace(/[\s-]/g, "") }))} placeholder="IBAN" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">SWIFT/BIC Code *</label>
+            <input type="text" value={bankAccountData.swiftCode} onChange={e => setBankAccountData(prev => ({ ...prev, swiftCode: e.target.value.toUpperCase() }))} placeholder="SWIFT/BIC Code" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
         </div>
       </div>
     </div>
@@ -793,22 +793,6 @@ export function CustomerJourneyPage() {
       </div>
       <p className="text-sm text-gray-500 mb-6 ml-4">Review all information before submitting your application</p>
       <div className="space-y-4">
-        {/* KYB Summary */}
-        <div className="bg-white border border-gray-200 rounded-lg p-5">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-medium text-gray-900">KYB Verification</h3>
-            <button onClick={() => setCurrentStep(2)} className="text-xs text-blue-600 hover:text-blue-800">Edit</button>
-          </div>
-          <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
-            <div><span className="text-gray-500">Company:</span> <span className="text-gray-900 ml-1">{companyInfo.legalBusinessName || "—"}</span></div>
-            <div><span className="text-gray-500">TL Number:</span> <span className="text-gray-900 ml-1">{companyInfo.tradeLicenseNumber || "—"}</span></div>
-            <div><span className="text-gray-500">Business Type:</span> <span className="text-gray-900 ml-1">{companyInfo.businessType || "—"}</span></div>
-            <div><span className="text-gray-500">Industry:</span> <span className="text-gray-900 ml-1">{companyInfo.industrySector || "—"}</span></div>
-            <div><span className="text-gray-500">TRN:</span> <span className="text-gray-900 ml-1">{companyInfo.trnNumber || "—"}</span></div>
-            <div><span className="text-gray-500">Status:</span> <span className="text-green-700 ml-1 font-medium">{kybStatus === "verified" ? "Verified" : "Pending"}</span></div>
-          </div>
-        </div>
-
         {/* Loan Product */}
         <div className="bg-white border border-gray-200 rounded-lg p-5">
           <div className="flex items-center justify-between mb-3">
@@ -816,18 +800,6 @@ export function CustomerJourneyPage() {
             <button onClick={() => setCurrentStep(5)} className="text-xs text-blue-600 hover:text-blue-800">Edit</button>
           </div>
           <p className="text-sm text-gray-700">{selectedProduct === "receivable" ? "Receivable Invoice Financing" : selectedProduct === "payable" ? "Payable Invoice Financing" : "Not selected"}</p>
-        </div>
-
-        {/* AECB Credit Consent Summary */}
-        <div className="bg-white border border-gray-200 rounded-lg p-5">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-medium text-gray-900">AECB Credit Consent</h3>
-            <button onClick={() => setCurrentStep(3)} className="text-xs text-blue-600 hover:text-blue-800">Edit</button>
-          </div>
-          <div className="flex items-center gap-2 text-sm">
-            {aecbConsent ? <CheckCircle className="w-4 h-4 text-green-500" /> : <X className="w-4 h-4 text-gray-300" />}
-            <span className={aecbConsent ? "text-green-700" : "text-gray-400"}>{aecbConsent ? "Consent provided" : "Consent not provided"}</span>
-          </div>
         </div>
 
         {/* Business Documents Summary */}
@@ -868,49 +840,6 @@ export function CustomerJourneyPage() {
             <div><span className="text-gray-500">IBAN:</span> <span className="text-gray-900 ml-1">{bankAccountData.iban || "—"}</span></div>
             <div><span className="text-gray-500">SWIFT/BIC:</span> <span className="text-gray-900 ml-1">{bankAccountData.swiftCode || "—"}</span></div>
           </div>
-        </div>
-
-        {/* KYC Summary */}
-        <div className="bg-white border border-gray-200 rounded-lg p-5">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-medium text-gray-900">KYC Documents</h3>
-            <button onClick={() => setCurrentStep(8)} className="text-xs text-blue-600 hover:text-blue-800">Edit</button>
-          </div>
-          <div className="space-y-2 text-sm">
-            {shareholders.map(sh => (
-              <div key={sh.id} className="flex items-center justify-between">
-                <span className="text-gray-700">{sh.name}</span>
-                <div className="flex items-center gap-3">
-                  {sh.residency === "resident" && <span className="flex items-center gap-1 text-xs">{kycDocs[`sh-${sh.id}`]?.emiratesId ? <CheckCircle className="w-3.5 h-3.5 text-green-500" /> : <X className="w-3.5 h-3.5 text-gray-300" />} EID</span>}
-                  {sh.residency === "non-resident" && <span className="flex items-center gap-1 text-xs">{kycDocs[`sh-${sh.id}`]?.passport ? <CheckCircle className="w-3.5 h-3.5 text-green-500" /> : <X className="w-3.5 h-3.5 text-gray-300" />} Passport</span>}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Verified KYB Documents */}
-        <div className="bg-white border border-gray-200 rounded-lg p-5">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-medium text-gray-900">Verified Documents (KYB)</h3>
-          </div>
-          <div className="space-y-1 text-sm">
-            {[{ label: "Trade License", file: kybDocs.tradeLicense }, { label: "MoA / AoA", file: kybDocs.moaAoa }, { label: "TRN Certificate", file: kybDocs.trnCertificate }].map(d => (
-              <div key={d.label} className="flex items-center gap-2">
-                {d.file ? <CheckCircle className="w-4 h-4 text-green-500" /> : <X className="w-4 h-4 text-gray-300" />}
-                <span className={d.file ? "text-gray-900" : "text-gray-400"}>{d.label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Authorized Signatory Summary */}
-        <div className="bg-white border border-gray-200 rounded-lg p-5">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-medium text-gray-900">Authorized Signatory</h3>
-            <button onClick={() => setCurrentStep(9)} className="text-xs text-blue-600 hover:text-blue-800">Edit</button>
-          </div>
-          <p className="text-sm text-gray-700">{signatoryPool.find(p => p.id === selectedSignatoryId)?.name || "Not selected"}</p>
         </div>
 
         {/* Agreements */}
@@ -992,16 +921,16 @@ export function CustomerJourneyPage() {
             </button>
             <div className="text-xs text-gray-400">{currentStep === 1 ? '' : `Step ${visibleSteps.findIndex(s => s.id === currentStep) + 1} of ${visibleSteps.length}`}</div>
             <button onClick={handleNext}
-              disabled={(currentStep === 10 && !acceptedAgreements) || (currentStep === 7 && (!bankAccountData.bankName || !bankAccountData.accountName || !bankAccountData.iban || !bankAccountData.swiftCode)) || (currentStep === 5 && !selectedProduct) || (currentStep === 4 && !journeyType) || (currentStep === 3 && !aecbConsent)}
+              disabled={(currentStep === 8 && !acceptedAgreements) || (currentStep === 7 && (!bankAccountData.bankName || !bankAccountData.accountName || !bankAccountData.iban || !bankAccountData.swiftCode)) || (currentStep === 5 && !selectedProduct) || (currentStep === 4 && !journeyType) || (currentStep === 3 && !aecbConsent)}
               className={`px-6 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                currentStep === 10 ? acceptedAgreements ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                currentStep === 8 ? acceptedAgreements ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 : (currentStep === 7 && (!bankAccountData.bankName || !bankAccountData.accountName || !bankAccountData.iban || !bankAccountData.swiftCode)) ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 : (currentStep === 5 && !selectedProduct) ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 : (currentStep === 4 && !journeyType) ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 : (currentStep === 3 && !aecbConsent) ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 : 'bg-[#4F8DFF] text-white hover:bg-[#3A7AE8]'
               }`}>
-              {currentStep === 10 ? 'Submit Application' : currentStep === 1 ? 'Create Profile' : 'Continue'}
+              {currentStep === 8 ? 'Submit Application' : currentStep === 1 ? 'Create Profile' : 'Continue'}
             </button>
           </div>
         </div>
@@ -1058,6 +987,17 @@ export function CustomerJourneyPage() {
                 <p className="text-xs text-gray-400 mt-3">Auto-redirecting in {profileRedirectTimer}s</p>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Transition Loader - MAL Internal to Biz2X */}
+      {showTransition && (
+        <div className="fixed inset-0 bg-gray-50 flex items-center justify-center z-50">
+          <div className="text-center">
+            <Loader2 className="w-14 h-14 text-[#4F8DFF] animate-spin mx-auto mb-6" />
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">Almost there!</h3>
+            <p className="text-sm text-gray-500 max-w-sm">Your details are being saved. Just a few more steps to complete your application.</p>
           </div>
         </div>
       )}

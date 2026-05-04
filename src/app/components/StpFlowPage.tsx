@@ -20,7 +20,6 @@ export function StpFlowPage() {
   const [fadeIn, setFadeIn] = useState(true);
   const [agreements, setAgreements] = useState<Agreement[]>([
     { id: "financing", title: "Financing Agreement", description: "Master financing agreement covering terms, rates, and conditions", signed: false },
-    { id: "receivables", title: "Assignment of Receivables", description: "Agreement to assign eligible receivables as collateral", signed: false },
     { id: "debit", title: "Direct Debit Agreement", description: "Authorization for automatic debit of repayment amounts from your account", signed: false },
   ]);
   const [redirectCountdown, setRedirectCountdown] = useState(5);

@@ -211,19 +211,12 @@ export function BuyerInvoicesModule() {
 
   const handleBulkUpload = (files: FileList | null) => {
     if (!files) return;
-    const newFiles = Array.from(files).slice(0, 10 - uploadedFiles.length);
-    setUploadedFiles(prev => [...prev, ...newFiles].slice(0, 10));
-  };
-
-  const removeUploadedFile = (idx: number) => {
-    setUploadedFiles(prev => prev.filter((_, i) => i !== idx));
-  };
-
-  const handleParseAll = () => {
-    if (uploadedFiles.length === 0) return;
+    const newFiles = Array.from(files).slice(0, 10);
+    setUploadedFiles(newFiles);
+    // Auto-start parsing
     setAddPhase("parsing");
     setTimeout(() => {
-      const parsed: LineItem[] = uploadedFiles.map((file) => {
+      const parsed: LineItem[] = newFiles.map((file) => {
         const isFailed = Math.random() < 0.15;
         const num = String(Math.floor(Math.random() * 9000) + 1000);
         const today = new Date().toISOString().split("T")[0];
@@ -232,7 +225,7 @@ export function BuyerInvoicesModule() {
           return { invoiceNumber: "", invoiceDate: "", invoiceAmount: "", paymentDueDate: "", invoiceCopy: file, deliveryNote: null, parsed: true, parsingFailed: true, expanded: true };
         }
         const amount = String(Math.floor(Math.random() * 250000) + 50000);
-        return { invoiceNumber: `INV-2024-${num}`, invoiceDate: today, invoiceAmount: amount, paymentDueDate: due, invoiceCopy: file, deliveryNote: null, parsed: true, parsingFailed: false, expanded: false };
+        return { invoiceNumber: `INV-2024-${num}`, invoiceDate: today, invoiceAmount: amount, paymentDueDate: due, invoiceCopy: file, deliveryNote: null, parsed: true, parsingFailed: false, expanded: true };
       });
       setLineItems(parsed);
       setAddPhase("review");
@@ -431,34 +424,12 @@ export function BuyerInvoicesModule() {
       return (
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <h3 className="text-base font-semibold text-gray-900 mb-1">Upload Invoices</h3>
-          <p className="text-xs text-gray-500 mb-5">Upload up to 10 invoice documents. They will be parsed automatically.</p>
+          <p className="text-xs text-gray-500 mb-5">Upload up to 10 invoice documents. Parsing will start automatically.</p>
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 hover:bg-blue-50/30 transition-colors cursor-pointer" onClick={() => { const inp = document.createElement("input"); inp.type = "file"; inp.accept = ".pdf,.jpg,.jpeg,.png"; inp.multiple = true; inp.onchange = () => handleBulkUpload(inp.files); inp.click(); }}>
             <Upload className="w-10 h-10 text-gray-400 mx-auto mb-3" />
             <p className="text-sm font-medium text-gray-700">Click to upload invoice documents</p>
             <p className="text-xs text-gray-400 mt-1">PDF, JPG, PNG accepted · Up to 10 files</p>
           </div>
-          {uploadedFiles.length > 0 && (
-            <div className="mt-4 space-y-2">
-              <p className="text-xs font-medium text-gray-600">{uploadedFiles.length} file{uploadedFiles.length !== 1 ? "s" : ""} selected</p>
-              {uploadedFiles.map((file, idx) => (
-                <div key={idx} className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <FileText className="w-4 h-4 text-blue-600 flex-shrink-0" />
-                    <span className="text-sm text-gray-700 truncate">{file.name}</span>
-                  </div>
-                  <button onClick={(e) => { e.stopPropagation(); removeUploadedFile(idx); }} className="text-gray-400 hover:text-red-500 shrink-0 ml-2"><X className="w-4 h-4" /></button>
-                </div>
-              ))}
-              {uploadedFiles.length < 10 && (
-                <button onClick={() => { const inp = document.createElement("input"); inp.type = "file"; inp.accept = ".pdf,.jpg,.jpeg,.png"; inp.multiple = true; inp.onchange = () => handleBulkUpload(inp.files); inp.click(); }} className="text-sm text-blue-600 hover:text-blue-700 font-medium">+ Add more files</button>
-              )}
-            </div>
-          )}
-          {uploadedFiles.length > 0 && (
-            <div className="mt-5 flex justify-end">
-              <button onClick={handleParseAll} className="px-5 py-2.5 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] font-medium text-sm">Parse Invoices</button>
-            </div>
-          )}
         </div>
       );
     }

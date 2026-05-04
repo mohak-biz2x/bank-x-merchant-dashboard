@@ -131,7 +131,7 @@ export function ApplicationsModule({ onSecurityOnboarding, embedded }: Applicati
   // Security onboarding modal state
   const [showSecurityModal, setShowSecurityModal] = useState(false);
   const [securityStep, setSecurityStep] = useState(1); // 1=agreements, 2=security
-  const [signedAgreements, setSignedAgreements] = useState<Record<string, boolean>>({ financing: false, assignmentReceivables: false, directDebit: false });
+  const [signedAgreements, setSignedAgreements] = useState<Record<string, boolean>>({ financing: false, directDebit: false });
   const [securityChequeFile, setSecurityChequeFile] = useState<File | null>(null);
   const [showStpSuccess, setShowStpSuccess] = useState(false);
   const [stpTimer, setStpTimer] = useState(10);
@@ -143,6 +143,17 @@ export function ApplicationsModule({ onSecurityOnboarding, embedded }: Applicati
     window.addEventListener("demo-role-change", onDataChange);
     return () => window.removeEventListener("demo-role-change", onDataChange);
   }, []);
+
+  // Auto-open security onboarding modal when an application is in security_onboarding status
+  useEffect(() => {
+    const secApp = applications.find(a => a.status === "security_onboarding");
+    if (secApp && !showSecurityModal) {
+      setShowSecurityModal(true);
+      setSecurityStep(1);
+      setSignedAgreements({ financing: false, directDebit: false });
+      setSecurityChequeFile(null);
+    }
+  }, [applications]);
 
   // STP auto-redirect countdown
   useEffect(() => {
@@ -250,7 +261,7 @@ export function ApplicationsModule({ onSecurityOnboarding, embedded }: Applicati
                               <button onClick={() => {
                                 setShowSecurityModal(true);
                                 setSecurityStep(1);
-                                setSignedAgreements({ financing: false, assignmentReceivables: false, directDebit: false });
+                                setSignedAgreements({ financing: false, directDebit: false });
                                 setSecurityChequeFile(null);
                                 setActionMenuOpen(null);
                               }} className="w-full px-3 py-2 text-left text-xs text-gray-700 hover:bg-gray-50 flex items-center gap-2">
@@ -338,7 +349,6 @@ export function ApplicationsModule({ onSecurityOnboarding, embedded }: Applicati
                 <div className="space-y-3">
                   {[
                     { key: "financing", label: "Financing Agreement", desc: "Master financing agreement covering terms, rates, and conditions" },
-                    { key: "assignmentReceivables", label: "Assignment of Receivables", desc: "Agreement to assign eligible receivables as collateral" },
                     { key: "directDebit", label: "Direct Debit Agreement", desc: "Authorization for automatic debit of repayment amounts from your account" },
                   ].map(ag => (
                     <div key={ag.key} className={`border rounded-lg p-4 ${signedAgreements[ag.key] ? "border-green-300 bg-green-50" : "border-gray-200"}`}>
@@ -356,7 +366,7 @@ export function ApplicationsModule({ onSecurityOnboarding, embedded }: Applicati
                     </div>
                   ))}
                 </div>
-                {signedAgreements.financing && signedAgreements.assignmentReceivables && signedAgreements.directDebit && isStp && (
+                {signedAgreements.financing && signedAgreements.directDebit && isStp && (
                   <div className="mt-4 bg-green-50 border border-green-200 rounded-lg p-3 flex items-start gap-2">
                     <Zap className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
                     <p className="text-xs text-green-800">STP Eligible — Security step will be skipped and your account activated immediately.</p>
@@ -368,8 +378,8 @@ export function ApplicationsModule({ onSecurityOnboarding, embedded }: Applicati
                       if (isStp) { setShowStpSuccess(true); setStpTimer(5); }
                       else { setSecurityStep(2); }
                     }}
-                    disabled={!signedAgreements.financing || !signedAgreements.assignmentReceivables || !signedAgreements.directDebit}
-                    className={`px-5 py-2 rounded-lg text-sm font-medium ${signedAgreements.financing && signedAgreements.assignmentReceivables && signedAgreements.directDebit ? "bg-[#4F8DFF] text-white hover:bg-[#3A7AE8]" : "bg-gray-200 text-gray-400 cursor-not-allowed"}`}
+                    disabled={!signedAgreements.financing || !signedAgreements.directDebit}
+                    className={`px-5 py-2 rounded-lg text-sm font-medium ${signedAgreements.financing && signedAgreements.directDebit ? "bg-[#4F8DFF] text-white hover:bg-[#3A7AE8]" : "bg-gray-200 text-gray-400 cursor-not-allowed"}`}
                   >{isStp ? "Submit" : "Continue"}</button>
                 </div>
               </div>

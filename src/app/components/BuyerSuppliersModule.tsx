@@ -42,6 +42,10 @@ export function BuyerSuppliersModule() {
   const [addStep, setAddStep] = useState<1 | 2 | 3>(1);
   const [verifying, setVerifying] = useState(false);
 
+  // TL Number lookup state
+  const [tlLookupStatus, setTlLookupStatus] = useState<"idle" | "loading" | "found" | "not-found">("idle");
+  const [tlFieldsDisabled, setTlFieldsDisabled] = useState(true);
+
   // Step 1: Basic details
   const [formData, setFormData] = useState({
     name: "",
@@ -68,6 +72,56 @@ export function BuyerSuppliersModule() {
   });
 
   useEffect(() => { if (searchParams.get("add") === "true") setShowAddModal(true); }, [searchParams]);
+
+  // TL Number blur handler
+  const handleTlBlur = () => {
+    const tl = formData.tradeLicenseNumber.trim();
+    // Validate: non-empty and numeric
+    if (!tl || !/^\d+$/.test(tl)) {
+      setTlLookupStatus("idle");
+      setTlFieldsDisabled(true);
+      setFormData(prev => ({ ...prev, name: "", email: "", phone: "", address: "", city: "", emirate: "", postalCode: "", contactPerson: "" }));
+      return;
+    }
+
+    setTlLookupStatus("loading");
+    setTlFieldsDisabled(true);
+
+    // Simulate API lookup with brief delay
+    setTimeout(() => {
+      if (tl === "12345") {
+        // Existing supplier — auto-populate
+        setFormData(prev => ({
+          ...prev,
+          name: "Al Futtaim Trading LLC",
+          email: "procurement@alfuttaim.ae",
+          phone: "+971 4 555 1234",
+          address: "Festival City",
+          city: "Dubai",
+          emirate: "Dubai",
+          postalCode: "35000",
+          contactPerson: "Rashid Al Maktoum",
+        }));
+        setTlLookupStatus("found");
+        setTlFieldsDisabled(true); // keep disabled for existing
+      } else {
+        // New supplier — enable fields
+        setFormData(prev => ({ ...prev, name: "", email: "", phone: "", address: "", city: "", emirate: "", postalCode: "", contactPerson: "" }));
+        setTlLookupStatus("not-found");
+        setTlFieldsDisabled(false);
+      }
+    }, 1200);
+  };
+
+  // Handle TL Number change — reset state when user edits
+  const handleTlChange = (value: string) => {
+    setFormData(prev => ({ ...prev, tradeLicenseNumber: value }));
+    if (tlLookupStatus !== "idle") {
+      setTlLookupStatus("idle");
+      setTlFieldsDisabled(true);
+      setFormData(prev => ({ ...prev, name: "", email: "", phone: "", address: "", city: "", emirate: "", postalCode: "", contactPerson: "", tradeLicenseNumber: value }));
+    }
+  };
 
   const [suppliers, setSuppliers] = useState<Supplier[]>([
     {
@@ -155,6 +209,23 @@ export function BuyerSuppliersModule() {
   );
 
   const handleSubmitSupplier = () => {
+    // For existing suppliers, skip verification — directly add
+    if (tlLookupStatus === "found") {
+      const supplierId = `SUP-${String(suppliers.length + 1).padStart(3, '0')}`;
+      const newSupplier: Supplier = {
+        id: supplierId,
+        ...formData,
+        ibanVerification: "success",
+        liteKyb: "success",
+        addedDate: new Date().toISOString().split('T')[0],
+      };
+      setSuppliers((prev) => [...prev, newSupplier]);
+      showToast("success", "Supplier activated successfully. They have already completed onboarding.");
+      resetAddForm();
+      navigate(`/payable-invoices?add=true&supplier=${supplierId}`);
+      return;
+    }
+
     setVerifying(true);
     setTimeout(() => {
       const supplierId = `SUP-${String(suppliers.length + 1).padStart(3, '0')}`;
@@ -177,6 +248,8 @@ export function BuyerSuppliersModule() {
     setShowAddModal(false);
     setAddStep(1);
     setVerifying(false);
+    setTlLookupStatus("idle");
+    setTlFieldsDisabled(true);
     setFormData({
       name: "",
       email: "",
@@ -197,13 +270,17 @@ export function BuyerSuppliersModule() {
     formData.name.trim() &&
     formData.tradeLicenseNumber.trim() &&
     formData.email.trim() &&
-    formData.contactPerson.trim();
+    formData.contactPerson.trim() &&
+    (tlLookupStatus === "found" || tlLookupStatus === "not-found");
 
   const canSubmitStep3 =
     bankData.bankName.trim() &&
     bankData.accountName.trim() &&
     bankData.iban.trim() &&
     bankData.swiftCode.trim();
+
+  // For existing suppliers, can submit directly from step 1
+  const canSubmitExisting = tlLookupStatus === "found";
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -314,6 +391,38 @@ export function BuyerSuppliersModule() {
                   {/* Step 1: Basic Details */}
                   {addStep === 1 && (
                     <div className="space-y-4">
+                      {/* TL Number - full width, first field */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Trade License Number *</label>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            value={formData.tradeLicenseNumber}
+                            onChange={(e) => handleTlChange(e.target.value)}
+                            onBlur={handleTlBlur}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="Enter numeric TL number"
+                          />
+                          {tlLookupStatus === "loading" && (
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                              <Loader2 className="w-4 h-4 text-[#4F8DFF] animate-spin" />
+                            </div>
+                          )}
+                          {tlLookupStatus === "found" && (
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                              <CheckCircle className="w-4 h-4 text-green-500" />
+                            </div>
+                          )}
+                        </div>
+                        {tlLookupStatus === "found" && (
+                          <p className="text-xs text-green-600 mt-1">Existing supplier found — details auto-populated. Documents and bank details are not required.</p>
+                        )}
+                        {tlLookupStatus === "not-found" && (
+                          <p className="text-xs text-blue-600 mt-1">New supplier — please fill in the details</p>
+                        )}
+                      </div>
+
+                      {/* Other fields in grid */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">Company Name *</label>
@@ -321,18 +430,9 @@ export function BuyerSuppliersModule() {
                             type="text"
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            disabled={tlFieldsDisabled}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                             placeholder="Enter company name"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Trade License Number *</label>
-                          <input
-                            type="text"
-                            value={formData.tradeLicenseNumber}
-                            onChange={(e) => setFormData({ ...formData, tradeLicenseNumber: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            placeholder="Enter trade license number"
                           />
                         </div>
                         <div>
@@ -341,7 +441,8 @@ export function BuyerSuppliersModule() {
                             type="email"
                             value={formData.email}
                             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            disabled={tlFieldsDisabled}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                             placeholder="supplier@example.ae"
                           />
                         </div>
@@ -351,7 +452,8 @@ export function BuyerSuppliersModule() {
                             type="tel"
                             value={formData.phone}
                             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            disabled={tlFieldsDisabled}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                             placeholder="+971 X XXXX XXXX"
                           />
                         </div>
@@ -361,7 +463,8 @@ export function BuyerSuppliersModule() {
                             type="text"
                             value={formData.contactPerson}
                             onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            disabled={tlFieldsDisabled}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                             placeholder="Enter contact person name"
                           />
                         </div>
@@ -371,7 +474,8 @@ export function BuyerSuppliersModule() {
                             type="text"
                             value={formData.address}
                             onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            disabled={tlFieldsDisabled}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                             placeholder="Street address"
                           />
                         </div>
@@ -380,7 +484,8 @@ export function BuyerSuppliersModule() {
                           <select
                             value={formData.emirate}
                             onChange={(e) => setFormData({ ...formData, emirate: e.target.value, city: "" })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                            disabled={tlFieldsDisabled}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
                           >
                             <option value="">Select Emirate</option>
                             {UAE_EMIRATES.map(em => <option key={em} value={em}>{em}</option>)}
@@ -391,7 +496,7 @@ export function BuyerSuppliersModule() {
                           <select
                             value={formData.city}
                             onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                            disabled={!formData.emirate}
+                            disabled={tlFieldsDisabled || !formData.emirate}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
                           >
                             <option value="">Select City</option>
@@ -404,7 +509,8 @@ export function BuyerSuppliersModule() {
                             type="text"
                             value={formData.postalCode}
                             onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            disabled={tlFieldsDisabled}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                             placeholder="Postal code"
                           />
                         </div>
@@ -416,7 +522,7 @@ export function BuyerSuppliersModule() {
                   {addStep === 2 && (
                     <div className="space-y-6">
                       <div>
-                        <p className="text-sm font-medium text-gray-700 mb-2">Trade License</p>
+                        <p className="text-sm font-medium text-gray-700 mb-2">Trade License *</p>
                         <button type="button" onClick={() => { const inp = document.createElement("input"); inp.type = "file"; inp.accept = ".pdf,.jpg,.jpeg,.png"; inp.multiple = true; inp.onchange = () => { if (inp.files) setTradeLicenseFiles(prev => [...prev, ...Array.from(inp.files!)]); }; inp.click(); }} className="w-full border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-[#4F8DFF] hover:bg-blue-50/30 transition-colors">
                           <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
                           <p className="text-sm text-gray-600">Click to upload files</p>
@@ -432,28 +538,6 @@ export function BuyerSuppliersModule() {
                                   <span className="text-sm text-gray-700 truncate">{file.name}</span>
                                 </div>
                                 <button onClick={() => setTradeLicenseFiles(prev => prev.filter((_, i) => i !== idx))} className="text-gray-400 hover:text-red-500 shrink-0 ml-2"><X className="w-4 h-4" /></button>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700 mb-2">VAT Registration Certificate</p>
-                        <button type="button" onClick={() => { const inp = document.createElement("input"); inp.type = "file"; inp.accept = ".pdf,.jpg,.jpeg,.png"; inp.multiple = true; inp.onchange = () => { if (inp.files) setSupportingDocs(prev => [...prev, ...Array.from(inp.files!)]); }; inp.click(); }} className="w-full border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-[#4F8DFF] hover:bg-blue-50/30 transition-colors">
-                          <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                          <p className="text-sm text-gray-600">Click to upload files</p>
-                          <p className="text-xs text-gray-400 mt-1">PDF, JPG, PNG accepted</p>
-                        </button>
-                        {supportingDocs.length > 0 && (
-                          <div className="mt-3 space-y-2">
-                            {supportingDocs.map((file, idx) => (
-                              <div key={`sd-${idx}`} className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg px-3 py-2">
-                                <div className="flex items-center gap-2 min-w-0">
-                                  <CheckCircle className="w-4 h-4 text-green-600 shrink-0" />
-                                  <FileText className="w-4 h-4 text-gray-500 shrink-0" />
-                                  <span className="text-sm text-gray-700 truncate">{file.name}</span>
-                                </div>
-                                <button onClick={() => setSupportingDocs(prev => prev.filter((_, i) => i !== idx))} className="text-gray-400 hover:text-red-500 shrink-0 ml-2"><X className="w-4 h-4" /></button>
                               </div>
                             ))}
                           </div>
@@ -533,7 +617,14 @@ export function BuyerSuppliersModule() {
 
                   <div className="flex-1" />
 
-                  {addStep < 3 ? (
+                  {addStep === 1 && canSubmitExisting ? (
+                    <button
+                      onClick={handleSubmitSupplier}
+                      className="px-6 py-2 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] transition-colors font-medium"
+                    >
+                      Add Supplier
+                    </button>
+                  ) : addStep < 3 ? (
                     <button
                       onClick={() => setAddStep((s) => (s + 1) as 1 | 2 | 3)}
                       disabled={addStep === 1 && !canNextStep1}
@@ -545,10 +636,9 @@ export function BuyerSuppliersModule() {
                     <button
                       onClick={handleSubmitSupplier}
                       disabled={!canSubmitStep3}
-                      className="px-6 py-2 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                      className="px-6 py-2 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <Send className="w-4 h-4" />
-                      Submit
+                      Add Supplier
                     </button>
                   )}
                 </div>

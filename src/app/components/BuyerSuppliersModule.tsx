@@ -1,4 +1,4 @@
-import { Users, Plus, CheckCircle, X, Upload, FileText, Loader2, ArrowLeft, Send } from "lucide-react";
+import { Users, Plus, CheckCircle, X, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router";
 import { showToast } from "./Toast";
@@ -11,59 +11,46 @@ interface Supplier {
   name: string;
   email: string;
   phone: string;
-  address: string;
-  city: string;
-  emirate: string;
-  postalCode: string;
   tradeLicenseNumber: string;
+  trnNumber: string;
+  countryOfIncorporation: string;
   contactPerson: string;
   ibanVerification: IbanStatus;
   liteKyb: KybStatus;
   addedDate: string;
+  bankName: string;
+  accountName: string;
+  iban: string;
+  swiftCode: string;
 }
 
-const UAE_EMIRATES = ["Abu Dhabi", "Dubai", "Sharjah", "Ajman", "Umm Al Quwain", "Ras Al Khaimah", "Fujairah"];
-const UAE_CITIES: Record<string, string[]> = {
-  "Abu Dhabi": ["Abu Dhabi", "Al Ain", "Madinat Zayed", "Ruwais", "Liwa"],
-  "Dubai": ["Dubai", "Jebel Ali", "Hatta"],
-  "Sharjah": ["Sharjah", "Khor Fakkan", "Kalba", "Dibba Al-Hisn"],
-  "Ajman": ["Ajman", "Masfout", "Manama"],
-  "Umm Al Quwain": ["Umm Al Quwain", "Falaj Al Mualla"],
-  "Ras Al Khaimah": ["Ras Al Khaimah", "Al Jazirah Al Hamra", "Digdaga"],
-  "Fujairah": ["Fujairah", "Dibba Al-Fujairah", "Masafi"],
-};
+const COUNTRIES = ["United Arab Emirates","Afghanistan","Albania","Algeria","Andorra","Angola","Antigua and Barbuda","Argentina","Armenia","Australia","Austria","Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bhutan","Bolivia","Bosnia and Herzegovina","Botswana","Brazil","Brunei","Bulgaria","Burkina Faso","Burundi","Cabo Verde","Cambodia","Cameroon","Canada","Central African Republic","Chad","Chile","China","Colombia","Comoros","Congo","Costa Rica","Croatia","Cuba","Cyprus","Czech Republic","Denmark","Djibouti","Dominica","Dominican Republic","Ecuador","Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Eswatini","Ethiopia","Fiji","Finland","France","Gabon","Gambia","Georgia","Germany","Ghana","Greece","Grenada","Guatemala","Guinea","Guinea-Bissau","Guyana","Haiti","Honduras","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Israel","Italy","Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kiribati","Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Marshall Islands","Mauritania","Mauritius","Mexico","Micronesia","Moldova","Monaco","Mongolia","Montenegro","Morocco","Mozambique","Myanmar","Namibia","Nauru","Nepal","Netherlands","New Zealand","Nicaragua","Niger","Nigeria","North Korea","North Macedonia","Norway","Oman","Pakistan","Palau","Palestine","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Qatar","Romania","Russia","Rwanda","Saint Kitts and Nevis","Saint Lucia","Saint Vincent and the Grenadines","Samoa","San Marino","Sao Tome and Principe","Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Slovakia","Slovenia","Solomon Islands","Somalia","South Africa","South Korea","South Sudan","Spain","Sri Lanka","Sudan","Suriname","Sweden","Switzerland","Syria","Taiwan","Tajikistan","Tanzania","Thailand","Timor-Leste","Togo","Tonga","Trinidad and Tobago","Tunisia","Turkey","Turkmenistan","Tuvalu","Uganda","Ukraine","United Kingdom","United States","Uruguay","Uzbekistan","Vanuatu","Vatican City","Venezuela","Vietnam","Yemen","Zambia","Zimbabwe"];
 
 export function BuyerSuppliersModule() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [showAddModal, setShowAddModal] = useState(false);
-
-  // Wizard state
-  const [addStep, setAddStep] = useState<1 | 2 | 3>(1);
   const [verifying, setVerifying] = useState(false);
 
   // TL Number lookup state
   const [tlLookupStatus, setTlLookupStatus] = useState<"idle" | "loading" | "found" | "not-found">("idle");
   const [tlFieldsDisabled, setTlFieldsDisabled] = useState(true);
 
-  // Step 1: Basic details
+  // TRN validation
+  const [trnError, setTrnError] = useState("");
+
+  // Form data (single form — no wizard)
   const [formData, setFormData] = useState({
+    tradeLicenseNumber: "",
     name: "",
     email: "",
     phone: "",
-    address: "",
-    city: "",
-    emirate: "",
-    postalCode: "",
-    tradeLicenseNumber: "",
     contactPerson: "",
+    trnNumber: "",
+    countryOfIncorporation: "United Arab Emirates",
   });
 
-  // Step 2: Documents
-  const [tradeLicenseFiles, setTradeLicenseFiles] = useState<File[]>([]);
-  const [supportingDocs, setSupportingDocs] = useState<File[]>([]);
-
-  // Step 3: Bank details
+  // Bank details (same form)
   const [bankData, setBankData] = useState({
     bankName: "",
     accountName: "",
@@ -73,132 +60,69 @@ export function BuyerSuppliersModule() {
 
   useEffect(() => { if (searchParams.get("add") === "true") setShowAddModal(true); }, [searchParams]);
 
+  // TRN validation: 15 digits starting with 100
+  const validateTrn = (trn: string): boolean => {
+    if (!trn) return false;
+    return /^100\d{12}$/.test(trn);
+  };
+
   // TL Number blur handler
   const handleTlBlur = () => {
     const tl = formData.tradeLicenseNumber.trim();
-    // Validate: non-empty and numeric
     if (!tl || !/^\d+$/.test(tl)) {
       setTlLookupStatus("idle");
       setTlFieldsDisabled(true);
-      setFormData(prev => ({ ...prev, name: "", email: "", phone: "", address: "", city: "", emirate: "", postalCode: "", contactPerson: "" }));
+      setFormData(prev => ({ ...prev, name: "", email: "", phone: "", contactPerson: "", trnNumber: "", countryOfIncorporation: "United Arab Emirates" }));
+      setBankData({ bankName: "", accountName: "", iban: "", swiftCode: "" });
       return;
     }
 
     setTlLookupStatus("loading");
     setTlFieldsDisabled(true);
 
-    // Simulate API lookup with brief delay
     setTimeout(() => {
       if (tl === "12345") {
-        // Existing supplier — auto-populate
         setFormData(prev => ({
           ...prev,
           name: "Al Futtaim Trading LLC",
           email: "procurement@alfuttaim.ae",
           phone: "+971 4 555 1234",
-          address: "Festival City",
-          city: "Dubai",
-          emirate: "Dubai",
-          postalCode: "35000",
           contactPerson: "Rashid Al Maktoum",
+          trnNumber: "100234567890123",
+          countryOfIncorporation: "United Arab Emirates",
         }));
+        setBankData({
+          bankName: "Emirates NBD",
+          accountName: "Al Futtaim Trading LLC",
+          iban: "AE070331234567890123456",
+          swiftCode: "EABORAEADXXX",
+        });
         setTlLookupStatus("found");
-        setTlFieldsDisabled(true); // keep disabled for existing
+        setTlFieldsDisabled(true);
       } else {
-        // New supplier — enable fields
-        setFormData(prev => ({ ...prev, name: "", email: "", phone: "", address: "", city: "", emirate: "", postalCode: "", contactPerson: "" }));
+        setFormData(prev => ({ ...prev, name: "", email: "", phone: "", contactPerson: "", trnNumber: "", countryOfIncorporation: "United Arab Emirates" }));
+        setBankData({ bankName: "", accountName: "", iban: "", swiftCode: "" });
         setTlLookupStatus("not-found");
         setTlFieldsDisabled(false);
       }
     }, 1200);
   };
 
-  // Handle TL Number change — reset state when user edits
   const handleTlChange = (value: string) => {
     setFormData(prev => ({ ...prev, tradeLicenseNumber: value }));
     if (tlLookupStatus !== "idle") {
       setTlLookupStatus("idle");
       setTlFieldsDisabled(true);
-      setFormData(prev => ({ ...prev, name: "", email: "", phone: "", address: "", city: "", emirate: "", postalCode: "", contactPerson: "", tradeLicenseNumber: value }));
+      setFormData(prev => ({ ...prev, name: "", email: "", phone: "", contactPerson: "", trnNumber: "", countryOfIncorporation: "United Arab Emirates", tradeLicenseNumber: value }));
+      setBankData({ bankName: "", accountName: "", iban: "", swiftCode: "" });
     }
   };
 
   const [suppliers, setSuppliers] = useState<Supplier[]>([
-    {
-      id: "SUP-001",
-      name: "Tech Suppliers LLC",
-      email: "contact@techsuppliers.ae",
-      phone: "+971 4 123 4567",
-      address: "Dubai Silicon Oasis",
-      city: "Dubai",
-      emirate: "Dubai",
-      postalCode: "341050",
-      tradeLicenseNumber: "TL-789456",
-      contactPerson: "Mohammed Hassan",
-      ibanVerification: "success",
-      liteKyb: "success",
-      addedDate: "2024-01-15",
-    },
-    {
-      id: "SUP-002",
-      name: "Industrial Parts Co.",
-      email: "info@industrialparts.ae",
-      phone: "+971 2 987 6543",
-      address: "Mussafah Industrial Area",
-      city: "Abu Dhabi",
-      emirate: "Abu Dhabi",
-      postalCode: "412201",
-      tradeLicenseNumber: "TL-456789",
-      contactPerson: "Fatima Al Zaabi",
-      ibanVerification: "success",
-      liteKyb: "success",
-      addedDate: "2024-01-20",
-    },
-    {
-      id: "SUP-003",
-      name: "Global Trading House",
-      email: "sales@globaltrading.ae",
-      phone: "+971 6 234 5678",
-      address: "Sharjah Industrial Area",
-      city: "Sharjah",
-      emirate: "Sharjah",
-      postalCode: "26547",
-      tradeLicenseNumber: "TL-321654",
-      contactPerson: "Ahmed Ibrahim",
-      ibanVerification: "success",
-      liteKyb: "failed",
-      addedDate: "2024-02-10",
-    },
-    {
-      id: "SUP-004",
-      name: "Emirates Supply Chain",
-      email: "contact@emiratessupply.ae",
-      phone: "+971 4 876 5432",
-      address: "Jebel Ali Free Zone",
-      city: "Jebel Ali",
-      emirate: "Dubai",
-      postalCode: "17000",
-      tradeLicenseNumber: "TL-987321",
-      contactPerson: "Sara Al Mansoori",
-      ibanVerification: "failed",
-      liteKyb: "success",
-      addedDate: "2024-03-05",
-    },
-    {
-      id: "SUP-005",
-      name: "Advanced Materials Ltd",
-      email: "info@advancedmaterials.ae",
-      phone: "+971 3 345 6789",
-      address: "Al Ain Industrial City",
-      city: "Al Ain",
-      emirate: "Abu Dhabi",
-      postalCode: "15258",
-      tradeLicenseNumber: "TL-654987",
-      contactPerson: "Khalid Rahman",
-      ibanVerification: "success",
-      liteKyb: "success",
-      addedDate: "2024-03-15",
-    },
+    { id: "SUP-001", name: "Tech Suppliers LLC", email: "contact@techsuppliers.ae", phone: "+971 4 123 4567", tradeLicenseNumber: "TL-789456", trnNumber: "100123456789012", countryOfIncorporation: "United Arab Emirates", contactPerson: "Mohammed Hassan", ibanVerification: "success", liteKyb: "success", addedDate: "2024-01-15", bankName: "Emirates NBD", accountName: "Tech Suppliers LLC", iban: "AE070331234567890123456", swiftCode: "EABORAEADXXX" },
+    { id: "SUP-002", name: "Industrial Parts Co.", email: "info@industrialparts.ae", phone: "+971 2 987 6543", tradeLicenseNumber: "TL-456789", trnNumber: "100987654321098", countryOfIncorporation: "United Arab Emirates", contactPerson: "Fatima Al Zaabi", ibanVerification: "success", liteKyb: "success", addedDate: "2024-01-20", bankName: "ADCB", accountName: "Industrial Parts Co.", iban: "AE460261234567890123456", swiftCode: "ADCBAEAAXXX" },
+    { id: "SUP-003", name: "Global Trading House", email: "sales@globaltrading.ae", phone: "+971 6 234 5678", tradeLicenseNumber: "TL-321654", trnNumber: "100111222333444", countryOfIncorporation: "United Arab Emirates", contactPerson: "Ahmed Ibrahim", ibanVerification: "success", liteKyb: "failed", addedDate: "2024-02-10", bankName: "Mashreq", accountName: "Global Trading House", iban: "AE350461234567890123456", swiftCode: "BOMABORAEADXXX" },
+    { id: "SUP-004", name: "Emirates Supply Chain", email: "contact@emiratessupply.ae", phone: "+971 4 876 5432", tradeLicenseNumber: "TL-987321", trnNumber: "100555666777888", countryOfIncorporation: "United Arab Emirates", contactPerson: "Sara Al Mansoori", ibanVerification: "failed", liteKyb: "success", addedDate: "2024-03-05", bankName: "FAB", accountName: "Emirates Supply Chain", iban: "AE410401234567890123456", swiftCode: "NBABORAEADXXX" },
   ]);
 
   const getVerificationBadge = (status: "success" | "failed") => (
@@ -209,18 +133,17 @@ export function BuyerSuppliersModule() {
   );
 
   const handleSubmitSupplier = () => {
-    // For existing suppliers, skip verification — directly add
+    // Validate TRN for new suppliers
+    if (tlLookupStatus === "not-found" && !validateTrn(formData.trnNumber)) {
+      setTrnError("Invalid TRN. Must be 15 digits starting with 100.");
+      return;
+    }
+
     if (tlLookupStatus === "found") {
       const supplierId = `SUP-${String(suppliers.length + 1).padStart(3, '0')}`;
-      const newSupplier: Supplier = {
-        id: supplierId,
-        ...formData,
-        ibanVerification: "success",
-        liteKyb: "success",
-        addedDate: new Date().toISOString().split('T')[0],
-      };
-      setSuppliers((prev) => [...prev, newSupplier]);
-      showToast("success", "Supplier activated successfully. They have already completed onboarding.");
+      const newSupplier: Supplier = { id: supplierId, ...formData, ...bankData, ibanVerification: "success", liteKyb: "success", addedDate: new Date().toISOString().split('T')[0] };
+      setSuppliers(prev => [...prev, newSupplier]);
+      showToast("success", "Supplier activated for your account.");
       resetAddForm();
       navigate(`/payable-invoices?add=true&supplier=${supplierId}`);
       return;
@@ -229,57 +152,39 @@ export function BuyerSuppliersModule() {
     setVerifying(true);
     setTimeout(() => {
       const supplierId = `SUP-${String(suppliers.length + 1).padStart(3, '0')}`;
-      const newSupplier: Supplier = {
-        id: supplierId,
-        ...formData,
-        ibanVerification: "success",
-        liteKyb: "success",
-        addedDate: new Date().toISOString().split('T')[0],
-      };
-      setSuppliers((prev) => [...prev, newSupplier]);
+      const newSupplier: Supplier = { id: supplierId, ...formData, ...bankData, ibanVerification: "success", liteKyb: "success", addedDate: new Date().toISOString().split('T')[0] };
+      setSuppliers(prev => [...prev, newSupplier]);
       showToast("success", "Supplier added and verified successfully.");
       setVerifying(false);
       resetAddForm();
       navigate(`/payable-invoices?add=true&supplier=${supplierId}`);
-    }, 10000);
+    }, 5000);
   };
 
   const resetAddForm = () => {
     setShowAddModal(false);
-    setAddStep(1);
     setVerifying(false);
     setTlLookupStatus("idle");
     setTlFieldsDisabled(true);
-    setFormData({
-      name: "",
-      email: "",
-      phone: "",
-      address: "",
-      city: "",
-      emirate: "",
-      postalCode: "",
-      tradeLicenseNumber: "",
-      contactPerson: "",
-    });
-    setTradeLicenseFiles([]);
-    setSupportingDocs([]);
+    setTrnError("");
+    setFormData({ tradeLicenseNumber: "", name: "", email: "", phone: "", contactPerson: "", trnNumber: "", countryOfIncorporation: "United Arab Emirates" });
     setBankData({ bankName: "", accountName: "", iban: "", swiftCode: "" });
   };
 
-  const canNextStep1 =
+  const canSubmit =
     formData.name.trim() &&
     formData.tradeLicenseNumber.trim() &&
     formData.email.trim() &&
+    formData.phone.trim() &&
     formData.contactPerson.trim() &&
-    (tlLookupStatus === "found" || tlLookupStatus === "not-found");
-
-  const canSubmitStep3 =
+    formData.trnNumber.trim() &&
+    formData.countryOfIncorporation.trim() &&
     bankData.bankName.trim() &&
     bankData.accountName.trim() &&
     bankData.iban.trim() &&
-    bankData.swiftCode.trim();
+    bankData.swiftCode.trim() &&
+    (tlLookupStatus === "not-found");
 
-  // For existing suppliers, can submit directly from step 1
   const canSubmitExisting = tlLookupStatus === "found";
 
   return (
@@ -289,12 +194,8 @@ export function BuyerSuppliersModule() {
           <h2 className="text-2xl font-semibold text-gray-900">Supplier Management</h2>
           <p className="text-sm text-gray-500 mt-1">Manage your supplier relationships</p>
         </div>
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8]"
-        >
-          <Plus className="w-4 h-4" />
-          Add Supplier
+        <button onClick={() => setShowAddModal(true)} className="flex items-center gap-2 px-4 py-2 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8]">
+          <Plus className="w-4 h-4" /> Add Supplier
         </button>
       </div>
 
@@ -307,8 +208,8 @@ export function BuyerSuppliersModule() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supplier ID</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Company Name</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact Person</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">IBAN Verification</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lite KYB</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">IBAN Verification</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Added Date</th>
               </tr>
             </thead>
@@ -316,331 +217,126 @@ export function BuyerSuppliersModule() {
               {suppliers.map((supplier) => (
                 <tr key={supplier.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{supplier.id}</td>
-                  <td className="px-6 py-4">
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">{supplier.name}</p>
-                      <p className="text-xs text-gray-500">{supplier.email}</p>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <p className="text-sm text-gray-900">{supplier.contactPerson}</p>
-                    <p className="text-xs text-gray-500">{supplier.phone}</p>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">{getVerificationBadge(supplier.ibanVerification)}</td>
+                  <td className="px-6 py-4"><p className="text-sm font-medium text-gray-900">{supplier.name}</p><p className="text-xs text-gray-500">{supplier.email}</p></td>
+                  <td className="px-6 py-4 whitespace-nowrap"><p className="text-sm text-gray-900">{supplier.contactPerson}</p><p className="text-xs text-gray-500">{supplier.phone}</p></td>
                   <td className="px-6 py-4 whitespace-nowrap">{getVerificationBadge(supplier.liteKyb)}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(supplier.addedDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">{getVerificationBadge(supplier.ibanVerification)}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(supplier.addedDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
         {suppliers.length === 0 && (
-          <div className="text-center py-12">
-            <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500">No suppliers found</p>
-          </div>
+          <div className="text-center py-12"><Users className="w-12 h-12 text-gray-300 mx-auto mb-4" /><p className="text-gray-500">No suppliers found</p></div>
         )}
       </div>
 
-      {/* Add Supplier Wizard Modal */}
+      {/* Add Supplier Modal — Single Form */}
       {showAddModal && (
         <div className="fixed inset-0 bg-[#CBD2DD]/[.72] flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded max-w-2xl w-full max-h-[90vh] flex flex-col">
             {/* Header */}
             <div className="px-5 py-3 flex items-center justify-between bg-[#C3D2E7] text-gray-900 rounded-t shrink-0">
-              <h3 className="text-base font-semibold text-gray-900">
-                Add Supplier
-                {!verifying && (
-                  <span className="text-sm font-normal text-gray-600 ml-2">
-                    — Step {addStep} of 3
-                  </span>
-                )}
-              </h3>
-              <button onClick={resetAddForm} className="text-gray-500 hover:text-gray-900">
-                <X className="w-5 h-5" />
-              </button>
+              <h3 className="text-base font-semibold text-gray-900">Add Supplier</h3>
+              <button onClick={resetAddForm} className="text-gray-500 hover:text-gray-900"><X className="w-5 h-5" /></button>
             </div>
 
             {/* Verification loading state */}
             {verifying ? (
               <div className="flex-1 flex flex-col items-center justify-center p-12">
                 <Loader2 className="w-12 h-12 text-[#4F8DFF] animate-spin mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  IBAN Verification &amp; Lite KYB in progress...
-                </h3>
-                <p className="text-sm text-gray-500">
-                  Please wait while we verify the supplier details
-                </p>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Verifying supplier details...</h3>
+                <p className="text-sm text-gray-500">Running Lite KYB &amp; IBAN Verification</p>
               </div>
             ) : (
               <>
-                {/* Step indicator */}
-                <div className="flex items-center justify-center gap-0 py-4 shrink-0">
-                  {[1, 2, 3].map((step, idx) => (
-                    <div key={step} className="flex items-center">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold border-2 transition-colors ${addStep >= step ? "bg-[#4F8DFF] border-[#4F8DFF] text-white" : "bg-white border-gray-300 text-gray-400"}`}>{step}</div>
-                      {idx < 2 && <div className={`w-16 h-0.5 transition-colors ${addStep > step ? "bg-[#4F8DFF]" : "bg-gray-300"}`} />}
-                    </div>
-                  ))}
-                </div>
-
                 {/* Scrollable body */}
-                <div className="flex-1 overflow-y-auto px-6 pb-4">
-                  {/* Step 1: Basic Details */}
-                  {addStep === 1 && (
-                    <div className="space-y-4">
-                      {/* TL Number - full width, first field */}
+                <div className="flex-1 overflow-y-auto px-6 py-4">
+                  {/* TL Number — gating field */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Trade License Number *</label>
+                    <div className="relative">
+                      <input type="text" value={formData.tradeLicenseNumber} onChange={(e) => handleTlChange(e.target.value)} onBlur={handleTlBlur} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter numeric TL number" />
+                      {tlLookupStatus === "loading" && <div className="absolute right-3 top-1/2 -translate-y-1/2"><Loader2 className="w-4 h-4 text-[#4F8DFF] animate-spin" /></div>}
+                      {tlLookupStatus === "found" && <div className="absolute right-3 top-1/2 -translate-y-1/2"><CheckCircle className="w-4 h-4 text-green-500" /></div>}
+                    </div>
+                    {tlLookupStatus === "found" && <p className="text-xs text-green-600 mt-1">Existing supplier found — details auto-populated.</p>}
+                    {tlLookupStatus === "not-found" && <p className="text-xs text-blue-600 mt-1">New supplier — please fill in the details below</p>}
+                  </div>
+
+                  {/* Section: Basic Details */}
+                  <div className="border-t border-gray-200 pt-4 mb-4">
+                    <h4 className="text-sm font-semibold text-gray-800 mb-3">Basic Details</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Trade License Number *</label>
-                        <div className="relative">
-                          <input
-                            type="text"
-                            value={formData.tradeLicenseNumber}
-                            onChange={(e) => handleTlChange(e.target.value)}
-                            onBlur={handleTlBlur}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            placeholder="Enter numeric TL number"
-                          />
-                          {tlLookupStatus === "loading" && (
-                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                              <Loader2 className="w-4 h-4 text-[#4F8DFF] animate-spin" />
-                            </div>
-                          )}
-                          {tlLookupStatus === "found" && (
-                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                              <CheckCircle className="w-4 h-4 text-green-500" />
-                            </div>
-                          )}
-                        </div>
-                        {tlLookupStatus === "found" && (
-                          <p className="text-xs text-green-600 mt-1">Existing supplier found — details auto-populated. Documents and bank details are not required.</p>
-                        )}
-                        {tlLookupStatus === "not-found" && (
-                          <p className="text-xs text-blue-600 mt-1">New supplier — please fill in the details</p>
-                        )}
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Company Name *</label>
+                        <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} disabled={tlFieldsDisabled} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-sm" placeholder="Enter company name" />
                       </div>
-
-                      {/* Other fields in grid */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Company Name *</label>
-                          <input
-                            type="text"
-                            value={formData.name}
-                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            disabled={tlFieldsDisabled}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                            placeholder="Enter company name"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
-                          <input
-                            type="email"
-                            value={formData.email}
-                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                            disabled={tlFieldsDisabled}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                            placeholder="supplier@example.ae"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-                          <input
-                            type="tel"
-                            value={formData.phone}
-                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                            disabled={tlFieldsDisabled}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                            placeholder="+971 X XXXX XXXX"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Contact Person Name *</label>
-                          <input
-                            type="text"
-                            value={formData.contactPerson}
-                            onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })}
-                            disabled={tlFieldsDisabled}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                            placeholder="Enter contact person name"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
-                          <input
-                            type="text"
-                            value={formData.address}
-                            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                            disabled={tlFieldsDisabled}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                            placeholder="Street address"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Emirate</label>
-                          <select
-                            value={formData.emirate}
-                            onChange={(e) => setFormData({ ...formData, emirate: e.target.value, city: "" })}
-                            disabled={tlFieldsDisabled}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
-                          >
-                            <option value="">Select Emirate</option>
-                            {UAE_EMIRATES.map(em => <option key={em} value={em}>{em}</option>)}
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
-                          <select
-                            value={formData.city}
-                            onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                            disabled={tlFieldsDisabled || !formData.emirate}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
-                          >
-                            <option value="">Select City</option>
-                            {(formData.emirate ? UAE_CITIES[formData.emirate] || [] : []).map(c => <option key={c} value={c}>{c}</option>)}
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Postal Code</label>
-                          <input
-                            type="text"
-                            value={formData.postalCode}
-                            onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })}
-                            disabled={tlFieldsDisabled}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                            placeholder="Postal code"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Step 2: Documents */}
-                  {addStep === 2 && (
-                    <div className="space-y-6">
                       <div>
-                        <p className="text-sm font-medium text-gray-700 mb-2">Trade License *</p>
-                        <button type="button" onClick={() => { const inp = document.createElement("input"); inp.type = "file"; inp.accept = ".pdf,.jpg,.jpeg,.png"; inp.multiple = true; inp.onchange = () => { if (inp.files) setTradeLicenseFiles(prev => [...prev, ...Array.from(inp.files!)]); }; inp.click(); }} className="w-full border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-[#4F8DFF] hover:bg-blue-50/30 transition-colors">
-                          <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                          <p className="text-sm text-gray-600">Click to upload files</p>
-                          <p className="text-xs text-gray-400 mt-1">PDF, JPG, PNG accepted</p>
-                        </button>
-                        {tradeLicenseFiles.length > 0 && (
-                          <div className="mt-3 space-y-2">
-                            {tradeLicenseFiles.map((file, idx) => (
-                              <div key={`tl-${idx}`} className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg px-3 py-2">
-                                <div className="flex items-center gap-2 min-w-0">
-                                  <CheckCircle className="w-4 h-4 text-green-600 shrink-0" />
-                                  <FileText className="w-4 h-4 text-gray-500 shrink-0" />
-                                  <span className="text-sm text-gray-700 truncate">{file.name}</span>
-                                </div>
-                                <button onClick={() => setTradeLicenseFiles(prev => prev.filter((_, i) => i !== idx))} className="text-gray-400 hover:text-red-500 shrink-0 ml-2"><X className="w-4 h-4" /></button>
-                              </div>
-                            ))}
-                          </div>
-                        )}
+                        <label className="block text-sm font-medium text-gray-700 mb-1">TRN Number *</label>
+                        <input type="text" value={formData.trnNumber} onChange={(e) => { setFormData({ ...formData, trnNumber: e.target.value }); setTrnError(""); }} onBlur={() => { if (formData.trnNumber && !validateTrn(formData.trnNumber)) setTrnError("Invalid TRN. Must be 15 digits starting with 100."); }} disabled={tlFieldsDisabled} className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-sm ${trnError ? "border-red-400" : "border-gray-300"}`} placeholder="e.g. 100234567890123" maxLength={15} />
+                        {trnError && <p className="text-xs text-red-500 mt-1">{trnError}</p>}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Country of Incorporation *</label>
+                        <select value={formData.countryOfIncorporation} onChange={(e) => setFormData({ ...formData, countryOfIncorporation: e.target.value })} disabled={tlFieldsDisabled} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm disabled:bg-gray-100 disabled:cursor-not-allowed">
+                          {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
                       </div>
                     </div>
-                  )}
+                  </div>
 
-                  {/* Step 3: Bank Account Details */}
-                  {addStep === 3 && (
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Bank Name *</label>
-                          <input
-                            type="text"
-                            value={bankData.bankName}
-                            onChange={(e) => setBankData({ ...bankData, bankName: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            placeholder="Enter bank name"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Account Name *</label>
-                          <input
-                            type="text"
-                            value={bankData.accountName}
-                            onChange={(e) => setBankData({ ...bankData, accountName: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            placeholder="Enter account name"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">IBAN *</label>
-                          <input
-                            type="text"
-                            value={bankData.iban}
-                            onChange={(e) =>
-                              setBankData({
-                                ...bankData,
-                                iban: e.target.value.replace(/[\s-]/g, "").toUpperCase(),
-                              })
-                            }
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            placeholder="e.g. AE070331234567890123456"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">SWIFT/BIC Code *</label>
-                          <input
-                            type="text"
-                            value={bankData.swiftCode}
-                            onChange={(e) =>
-                              setBankData({
-                                ...bankData,
-                                swiftCode: e.target.value.toUpperCase(),
-                              })
-                            }
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            placeholder="e.g.ABORAEADXXX"
-                          />
-                        </div>
+                  {/* Section: Contact Details */}
+                  <div className="border-t border-gray-200 pt-4 mb-4">
+                    <h4 className="text-sm font-semibold text-gray-800 mb-3">Contact Details</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Contact Person Name *</label>
+                        <input type="text" value={formData.contactPerson} onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })} disabled={tlFieldsDisabled} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-sm" placeholder="Enter contact person name" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Email Address *</label>
+                        <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} disabled={tlFieldsDisabled} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-sm" placeholder="supplier@example.ae" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number *</label>
+                        <input type="tel" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} disabled={tlFieldsDisabled} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-sm" placeholder="+971 X XXXX XXXX" />
                       </div>
                     </div>
-                  )}
+                  </div>
+
+                  {/* Section: Bank Details */}
+                  <div className="border-t border-gray-200 pt-4">
+                    <h4 className="text-sm font-semibold text-gray-800 mb-3">Bank Account Details</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Bank Name *</label>
+                        <input type="text" value={bankData.bankName} onChange={(e) => setBankData({ ...bankData, bankName: e.target.value })} disabled={tlFieldsDisabled} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-sm" placeholder="Enter bank name" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Account Name *</label>
+                        <input type="text" value={bankData.accountName} onChange={(e) => setBankData({ ...bankData, accountName: e.target.value })} disabled={tlFieldsDisabled} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-sm" placeholder="Enter account name" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">IBAN *</label>
+                        <input type="text" value={bankData.iban} onChange={(e) => setBankData({ ...bankData, iban: e.target.value.replace(/[\s-]/g, "").toUpperCase() })} disabled={tlFieldsDisabled} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-sm" placeholder="e.g. AE070331234567890123456" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">SWIFT/BIC Code *</label>
+                        <input type="text" value={bankData.swiftCode} onChange={(e) => setBankData({ ...bankData, swiftCode: e.target.value.toUpperCase() })} disabled={tlFieldsDisabled} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-sm" placeholder="e.g. EABORAEADXXX" />
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Footer */}
                 <div className="px-6 py-4 border-t border-gray-200 flex items-center gap-3 shrink-0">
-                  <button
-                    onClick={() => addStep === 1 ? resetAddForm() : setAddStep((s) => (s - 1) as 1 | 2 | 3)}
-                    className="flex items-center gap-1.5 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-                  >
-                    <ArrowLeft className="w-4 h-4" />
-                    Back
-                  </button>
-
+                  <button onClick={resetAddForm} className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium">Cancel</button>
                   <div className="flex-1" />
-
-                  {addStep === 1 && canSubmitExisting ? (
-                    <button
-                      onClick={handleSubmitSupplier}
-                      className="px-6 py-2 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] transition-colors font-medium"
-                    >
-                      Add Supplier
-                    </button>
-                  ) : addStep < 3 ? (
-                    <button
-                      onClick={() => setAddStep((s) => (s + 1) as 1 | 2 | 3)}
-                      disabled={addStep === 1 && !canNextStep1}
-                      className="px-6 py-2 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Next
-                    </button>
-                  ) : (
-                    <button
-                      onClick={handleSubmitSupplier}
-                      disabled={!canSubmitStep3}
-                      className="px-6 py-2 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Add Supplier
-                    </button>
-                  )}
+                  <button onClick={handleSubmitSupplier} disabled={!canSubmit && !canSubmitExisting} className="px-6 py-2 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+                    Add Supplier
+                  </button>
                 </div>
               </>
             )}

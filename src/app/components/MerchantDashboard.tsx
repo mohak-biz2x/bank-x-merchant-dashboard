@@ -860,8 +860,8 @@ export function MerchantDashboard() {
         {/* Module Cards */}
         <div className={`grid grid-cols-1 ${filteredModules.length === 1 ? "md:grid-cols-1 max-w-lg" : filteredModules.length === 2 ? "md:grid-cols-2 max-w-3xl" : "md:grid-cols-2 lg:grid-cols-3"} gap-6 mb-6`}>
           {filteredModules.map((mod) => (
-            <div key={mod.path} className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-              <div className="p-6">
+            <div key={mod.path} className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden flex flex-col">
+              <div className="p-6 flex flex-col flex-1">
                 <div className="flex items-center gap-3 mb-4">
                   <div className={`w-12 h-12 ${mod.iconBg} rounded-lg flex items-center justify-center`}>
                     <mod.icon className={`w-6 h-6 ${mod.iconColor}`} />
@@ -871,7 +871,7 @@ export function MerchantDashboard() {
                     <p className="text-sm text-gray-500">{mod.description}</p>
                   </div>
                 </div>
-                <div className="space-y-3">
+                <div className="space-y-3 flex-1">
                   {mod.rows.map((row, idx) => (
                     <div key={idx} className={`flex items-center justify-between py-2 ${idx < mod.rows.length - 1 ? "border-b border-gray-100" : ""}`}>
                       <span className="text-sm text-gray-600">{row.label}</span>

@@ -122,13 +122,9 @@ export function BuyerDashboard() {
                   <span className="text-sm text-gray-600">Total Suppliers</span>
                   <span className="text-sm font-medium text-gray-900">6</span>
                 </div>
-                <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                  <span className="text-sm text-gray-600">Active Relationships</span>
-                  <span className="text-sm font-medium text-gray-900">6</span>
-                </div>
                 <div className="flex items-center justify-between py-2">
-                  <span className="text-sm text-gray-600">Pending Requests</span>
-                  <span className="text-sm font-medium text-gray-900">0</span>
+                  <span className="text-sm text-gray-600">KYB Verified</span>
+                  <span className="text-sm font-medium text-gray-900">6</span>
                 </div>
               </div>
               <button className="mt-4 w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm">

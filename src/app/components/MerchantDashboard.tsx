@@ -138,8 +138,7 @@ export function MerchantDashboard() {
       roles: ["both", "payable"] as MerchantRole[],
       rows: [
         { label: "Total Suppliers", value: "6" },
-        { label: "Active Relationships", value: "6" },
-        { label: "Pending Requests", value: "0" },
+        { label: "KYB Verified", value: "6" },
       ],
     },
     {

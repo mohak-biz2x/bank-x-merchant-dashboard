@@ -1,4 +1,4 @@
-import { FileText, Plus, Upload, X, CheckCircle, Clock, AlertCircle, DollarSign, Eye, Download, MoreVertical, ArrowLeft, ChevronLeft, ChevronRight, Loader2, PenTool } from "lucide-react";
+import { FileText, Plus, Upload, X, CheckCircle, Clock, AlertCircle, DollarSign, Eye, Download, MoreVertical, ArrowLeft, ChevronLeft, ChevronRight, Loader2, PenTool, Info } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router";
 import { showToast } from "./Toast";
@@ -92,7 +92,7 @@ interface LineItem {
   expanded: boolean;
 }
 
-type AddInvoicePhase = "upload" | "parsing" | "review" | "validating";
+type AddInvoicePhase = "config" | "upload" | "file-review" | "parsing" | "review" | "validating";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -172,11 +172,12 @@ export function InvoicesModule() {
   const [buyerName, setBuyerName] = useState("");
   const [repaymentStructure, setRepaymentStructure] = useState<"bullet" | "installments">("bullet");
   const [selectedTenure, setSelectedTenure] = useState<number | null>(null);
-  const [addPhase, setAddPhase] = useState<AddInvoicePhase>("upload");
+  const [addPhase, setAddPhase] = useState<AddInvoicePhase>("config");
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [lineItems, setLineItems] = useState<LineItem[]>([]);
   const [showCommodityExchange, setShowCommodityExchange] = useState(false);
+  const [showFeeRate, setShowFeeRate] = useState(false);
 
   useEffect(() => {
     if (searchParams.get("add") === "true") setShowAddForm(true);
@@ -254,12 +255,21 @@ export function InvoicesModule() {
 
   const handleBulkUpload = (files: FileList | null) => {
     if (!files) return;
-    const newFiles = Array.from(files).slice(0, 10);
-    setUploadedFiles(newFiles);
-    // Auto-start parsing
+    const remaining = 10 - uploadedFiles.length;
+    const newFiles = Array.from(files).slice(0, remaining);
+    setUploadedFiles(prev => [...prev, ...newFiles]);
+    setAddPhase("file-review");
+  };
+
+  const handleRemoveUploadedFile = (idx: number) => {
+    setUploadedFiles(prev => prev.filter((_, i) => i !== idx));
+    if (uploadedFiles.length <= 1) setAddPhase("upload");
+  };
+
+  const handleSubmitForParsing = () => {
     setAddPhase("parsing");
     setTimeout(() => {
-      const parsed: LineItem[] = newFiles.map((file) => {
+      const parsed: LineItem[] = uploadedFiles.map((file) => {
         const isFailed = Math.random() < 0.15;
         const num = String(Math.floor(Math.random() * 9000) + 1000);
         const today = new Date().toISOString().split("T")[0];
@@ -343,7 +353,7 @@ export function InvoicesModule() {
         setShowAddForm(false);
         setAddToExistingGroup(null);
         setSubmitting(false);
-        setAddPhase("upload");
+        setAddPhase("config");
         setUploadedFiles([]);
         setLineItems([]);
         setViewingGroup(addToExistingGroup);
@@ -389,7 +399,7 @@ export function InvoicesModule() {
         setSubmitting(false);
         setBuyerName("");
         setRepaymentStructure("bullet");
-        setAddPhase("upload");
+        setAddPhase("config");
         setUploadedFiles([]);
         setLineItems([]);
         setViewingGroup(groupId);
@@ -407,9 +417,10 @@ export function InvoicesModule() {
     setBuyerName("");
     setRepaymentStructure("bullet");
     setSelectedTenure(null);
-    setAddPhase("upload");
+    setAddPhase("config");
     setUploadedFiles([]);
     setLineItems([]);
+    setShowFeeRate(false);
   };
 
   const stats = [
@@ -448,16 +459,143 @@ export function InvoicesModule() {
 
   /* ───── Inline Add Invoice Form ───── */
   const renderAddInvoiceContent = () => {
+    // Phase: Config — Payment type & tenure selection
+    if (addPhase === "config") {
+      const feePercent = selectedTenure ? (PRICING_MATRIX[getBorrowerCategory()]?.[repaymentStructure]?.[selectedTenure] || 0) : null;
+      return (
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <h3 className="text-base font-semibold text-gray-900 mb-1">Payment Configuration</h3>
+          <p className="text-xs text-gray-500 mb-5">Select your preferred payment type and tenure to view applicable fees.</p>
+          <div className="space-y-5">
+            {!addToExistingGroup && (
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Buyer Name *</label>
+                <input type="text" value={buyerName} onChange={e => setBuyerName(e.target.value)} placeholder="Enter buyer name" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+            )}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-2">Payment Type *</label>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="repaymentStructure" checked={repaymentStructure === "bullet"} onChange={() => { setRepaymentStructure("bullet"); setSelectedTenure(null); setShowFeeRate(false); }} className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500" />
+                    <span className="text-sm font-medium text-gray-700">Bullet</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="repaymentStructure" checked={repaymentStructure === "installments"} onChange={() => { setRepaymentStructure("installments"); setSelectedTenure(null); setShowFeeRate(false); }} className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500" />
+                    <span className="text-sm font-medium text-gray-700">Installments</span>
+                  </label>
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Tenor *</label>
+                <select value={selectedTenure ?? ""} onChange={e => { setSelectedTenure(e.target.value ? Number(e.target.value) : null); setShowFeeRate(false); }} disabled={!repaymentStructure} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed bg-white">
+                  <option value="">Select tenor</option>
+                  {TENURE_OPTIONS[repaymentStructure].map(t => (
+                    <option key={t} value={t}>{t} days</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            {selectedTenure && !showFeeRate && (
+              <button type="button" onClick={() => setShowFeeRate(true)} className="px-4 py-2 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] transition-colors font-medium text-sm">
+                View Applicable Fee Rate
+              </button>
+            )}
+            {showFeeRate && feePercent !== null && (
+              <div className="border border-blue-200 rounded-lg overflow-hidden">
+                <div className="bg-blue-50 px-4 py-2.5 flex items-center gap-2 border-b border-blue-200">
+                  <DollarSign className="w-4 h-4 text-blue-600" />
+                  <span className="text-sm font-semibold text-blue-800">Applicable Fee Rate</span>
+                </div>
+                <div className="bg-white px-4 py-4">
+                  <div className="flex items-center gap-4">
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-gray-400 mb-1">Processing Fee</p>
+                      <p className="text-2xl font-bold text-gray-900">{(feePercent * 100).toFixed(2)}%</p>
+                    </div>
+                    <div className="h-10 w-px bg-gray-200" />
+                    <div className="flex-1">
+                      <p className="text-xs uppercase tracking-wide text-gray-400 mb-1">Structure</p>
+                      <p className="text-sm font-medium text-gray-900 capitalize">{repaymentStructure} · {selectedTenure} days</p>
+                    </div>
+                  </div>
+                  <div className="mt-3 flex items-start gap-2 p-2.5 bg-amber-50 border border-amber-200 rounded-lg">
+                    <Info className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <p className="text-xs text-amber-700">An additional VAT of 5% will be levied on the processing fee at the time of disbursement.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="flex justify-end mt-6">
+            <button onClick={() => setAddPhase("upload")} disabled={!addToExistingGroup && (!buyerName.trim() || !selectedTenure)} className="px-6 py-2.5 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+              Next — Upload Invoices
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     // Phase: Upload
     if (addPhase === "upload") {
       return (
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <h3 className="text-base font-semibold text-gray-900 mb-1">Upload Invoices</h3>
-          <p className="text-xs text-gray-500 mb-5">Upload up to 10 invoice documents. Parsing will start automatically.</p>
+          <p className="text-xs text-gray-500 mb-5">Upload up to 10 invoice documents. You can review them before submitting for parsing.</p>
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 hover:bg-blue-50/30 transition-colors cursor-pointer" onClick={() => { const inp = document.createElement("input"); inp.type = "file"; inp.accept = ".pdf,.jpg,.jpeg,.png"; inp.multiple = true; inp.onchange = () => handleBulkUpload(inp.files); inp.click(); }}>
             <Upload className="w-10 h-10 text-gray-400 mx-auto mb-3" />
             <p className="text-sm font-medium text-gray-700">Click to upload invoice documents</p>
             <p className="text-xs text-gray-400 mt-1">PDF, JPG, PNG accepted · Up to 10 files</p>
+          </div>
+          <div className="flex justify-start mt-4">
+            <button onClick={() => setAddPhase("config")} className="text-sm text-gray-600 hover:text-gray-900 flex items-center gap-1">
+              <ArrowLeft className="w-3.5 h-3.5" /> Back to Payment Configuration
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // Phase: File Review — review uploaded files before parsing
+    if (addPhase === "file-review") {
+      return (
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <h3 className="text-base font-semibold text-gray-900 mb-1">Review Uploaded Files</h3>
+          <p className="text-xs text-gray-500 mb-5">{uploadedFiles.length} file{uploadedFiles.length !== 1 ? "s" : ""} uploaded · {10 - uploadedFiles.length} remaining slot{10 - uploadedFiles.length !== 1 ? "s" : ""}</p>
+          <div className="space-y-2 mb-5">
+            {uploadedFiles.map((file, idx) => (
+              <div key={idx} className="flex items-center justify-between px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                    <FileText className="w-4 h-4 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900 truncate max-w-[300px]">{file.name}</p>
+                    <p className="text-xs text-gray-400">{(file.size / 1024).toFixed(1)} KB</p>
+                  </div>
+                </div>
+                <button onClick={() => handleRemoveUploadedFile(idx)} className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+          {uploadedFiles.length < 10 && (
+            <button onClick={() => { const inp = document.createElement("input"); inp.type = "file"; inp.accept = ".pdf,.jpg,.jpeg,.png"; inp.multiple = true; inp.onchange = () => handleBulkUpload(inp.files); inp.click(); }} className="w-full border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-400 hover:bg-blue-50/30 transition-colors cursor-pointer mb-5">
+              <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
+                <Plus className="w-4 h-4" />
+                <span>Upload More Invoices ({10 - uploadedFiles.length} slots remaining)</span>
+              </div>
+            </button>
+          )}
+          <div className="flex items-center justify-between">
+            <button onClick={() => { setUploadedFiles([]); setAddPhase("upload"); }} className="text-sm text-gray-600 hover:text-gray-900 flex items-center gap-1">
+              <ArrowLeft className="w-3.5 h-3.5" /> Back
+            </button>
+            <button onClick={handleSubmitForParsing} disabled={uploadedFiles.length === 0} className="px-6 py-2.5 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+              Submit for Parsing
+            </button>
           </div>
         </div>
       );
@@ -493,102 +631,146 @@ export function InvoicesModule() {
 
     // Phase: Review
     return (
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <div className="flex items-center justify-between mb-5">
-          <div>
-            <h3 className="text-base font-semibold text-gray-900">Review Invoices</h3>
-            <p className="text-xs text-gray-500 mt-0.5">{lineItems.length} invoice{lineItems.length !== 1 ? "s" : ""} parsed{failedCount > 0 ? ` · ${failedCount} failed — please fill in details manually` : ""}</p>
-          </div>
-        </div>
-        {failedCount > 0 && (
-          <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700 flex items-start gap-2">
-            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-            <span>{failedCount} invoice{failedCount !== 1 ? "s" : ""} could not be parsed. The document{failedCount !== 1 ? "s have" : " has"} been uploaded but details need to be entered manually.</span>
-          </div>
-        )}
-        <div className="space-y-3">
-          {lineItems.map((item, index) => (
-            <div key={index} className={`border rounded-lg ${item.parsingFailed ? "border-amber-300 bg-amber-50/30" : "border-gray-200"}`}>
-              <div className="flex items-center justify-between px-5 py-3 cursor-pointer" onClick={() => toggleExpand(index)}>
-                <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${item.parsingFailed ? "bg-amber-100 text-amber-700" : item.invoiceNumber ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
-                    {item.parsingFailed ? "!" : index + 1}
+      <div className="space-y-5">
+        {/* Pricing Breakdown — shown at the top when amounts are available */}
+        {selectedTenure && totalAmount > 0 && (() => {
+          const pricing = calculatePricing(repaymentStructure, selectedTenure, totalAmount);
+          return (
+            <div className="border border-green-200 rounded-lg overflow-hidden">
+              <div className="bg-green-50 px-4 py-2.5 flex items-center gap-2 border-b border-green-200">
+                <DollarSign className="w-4 h-4 text-green-600" />
+                <span className="text-sm font-semibold text-green-800">Invoice Group Pricing</span>
+              </div>
+              <div className="bg-white px-5 py-4">
+                <div className="grid grid-cols-5 gap-4 items-end">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wide text-gray-400 mb-1">Total Invoice Amount</p>
+                    <p className="text-lg font-bold text-gray-900">{formatCurrency(totalAmount)}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-900">{item.invoiceNumber || `Invoice ${index + 1}`}{item.parsingFailed ? " — Parse Failed" : ""}</p>
-                    <p className="text-xs text-gray-500">{item.invoiceCopy?.name || "No file"}{item.invoiceAmount ? ` · AED ${Number(item.invoiceAmount).toLocaleString()}` : ""}</p>
+                    <p className="text-[10px] uppercase tracking-wide text-gray-400 mb-1">Fee Rate</p>
+                    <p className="text-lg font-bold text-gray-900">{(pricing.flatFeePercent * 100).toFixed(2)}%</p>
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  {item.parsingFailed && <span className="text-xs text-amber-600 font-medium">Manual entry required</span>}
-                  {!item.parsingFailed && item.invoiceNumber && <CheckCircle className="w-4 h-4 text-green-500" />}
-                  {lineItems.length > 1 && <button onClick={(e) => { e.stopPropagation(); handleRemoveLineItem(index); }} className="text-red-400 hover:text-red-600 p-1"><X className="w-3.5 h-3.5" /></button>}
-                  <svg className={`w-4 h-4 text-gray-400 transition-transform ${item.expanded ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wide text-gray-400 mb-1">Processing Fee</p>
+                    <p className="text-base font-semibold text-gray-900">{formatCurrency(pricing.flatFeeAmount)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wide text-gray-400 mb-1">VAT (5%)</p>
+                    <p className="text-base font-semibold text-gray-900">{formatCurrency(pricing.vatAmount)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wide text-gray-400 mb-1">Total Fee</p>
+                    <p className="text-lg font-bold text-gray-900">{formatCurrency(pricing.totalFeeWithVat)}</p>
+                  </div>
                 </div>
               </div>
-              {item.expanded && (
-                <div className="px-5 pb-5 border-t border-gray-100 pt-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Invoice Copy</label>
-                      <div className="flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded-lg">
-                        <FileText className="w-4 h-4 text-green-600 flex-shrink-0" />
-                        <span className="text-xs text-green-700 truncate flex-1">{item.invoiceCopy?.name || "Uploaded"}</span>
-                      </div>
+            </div>
+          );
+        })()}
+
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <h3 className="text-base font-semibold text-gray-900">Review Invoices</h3>
+              <p className="text-xs text-gray-500 mt-0.5">{lineItems.length} invoice{lineItems.length !== 1 ? "s" : ""} parsed{failedCount > 0 ? ` · ${failedCount} failed — please fill in details manually` : ""}</p>
+            </div>
+          </div>
+          {failedCount > 0 && (
+            <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700 flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              <span>{failedCount} invoice{failedCount !== 1 ? "s" : ""} could not be parsed. The document{failedCount !== 1 ? "s have" : " has"} been uploaded but details need to be entered manually.</span>
+            </div>
+          )}
+          <div className="space-y-3">
+            {lineItems.map((item, index) => (
+              <div key={index} className={`border rounded-lg ${item.parsingFailed ? "border-amber-300 bg-amber-50/30" : "border-gray-200"}`}>
+                <div className="flex items-center justify-between px-5 py-3 cursor-pointer" onClick={() => toggleExpand(index)}>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${item.parsingFailed ? "bg-amber-100 text-amber-700" : item.invoiceNumber ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+                      {item.parsingFailed ? "!" : index + 1}
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Delivery Note</label>
-                      {item.deliveryNote ? (
-                        <div className="flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded-lg">
-                          <FileText className="w-4 h-4 text-green-600 flex-shrink-0" />
-                          <span className="text-xs text-green-700 truncate flex-1">{item.deliveryNote.name}</span>
-                          <button onClick={() => setLineItems(prev => prev.map((it, i) => i === index ? { ...it, deliveryNote: null } : it))} className="text-red-500 hover:text-red-700"><X className="w-3.5 h-3.5" /></button>
-                        </div>
-                      ) : (
-                        <>
-                          <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleDeliveryNoteUpload(e, index)} className="hidden" id={`r-del-note-${index}`} />
-                          <label htmlFor={`r-del-note-${index}`} className="flex items-center justify-center gap-2 w-full px-3 py-3 border-2 border-dashed border-gray-300 rounded-lg text-xs text-gray-500 hover:border-blue-400 hover:text-blue-600 cursor-pointer transition-colors">
-                            <Upload className="w-3.5 h-3.5" /> Upload Delivery Note
-                          </label>
-                        </>
-                      )}
+                      <p className="text-sm font-medium text-gray-900">{item.invoiceNumber || `Invoice ${index + 1}`}{item.parsingFailed ? " — Parse Failed" : ""}</p>
+                      <p className="text-xs text-gray-500">{item.invoiceCopy?.name || "No file"}{item.invoiceAmount ? ` · AED ${Number(item.invoiceAmount).toLocaleString()}` : ""}</p>
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Invoice Number *</label>
-                      <input type="text" value={item.invoiceNumber} onChange={e => handleLineItemChange(index, "invoiceNumber", e.target.value)} placeholder="Invoice Number" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Invoice Date *</label>
-                      <input type="date" value={item.invoiceDate} onChange={e => handleLineItemChange(index, "invoiceDate", e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Invoice Amount (AED) *</label>
-                      <input type="number" value={item.invoiceAmount} onChange={e => handleLineItemChange(index, "invoiceAmount", e.target.value)} placeholder="0" min="0" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Payment Due Date *</label>
-                      <input type="date" value={item.paymentDueDate} onChange={e => handleLineItemChange(index, "paymentDueDate", e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                    </div>
+                  <div className="flex items-center gap-2">
+                    {item.parsingFailed && <span className="text-xs text-amber-600 font-medium">Manual entry required</span>}
+                    {!item.parsingFailed && item.invoiceNumber && <CheckCircle className="w-4 h-4 text-green-500" />}
+                    {lineItems.length > 1 && <button onClick={(e) => { e.stopPropagation(); handleRemoveLineItem(index); }} className="text-red-400 hover:text-red-600 p-1"><X className="w-3.5 h-3.5" /></button>}
+                    <svg className={`w-4 h-4 text-gray-400 transition-transform ${item.expanded ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                   </div>
                 </div>
-              )}
-            </div>
-          ))}
-        </div>
-        {lineItems.some(i => i.invoiceAmount) && (
-          <div className="bg-gray-50 rounded-lg p-3 flex justify-between items-center mt-4">
-            <span className="text-sm text-gray-600">Total Amount ({lineItems.filter(i => i.invoiceAmount).length} invoice{lineItems.filter(i => i.invoiceAmount).length !== 1 ? "s" : ""})</span>
-            <span className="text-sm font-semibold text-gray-900">{formatCurrency(totalAmount)}</span>
+                {item.expanded && (
+                  <div className="px-5 pb-5 border-t border-gray-100 pt-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Invoice Copy</label>
+                        <div className="flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded-lg">
+                          <FileText className="w-4 h-4 text-green-600 flex-shrink-0" />
+                          <span className="text-xs text-green-700 truncate flex-1">{item.invoiceCopy?.name || "Uploaded"}</span>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Delivery Note</label>
+                        {item.deliveryNote ? (
+                          <div className="flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded-lg">
+                            <FileText className="w-4 h-4 text-green-600 flex-shrink-0" />
+                            <span className="text-xs text-green-700 truncate flex-1">{item.deliveryNote.name}</span>
+                            <button onClick={() => setLineItems(prev => prev.map((it, i) => i === index ? { ...it, deliveryNote: null } : it))} className="text-red-500 hover:text-red-700"><X className="w-3.5 h-3.5" /></button>
+                          </div>
+                        ) : (
+                          <>
+                            <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => handleDeliveryNoteUpload(e, index)} className="hidden" id={`r-del-note-${index}`} />
+                            <label htmlFor={`r-del-note-${index}`} className="flex items-center justify-center gap-2 w-full px-3 py-3 border-2 border-dashed border-gray-300 rounded-lg text-xs text-gray-500 hover:border-blue-400 hover:text-blue-600 cursor-pointer transition-colors">
+                              <Upload className="w-3.5 h-3.5" /> Upload Delivery Note
+                            </label>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Invoice Number *</label>
+                        <input type="text" value={item.invoiceNumber} onChange={e => handleLineItemChange(index, "invoiceNumber", e.target.value)} placeholder="Invoice Number" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Invoice Date *</label>
+                        <input type="date" value={item.invoiceDate} onChange={e => handleLineItemChange(index, "invoiceDate", e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Invoice Amount (AED) *</label>
+                        <input type="number" value={item.invoiceAmount} onChange={e => handleLineItemChange(index, "invoiceAmount", e.target.value)} placeholder="0" min="0" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Payment Due Date *</label>
+                        <input type="date" value={item.paymentDueDate} onChange={e => handleLineItemChange(index, "paymentDueDate", e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
-        )}
+          {lineItems.some(i => i.invoiceAmount) && (
+            <div className="bg-gray-50 rounded-lg p-3 flex justify-between items-center mt-4">
+              <span className="text-sm text-gray-600">Total Amount ({lineItems.filter(i => i.invoiceAmount).length} invoice{lineItems.filter(i => i.invoiceAmount).length !== 1 ? "s" : ""})</span>
+              <span className="text-sm font-semibold text-gray-900">{formatCurrency(totalAmount)}</span>
+            </div>
+          )}
+        </div>
+
+
       </div>
     );
   };
 
   /* ───── Inline Add Form Page ───── */
   if (showAddForm) {
+    const stepLabels = ["Payment Config", "Upload", "Review & Submit"];
+    const currentStep = addPhase === "config" ? 0 : (addPhase === "upload" || addPhase === "file-review") ? 1 : 2;
+
     return (
       <div className="p-6 max-w-7xl mx-auto">
         <button onClick={resetForm} className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 mb-6">
@@ -598,83 +780,37 @@ export function InvoicesModule() {
         <h2 className="text-2xl font-semibold text-gray-900 mb-1">{addToExistingGroup ? `Add Invoices to ${addToExistingGroup}` : "Add Invoice"}</h2>
         <p className="text-sm text-gray-500 mb-6">{addToExistingGroup ? "Add new invoices to the existing group" : "Create a new invoice financing request"}</p>
 
-        <div className="space-y-6">
-          {/* Group Details Section */}
-          {addToExistingGroup && existingGroupForForm ? (
-            <div className="bg-gray-50 rounded-lg border border-gray-200 px-4 py-2.5 flex items-center gap-3 text-sm">
-              <span className="font-semibold text-gray-900">{existingGroupForForm.id}</span>
-              <span className="text-gray-400">|</span>
-              <span className="text-gray-500">Buyer:</span> <span className="font-medium text-gray-900">{existingGroupForForm.buyerName}</span>
-              <span className="text-gray-400">|</span>
-              <span className="text-gray-500">Repayment:</span> <span className="font-medium text-gray-900 capitalize">{existingGroupForForm.repaymentStructure}</span>
-              <span className="text-gray-400">|</span>
-              <span className="text-gray-500">Total:</span> <span className="font-medium text-gray-900">{formatCurrency(existingGroupForForm.totalInvoiceAmount)}</span>
-            </div>
-          ) : (
-            <div className="bg-white rounded-lg border border-gray-200 px-4 py-3">
-              <div className="flex items-end gap-4">
-                <div className="flex-1">
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Buyer Name *</label>
-                  <input type="text" value={buyerName} onChange={e => setBuyerName(e.target.value)} placeholder="Buyer Name" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        {/* Step Indicator */}
+        {!addToExistingGroup && (
+          <div className="flex items-center gap-2 mb-6">
+            {stepLabels.map((label, idx) => (
+              <div key={idx} className="flex items-center gap-2">
+                <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium ${idx < currentStep ? "bg-green-100 text-green-700" : idx === currentStep ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-500"}`}>
+                  <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${idx < currentStep ? "bg-green-600 text-white" : idx === currentStep ? "bg-blue-600 text-white" : "bg-gray-300 text-white"}`}>
+                    {idx < currentStep ? "✓" : idx + 1}
+                  </span>
+                  {label}
                 </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Repayment Structure *</label>
-                  <div className="flex gap-2">
-                    <button type="button" onClick={() => { setRepaymentStructure("bullet"); setSelectedTenure(null); }} className={`px-4 py-2 border-2 rounded-lg text-sm font-medium transition-colors ${repaymentStructure === "bullet" ? "border-blue-600 bg-blue-50 text-blue-700" : "border-gray-200 text-gray-700 hover:border-gray-300"}`}>Bullet</button>
-                    <button type="button" onClick={() => { setRepaymentStructure("installments"); setSelectedTenure(null); }} className={`px-4 py-2 border-2 rounded-lg text-sm font-medium transition-colors ${repaymentStructure === "installments" ? "border-blue-600 bg-blue-50 text-blue-700" : "border-gray-200 text-gray-700 hover:border-gray-300"}`}>Installments</button>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Tenor *</label>
-                  <div className="flex gap-1.5">
-                    {TENURE_OPTIONS[repaymentStructure].map(t => (
-                      <button key={t} type="button" onClick={() => setSelectedTenure(t)} className={`px-3 py-2 border-2 rounded-lg text-sm font-medium transition-colors ${selectedTenure === t ? "border-blue-600 bg-blue-50 text-blue-700" : "border-gray-200 text-gray-700 hover:border-gray-300"}`}>
-                        {t}d
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                {idx < stepLabels.length - 1 && <div className={`w-8 h-0.5 ${idx < currentStep ? "bg-green-300" : "bg-gray-200"}`} />}
               </div>
-              {/* Real-time Pricing Preview */}
-              {selectedTenure && totalAmount > 0 && (() => {
-                const preview = calculatePricing(repaymentStructure, selectedTenure, totalAmount);
-                return (
-                  <div className="mt-3 border border-blue-200 rounded-lg overflow-hidden">
-                    <div className="bg-blue-50 px-4 py-2 flex items-center gap-2 border-b border-blue-200">
-                      <DollarSign className="w-3.5 h-3.5 text-blue-600" />
-                      <span className="text-xs font-semibold text-blue-800">Pricing</span>
-                    </div>
-                    <div className="bg-white px-4 py-3">
-                      <div className="flex items-center gap-6">
-                        <div>
-                          <p className="text-[10px] uppercase tracking-wide text-gray-400 mb-0.5">Fee %</p>
-                          <p className="text-lg font-bold text-gray-900">{(preview.flatFeePercent * 100).toFixed(2)}%</p>
-                        </div>
-                        <div className="h-8 w-px bg-gray-200" />
-                        <div className="flex items-center gap-2 text-sm">
-                          <div className="text-center">
-                            <p className="text-[10px] uppercase tracking-wide text-gray-400 mb-0.5">Fee</p>
-                            <p className="font-medium text-gray-900">{formatCurrency(preview.flatFeeAmount)}</p>
-                          </div>
-                          <span className="text-gray-300 text-lg">+</span>
-                          <div className="text-center">
-                            <p className="text-[10px] uppercase tracking-wide text-gray-400 mb-0.5">VAT (5%)</p>
-                            <p className="font-medium text-gray-900">{formatCurrency(preview.vatAmount)}</p>
-                          </div>
-                          <span className="text-gray-300 text-lg">=</span>
-                          <div className="text-center">
-                            <p className="text-[10px] uppercase tracking-wide text-gray-400 mb-0.5">Total Fee</p>
-                            <p className="font-bold text-green-700">{formatCurrency(preview.totalFeeWithVat)}</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })()}
-            </div>
-          )}
+            ))}
+          </div>
+        )}
 
+        {/* Existing group info banner */}
+        {addToExistingGroup && existingGroupForForm && (
+          <div className="bg-gray-50 rounded-lg border border-gray-200 px-4 py-2.5 flex items-center gap-3 text-sm mb-6">
+            <span className="font-semibold text-gray-900">{existingGroupForForm.id}</span>
+            <span className="text-gray-400">|</span>
+            <span className="text-gray-500">Buyer:</span> <span className="font-medium text-gray-900">{existingGroupForForm.buyerName}</span>
+            <span className="text-gray-400">|</span>
+            <span className="text-gray-500">Repayment:</span> <span className="font-medium text-gray-900 capitalize">{existingGroupForForm.repaymentStructure}</span>
+            <span className="text-gray-400">|</span>
+            <span className="text-gray-500">Total:</span> <span className="font-medium text-gray-900">{formatCurrency(existingGroupForForm.totalInvoiceAmount)}</span>
+          </div>
+        )}
+
+        <div className="space-y-6">
           {/* Invoices Section */}
           {renderAddInvoiceContent()}
 
@@ -686,7 +822,7 @@ export function InvoicesModule() {
               disabled={submitting || !lineItems.some(i => i.invoiceNumber.trim()) || (!addToExistingGroup && (!buyerName.trim() || !selectedTenure))}
               className="px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
-              Submit
+              Submit Invoices
             </button>
           </div>
           )}

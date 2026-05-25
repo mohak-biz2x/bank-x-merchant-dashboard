@@ -48,6 +48,7 @@ export function MerchantDashboard() {
   const [postApprovalStep, setPostApprovalStep] = useState(1); // 1=eSign, 2=security
   const [signedAgreements, setSignedAgreements] = useState<Record<string, boolean>>({
     financing: false,
+    murabaha: false,
   });
   const [securityMethod, setSecurityMethod] = useState<"cheque" | "mandate" | null>(null);
   const [securityChequeFile, setSecurityChequeFile] = useState<File | null>(null);
@@ -76,7 +77,7 @@ export function MerchantDashboard() {
 
   useEffect(() => {
     const onCompleteEsign = () => {
-      setSignedAgreements({ financing: true });
+      setSignedAgreements({ financing: true, murabaha: true });
       setDocuSignDoc(null);
     };
     window.addEventListener("demo-complete-esign", onCompleteEsign);
@@ -228,7 +229,7 @@ export function MerchantDashboard() {
 
   // Financing choice screen (after underwriting approved) — multi-step
   if (uwStatus === "approved") {
-    const allSigned = signedAgreements.financing;
+    const allSigned = signedAgreements.financing && signedAgreements.murabaha;
     const securityComplete = securityMethod === "cheque" ? !!securityChequeFile : securityMethod === "mandate" ? mandateConfirmed : false;
 
     const openMandateFlow = () => {
@@ -284,6 +285,7 @@ export function MerchantDashboard() {
               <div className="space-y-4">
                 {[
                   { key: "financing", label: "Financing Agreement", desc: "Master financing agreement covering terms, rates, and conditions of the credit facility" },
+                  { key: "murabaha", label: "Murabaha Agreement", desc: "Master Murabaha agreement governing commodity purchase and sale transactions" },
                 ].map((agreement) => (
                   <div key={agreement.key} className={`border rounded-lg p-5 transition-all ${signedAgreements[agreement.key] ? "border-green-300 bg-green-50" : "border-gray-200"}`}>
                     <div className="flex items-start justify-between">

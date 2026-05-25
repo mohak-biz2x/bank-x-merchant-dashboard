@@ -1,11 +1,9 @@
 import { FileText, Plus, Upload, X, CheckCircle, Clock, AlertCircle, DollarSign, Eye, Download, MoreVertical, ArrowLeft, ChevronLeft, ChevronRight, Loader2, PenTool } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router";
 import { showToast } from "./Toast";
-import { DocuSignModal } from "./DocuSignModal";
-import { Spotlight } from "./Spotlight";
 
-type GroupStatus = "verification_in_progress" | "manual_verification_required" | "verification_complete" | "contract_generated" | "contract_esign_pending" | "contract_esign_complete" | "sent_to_lms" | "disbursed";
+type GroupStatus = "verification_in_progress" | "manual_verification_required" | "verification_complete" | "contract_generated" | "executing_contract" | "sent_to_lms" | "disbursed";
 type InvoiceStatus = "pending" | "refer" | "approved" | "rejected";
 
 interface InvoiceItem {
@@ -23,11 +21,64 @@ interface InvoiceGroup {
   uploadedOn: string;
   uploadedBy: string;
   totalInvoiceAmount: number;
-  totalDisbursementAmount: number | null;
   status: GroupStatus;
   buyerName: string;
   repaymentStructure: "bullet" | "installments";
+  tenure: number | null;
+  pricing: GroupPricing | null;
 }
+
+interface GroupPricing {
+  flatFeePercent: number;
+  flatFeeAmount: number;
+  vatAmount: number;
+  totalFeeWithVat: number;
+  multiple: number;
+  roi: number;
+  borrowerCategory: "A" | "B" | "C";
+}
+
+// Pricing Rule Engine
+type BorrowerCategory = "A" | "B" | "C";
+
+const PRICING_MATRIX: Record<BorrowerCategory, Record<"bullet" | "installments", Record<number, number>>> = {
+  A: {
+    installments: { 30: 0.008, 60: 0.016, 90: 0.024, 120: 0.032, 150: 0.04, 180: 0.048 },
+    bullet: { 60: 0.01, 90: 0.015, 120: 0.02, 150: 0.025, 180: 0.03 },
+  },
+  B: {
+    installments: { 30: 0.015, 60: 0.03, 90: 0.045, 120: 0.06, 150: 0.075, 180: 0.09 },
+    bullet: { 60: 0.02, 90: 0.03, 120: 0.04, 150: 0.05, 180: 0.06 },
+  },
+  C: {
+    installments: { 30: 0.02, 60: 0.04, 90: 0.06, 120: 0.08, 150: 0.1, 180: 0.12 },
+    bullet: { 60: 0.03, 90: 0.045, 120: 0.06, 150: 0.075, 180: 0.09 },
+  },
+};
+
+const VAT_RATE = 0.05;
+
+function getBorrowerCategory(): BorrowerCategory {
+  const cat = localStorage.getItem("demo_borrower_category");
+  if (cat === "A" || cat === "B" || cat === "C") return cat;
+  return "B"; // Default to Standard
+}
+
+function calculatePricing(repaymentStructure: "bullet" | "installments", tenure: number, totalAmount: number): GroupPricing {
+  const category = getBorrowerCategory();
+  const flatFeePercent = PRICING_MATRIX[category]?.[repaymentStructure]?.[tenure] || 0;
+  const flatFeeAmount = totalAmount * flatFeePercent;
+  const vatAmount = flatFeeAmount * VAT_RATE;
+  const totalFeeWithVat = flatFeeAmount + vatAmount;
+  const multiple = 360 / tenure;
+  const roi = flatFeePercent * multiple;
+  return { flatFeePercent, flatFeeAmount, vatAmount, totalFeeWithVat, multiple, roi, borrowerCategory: category };
+}
+
+const TENURE_OPTIONS: Record<"bullet" | "installments", number[]> = {
+  installments: [30, 60, 90, 120, 150, 180],
+  bullet: [60, 90, 120, 150, 180],
+};
 
 interface LineItem {
   invoiceNumber: string;
@@ -48,7 +99,8 @@ const ITEMS_PER_PAGE = 10;
 const initialGroups: InvoiceGroup[] = [
   {
     id: "GRP-R001", uploadedOn: "2024-03-05", uploadedBy: "Ahmed Al Mansouri", status: "verification_complete",
-    buyerName: "Dubai Retail Group", repaymentStructure: "bullet", totalInvoiceAmount: 310000, totalDisbursementAmount: null,
+    buyerName: "Dubai Retail Group", repaymentStructure: "bullet", totalInvoiceAmount: 310000,
+    tenure: 90, pricing: calculatePricing("bullet", 90, 310000),
     invoices: [
       { id: "INV-R001-01", invoiceDate: "2024-03-01", invoiceAmount: 145000, paymentDueDate: "2024-06-01", buyerName: "Dubai Retail Group", status: "approved" },
       { id: "INV-R001-02", invoiceDate: "2024-03-02", invoiceAmount: 98000, paymentDueDate: "2024-06-02", buyerName: "Dubai Retail Group", status: "approved" },
@@ -57,33 +109,37 @@ const initialGroups: InvoiceGroup[] = [
   },
   {
     id: "GRP-R002", uploadedOn: "2024-03-10", uploadedBy: "Ahmed Al Mansouri", status: "verification_in_progress",
-    buyerName: "Al Futtaim Group", repaymentStructure: "bullet", totalInvoiceAmount: 385000, totalDisbursementAmount: null,
+    buyerName: "Al Futtaim Group", repaymentStructure: "bullet", totalInvoiceAmount: 385000,
+    tenure: 120, pricing: calculatePricing("bullet", 120, 385000),
     invoices: [
       { id: "INV-R002-01", invoiceDate: "2024-03-08", invoiceAmount: 210000, paymentDueDate: "2024-06-08", buyerName: "Al Futtaim Group", status: "pending" },
       { id: "INV-R002-02", invoiceDate: "2024-03-09", invoiceAmount: 175000, paymentDueDate: "2024-06-09", buyerName: "Al Futtaim Group", status: "pending" },
     ],
   },
   {
-    id: "GRP-R003", uploadedOn: "2024-02-28", uploadedBy: "Ahmed Al Mansouri", status: "contract_esign_pending",
-    buyerName: "Emirates Trading LLC", repaymentStructure: "installments", totalInvoiceAmount: 469000, totalDisbursementAmount: null,
+    id: "GRP-R003", uploadedOn: "2024-02-28", uploadedBy: "Ahmed Al Mansouri", status: "sent_to_lms",
+    buyerName: "Emirates Trading LLC", repaymentStructure: "installments", totalInvoiceAmount: 469000,
+    tenure: 90, pricing: calculatePricing("installments", 90, 469000),
     invoices: [
       { id: "INV-R003-01", invoiceDate: "2024-02-25", invoiceAmount: 89000, paymentDueDate: "2024-05-25", buyerName: "Emirates Trading LLC", status: "approved" },
       { id: "INV-R003-02", invoiceDate: "2024-02-26", invoiceAmount: 134000, paymentDueDate: "2024-05-26", buyerName: "Emirates Trading LLC", status: "approved" },
       { id: "INV-R003-03", invoiceDate: "2024-02-27", invoiceAmount: 56000, paymentDueDate: "2024-05-27", buyerName: "Emirates Trading LLC", status: "approved" },
-      { id: "INV-R003-04", invoiceDate: "2024-02-27", invoiceAmount: 78000, paymentDueDate: "2024-05-27", buyerName: "Emirates Trading LLC", status: "refer" },
+      { id: "INV-R003-04", invoiceDate: "2024-02-27", invoiceAmount: 78000, paymentDueDate: "2024-05-27", buyerName: "Emirates Trading LLC", status: "approved" },
       { id: "INV-R003-05", invoiceDate: "2024-02-28", invoiceAmount: 112000, paymentDueDate: "2024-05-28", buyerName: "Emirates Trading LLC", status: "approved" },
     ],
   },
   {
     id: "GRP-R004", uploadedOn: "2024-03-12", uploadedBy: "Ahmed Al Mansouri", status: "manual_verification_required",
-    buyerName: "Sharjah Construction Co.", repaymentStructure: "bullet", totalInvoiceAmount: 320000, totalDisbursementAmount: null,
+    buyerName: "Sharjah Construction Co.", repaymentStructure: "bullet", totalInvoiceAmount: 320000,
+    tenure: 60, pricing: calculatePricing("bullet", 60, 320000),
     invoices: [
       { id: "INV-R004-01", invoiceDate: "2024-03-10", invoiceAmount: 320000, paymentDueDate: "2024-06-10", buyerName: "Sharjah Construction Co.", status: "pending" },
     ],
   },
   {
     id: "GRP-R005", uploadedOn: "2024-02-15", uploadedBy: "Ahmed Al Mansouri", status: "disbursed",
-    buyerName: "Abu Dhabi Logistics", repaymentStructure: "bullet", totalInvoiceAmount: 890000, totalDisbursementAmount: 890000,
+    buyerName: "Abu Dhabi Logistics", repaymentStructure: "bullet", totalInvoiceAmount: 890000,
+    tenure: 90, pricing: calculatePricing("bullet", 90, 890000),
     invoices: [
       { id: "INV-R005-01", invoiceDate: "2024-02-10", invoiceAmount: 245000, paymentDueDate: "2024-05-10", buyerName: "Abu Dhabi Logistics", status: "approved" },
       { id: "INV-R005-02", invoiceDate: "2024-02-11", invoiceAmount: 198000, paymentDueDate: "2024-05-11", buyerName: "Abu Dhabi Logistics", status: "approved" },
@@ -93,7 +149,8 @@ const initialGroups: InvoiceGroup[] = [
   },
   {
     id: "GRP-R006", uploadedOn: "2024-03-01", uploadedBy: "Ahmed Al Mansouri", status: "sent_to_lms",
-    buyerName: "RAK Metals Trading", repaymentStructure: "installments", totalInvoiceAmount: 299000, totalDisbursementAmount: null,
+    buyerName: "RAK Metals Trading", repaymentStructure: "installments", totalInvoiceAmount: 299000,
+    tenure: 120, pricing: calculatePricing("installments", 120, 299000),
     invoices: [
       { id: "INV-R006-01", invoiceDate: "2024-02-28", invoiceAmount: 156000, paymentDueDate: "2024-05-28", buyerName: "RAK Metals Trading", status: "approved" },
       { id: "INV-R006-02", invoiceDate: "2024-02-28", invoiceAmount: 143000, paymentDueDate: "2024-05-28", buyerName: "RAK Metals Trading", status: "approved" },
@@ -114,14 +171,12 @@ export function InvoicesModule() {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [buyerName, setBuyerName] = useState("");
   const [repaymentStructure, setRepaymentStructure] = useState<"bullet" | "installments">("bullet");
+  const [selectedTenure, setSelectedTenure] = useState<number | null>(null);
   const [addPhase, setAddPhase] = useState<AddInvoicePhase>("upload");
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [lineItems, setLineItems] = useState<LineItem[]>([]);
-  const [showMurabahaSign, setShowMurabahaSign] = useState(false);
   const [showCommodityExchange, setShowCommodityExchange] = useState(false);
-  const [spotlightTarget, setSpotlightTarget] = useState<"murabaha" | null>(null);
-  const murabahaBtnRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (searchParams.get("add") === "true") setShowAddForm(true);
@@ -130,11 +185,11 @@ export function InvoicesModule() {
   // Auto-update group status based on invoice statuses
   useEffect(() => {
     setGroups(prev => prev.map(g => {
-      if (g.invoices.length === 0 || g.status === "contract_esign_complete" || g.status === "sent_to_lms" || g.status === "disbursed") return g;
+      if (g.invoices.length === 0 || g.status === "executing_contract" || g.status === "sent_to_lms" || g.status === "disbursed") return g;
       const allApproved = g.invoices.every(inv => inv.status === "approved");
       const hasReferOrRejected = g.invoices.some(inv => inv.status === "refer" || inv.status === "rejected");
-      if (allApproved && g.status !== "contract_esign_pending") {
-        return { ...g, status: "contract_esign_pending" };
+      if (allApproved && g.status !== "executing_contract") {
+        return { ...g, status: "executing_contract" };
       }
       if (hasReferOrRejected && g.status !== "manual_verification_required") {
         return { ...g, status: "manual_verification_required" };
@@ -142,6 +197,19 @@ export function InvoicesModule() {
       return g;
     }));
   }, [groups]);
+
+  // Auto-trigger Murabaha contract execution and send to LMS when group becomes executing_contract
+  useEffect(() => {
+    const executingGroup = groups.find(g => g.status === "executing_contract" && g.id === viewingGroup);
+    if (executingGroup && !showCommodityExchange) {
+      setShowCommodityExchange(true);
+      setTimeout(() => {
+        setGroups(prev => prev.map(g => g.id === executingGroup.id ? { ...g, status: "sent_to_lms" as GroupStatus } : g));
+        showToast("success", "Murabaha contract executed. Details sent to LMS.");
+        setShowCommodityExchange(false);
+      }, 10000);
+    }
+  }, [groups, viewingGroup]);
 
   useEffect(() => {
     if (openMenuId) {
@@ -160,8 +228,7 @@ export function InvoicesModule() {
       manual_verification_required: { color: "bg-amber-100 text-amber-700", label: "Manual Verification Required" },
       verification_complete: { color: "bg-green-100 text-green-700", label: "Verification Complete" },
       contract_generated: { color: "bg-gray-100 text-gray-700", label: "Contract Generated" },
-      contract_esign_pending: { color: "bg-amber-100 text-amber-700", label: "Contract E-Sign Pending" },
-      contract_esign_complete: { color: "bg-green-100 text-green-700", label: "Contract E-Sign Complete" },
+      executing_contract: { color: "bg-amber-100 text-amber-700", label: "Executing Contract" },
       sent_to_lms: { color: "bg-green-100 text-green-700", label: "Sent to LMS" },
       disbursed: { color: "bg-emerald-100 text-emerald-700", label: "Disbursed" },
     };
@@ -300,10 +367,11 @@ export function InvoicesModule() {
         uploadedOn: new Date().toISOString().split("T")[0],
         uploadedBy: "Ahmed Al Mansouri",
         totalInvoiceAmount: totalAmount,
-        totalDisbursementAmount: null,
         status: "verification_in_progress",
         buyerName: buyerName.trim(),
         repaymentStructure,
+        tenure: selectedTenure,
+        pricing: selectedTenure ? calculatePricing(repaymentStructure, selectedTenure, totalAmount) : null,
       };
       setGroups(prev => [newGroup, ...prev]);
       setTimeout(() => {
@@ -338,6 +406,7 @@ export function InvoicesModule() {
     setSubmitting(false);
     setBuyerName("");
     setRepaymentStructure("bullet");
+    setSelectedTenure(null);
     setAddPhase("upload");
     setUploadedFiles([]);
     setLineItems([]);
@@ -346,18 +415,11 @@ export function InvoicesModule() {
   const stats = [
     { label: "Total Requests", value: groups.length, icon: FileText, color: "bg-blue-100 text-blue-600" },
     { label: "Under Validation", value: groups.filter(g => g.status === "verification_in_progress" || g.status === "manual_verification_required").length, icon: AlertCircle, color: "bg-yellow-100 text-yellow-600" },
-    { label: "Approved", value: groups.filter(g => ["verification_complete", "contract_generated", "contract_esign_pending", "contract_esign_complete"].includes(g.status)).length, icon: CheckCircle, color: "bg-green-100 text-green-600" },
+    { label: "Approved", value: groups.filter(g => ["verification_complete", "contract_generated", "executing_contract"].includes(g.status)).length, icon: CheckCircle, color: "bg-green-100 text-green-600" },
     { label: "Disbursed", value: groups.filter(g => g.status === "disbursed").length, icon: DollarSign, color: "bg-emerald-100 text-emerald-600" },
   ];
 
   const activeGroup = viewingGroup ? groups.find(g => g.id === viewingGroup) : null;
-
-  // Show spotlight on Murabaha button when group becomes contract_esign_pending
-  useEffect(() => {
-    if (activeGroup && activeGroup.status === "contract_esign_pending" && viewingGroup && !showMurabahaSign && !showCommodityExchange) {
-      setSpotlightTarget("murabaha");
-    }
-  }, [activeGroup?.status, viewingGroup]);
 
   const filteredGroups = groups.filter(g =>
     g.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -558,11 +620,57 @@ export function InvoicesModule() {
                 <div>
                   <label className="block text-xs font-medium text-gray-600 mb-1">Repayment Structure *</label>
                   <div className="flex gap-2">
-                    <button type="button" onClick={() => setRepaymentStructure("bullet")} className={`px-4 py-2 border-2 rounded-lg text-sm font-medium transition-colors ${repaymentStructure === "bullet" ? "border-blue-600 bg-blue-50 text-blue-700" : "border-gray-200 text-gray-700 hover:border-gray-300"}`}>Bullet</button>
-                    <button type="button" onClick={() => setRepaymentStructure("installments")} className={`px-4 py-2 border-2 rounded-lg text-sm font-medium transition-colors ${repaymentStructure === "installments" ? "border-blue-600 bg-blue-50 text-blue-700" : "border-gray-200 text-gray-700 hover:border-gray-300"}`}>Installments</button>
+                    <button type="button" onClick={() => { setRepaymentStructure("bullet"); setSelectedTenure(null); }} className={`px-4 py-2 border-2 rounded-lg text-sm font-medium transition-colors ${repaymentStructure === "bullet" ? "border-blue-600 bg-blue-50 text-blue-700" : "border-gray-200 text-gray-700 hover:border-gray-300"}`}>Bullet</button>
+                    <button type="button" onClick={() => { setRepaymentStructure("installments"); setSelectedTenure(null); }} className={`px-4 py-2 border-2 rounded-lg text-sm font-medium transition-colors ${repaymentStructure === "installments" ? "border-blue-600 bg-blue-50 text-blue-700" : "border-gray-200 text-gray-700 hover:border-gray-300"}`}>Installments</button>
                   </div>
                 </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Tenure *</label>
+                  <select value={selectedTenure || ""} onChange={e => setSelectedTenure(Number(e.target.value))} className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Select tenure</option>
+                    {TENURE_OPTIONS[repaymentStructure].map(t => (
+                      <option key={t} value={t}>{t} Days</option>
+                    ))}
+                  </select>
+                </div>
               </div>
+              {/* Real-time Pricing Preview */}
+              {selectedTenure && totalAmount > 0 && (() => {
+                const preview = calculatePricing(repaymentStructure, selectedTenure, totalAmount);
+                return (
+                  <div className="mt-3 border border-blue-200 rounded-lg overflow-hidden">
+                    <div className="bg-blue-50 px-4 py-2 flex items-center gap-2 border-b border-blue-200">
+                      <DollarSign className="w-3.5 h-3.5 text-blue-600" />
+                      <span className="text-xs font-semibold text-blue-800">Pricing</span>
+                    </div>
+                    <div className="bg-white px-4 py-3">
+                      <div className="flex items-center gap-6">
+                        <div>
+                          <p className="text-[10px] uppercase tracking-wide text-gray-400 mb-0.5">Fee %</p>
+                          <p className="text-lg font-bold text-gray-900">{(preview.flatFeePercent * 100).toFixed(2)}%</p>
+                        </div>
+                        <div className="h-8 w-px bg-gray-200" />
+                        <div className="flex items-center gap-2 text-sm">
+                          <div className="text-center">
+                            <p className="text-[10px] uppercase tracking-wide text-gray-400 mb-0.5">Fee</p>
+                            <p className="font-medium text-gray-900">{formatCurrency(preview.flatFeeAmount)}</p>
+                          </div>
+                          <span className="text-gray-300 text-lg">+</span>
+                          <div className="text-center">
+                            <p className="text-[10px] uppercase tracking-wide text-gray-400 mb-0.5">VAT (5%)</p>
+                            <p className="font-medium text-gray-900">{formatCurrency(preview.vatAmount)}</p>
+                          </div>
+                          <span className="text-gray-300 text-lg">=</span>
+                          <div className="text-center">
+                            <p className="text-[10px] uppercase tracking-wide text-gray-400 mb-0.5">Total Fee</p>
+                            <p className="font-bold text-green-700">{formatCurrency(preview.totalFeeWithVat)}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           )}
 
@@ -574,7 +682,7 @@ export function InvoicesModule() {
           <div className="flex justify-end">
             <button
               onClick={handleSubmit}
-              disabled={submitting || !lineItems.some(i => i.invoiceNumber.trim()) || (!addToExistingGroup && !buyerName.trim())}
+              disabled={submitting || !lineItems.some(i => i.invoiceNumber.trim()) || (!addToExistingGroup && (!buyerName.trim() || !selectedTenure))}
               className="px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               Submit
@@ -599,11 +707,6 @@ export function InvoicesModule() {
           {!viewingGroup && (
             <button onClick={() => { setAddToExistingGroup(null); setShowAddForm(true); }} className="flex items-center gap-2 bg-[#4F8DFF] text-white px-4 py-2 rounded-lg hover:bg-[#3A7AE8] transition-colors font-medium">
               <Plus className="w-4 h-4" /> Add Invoice
-            </button>
-          )}
-          {viewingGroup && activeGroup && activeGroup.status === "contract_esign_pending" && (
-            <button ref={murabahaBtnRef} onClick={() => { setShowMurabahaSign(true); setSpotlightTarget(null); }} className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium">
-              <FileText className="w-4 h-4" /> View & E-Sign Murabaha Contract
             </button>
           )}
         </div>
@@ -635,26 +738,69 @@ export function InvoicesModule() {
           <button onClick={() => { setViewingGroup(null); setSearchTerm(""); setCurrentPage(1); }} className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 mb-4">
             <ArrowLeft className="w-4 h-4" /> Back to Invoice Groups
           </button>
-          <div className="bg-white rounded-lg border border-gray-200 px-4 py-2.5 mb-4 flex items-center justify-between">
-            <div className="flex items-center gap-3 text-sm">
-              <span className="font-semibold text-gray-900">{activeGroup.id}</span>
-              {getGroupStatusBadge(activeGroup.status)}
-              <span className="text-gray-400">|</span>
-              <span className="text-gray-500">Buyer:</span> <span className="font-medium text-gray-900">{activeGroup.buyerName}</span>
-              <span className="text-gray-400">|</span>
-              <span className="text-gray-500">Total:</span> <span className="font-medium text-gray-900">{formatCurrency(activeGroup.totalInvoiceAmount)}</span>
-              <span className="text-gray-400">|</span>
-              <span className="text-gray-500">Repayment:</span> <span className="font-medium text-gray-900 capitalize">{activeGroup.repaymentStructure}</span>
+          <div className="bg-white rounded-lg border border-gray-200 mb-5 overflow-hidden">
+            {/* Header — GRP ID + Status */}
+            <div className="px-5 py-3 flex items-center justify-between border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <span className="text-base font-bold text-gray-900 tracking-tight">{activeGroup.id}</span>
+                {getGroupStatusBadge(activeGroup.status)}
+              </div>
             </div>
-          </div>
 
-          {/* Disbursement info banner */}
-          {(activeGroup.status === "sent_to_lms" || activeGroup.status === "disbursed") && (
-            <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-3 mb-4 flex items-start gap-2">
-              <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-green-800">{activeGroup.status === "disbursed" ? "Funds have been disbursed to your account." : "The amount will be disbursed shortly to your account and you will be notified for the same."}</p>
+            {/* Two-column layout: Details left, Fee breakdown right */}
+            <div className="flex border-b border-gray-100">
+              {/* Left — Key Details */}
+              <div className="flex-1 px-5 py-4 border-r border-gray-100">
+                <div className="grid grid-cols-4 gap-x-6 gap-y-3">
+                  <div>
+                    <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wider mb-0.5">Buyer</p>
+                    <p className="text-sm font-medium text-gray-900">{activeGroup.buyerName}</p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wider mb-0.5">Financed Amount</p>
+                    <p className="text-lg font-bold text-gray-900 tabular-nums">{formatCurrency(activeGroup.totalInvoiceAmount)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wider mb-0.5">Repayment Period</p>
+                    <p className="text-sm font-medium text-gray-900">{activeGroup.tenure ? `${activeGroup.tenure} days` : "—"}</p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wider mb-0.5">Payment Type</p>
+                    <p className="text-sm font-medium text-gray-900 capitalize">{activeGroup.repaymentStructure}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right — Fee Breakdown */}
+              {activeGroup.pricing && (
+                <div className="w-[340px] px-5 py-4 bg-gray-50/60">
+                  <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wider mb-2">Processing Fee</p>
+                  <div className="flex items-stretch gap-3">
+                    <div className="bg-white rounded border border-gray-100 px-3 py-2 flex-1">
+                      <p className="text-[10px] text-gray-400 uppercase">Fee ({(activeGroup.pricing.flatFeePercent * 100).toFixed(2)}%)</p>
+                      <p className="text-sm font-semibold text-gray-900 tabular-nums">{formatCurrency(activeGroup.pricing.flatFeeAmount)}</p>
+                    </div>
+                    <div className="bg-white rounded border border-gray-100 px-3 py-2 flex-1">
+                      <p className="text-[10px] text-gray-400 uppercase">VAT</p>
+                      <p className="text-sm font-semibold text-gray-900 tabular-nums">{formatCurrency(activeGroup.pricing.vatAmount)}</p>
+                    </div>
+                    <div className="bg-green-50 rounded border border-green-200 px-3 py-2 flex-1">
+                      <p className="text-[10px] text-green-600 uppercase">Total</p>
+                      <p className="text-sm font-bold text-green-700 tabular-nums">{formatCurrency(activeGroup.pricing.totalFeeWithVat)}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
-          )}
+
+            {/* Status message */}
+            {(activeGroup.status === "sent_to_lms" || activeGroup.status === "disbursed") && (
+              <div className="px-5 py-2.5 bg-green-50 flex items-center gap-2.5">
+                <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+                <p className="text-sm text-green-800">{activeGroup.status === "disbursed" ? "Funds have been disbursed to your account. You have been notified." : "Funds will be disbursed shortly to your account. You will be notified."}</p>
+              </div>
+            )}
+          </div>
 
           {/* FIX 2 & 3: Search only, no button row (button moved to header) */}
           <div className="flex items-center mb-4">
@@ -724,7 +870,6 @@ export function InvoicesModule() {
                     <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Uploaded On</th>
                     <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Uploaded By</th>
                     <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Invoice Amount</th>
-                    <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Disbursement</th>
                     <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                     <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
                   </tr>
@@ -739,7 +884,6 @@ export function InvoicesModule() {
                         <td className="px-5 py-4 text-sm text-gray-900">{group.uploadedOn}</td>
                         <td className="px-5 py-4 text-sm text-gray-900">{group.uploadedBy}</td>
                         <td className="px-5 py-4 text-sm font-medium text-gray-900">{formatCurrency(group.totalInvoiceAmount)}</td>
-                        <td className="px-5 py-4 text-sm text-gray-900">{group.status === "disbursed" && group.totalDisbursementAmount ? formatCurrency(group.totalDisbursementAmount) : "-"}</td>
                         <td className="px-5 py-4">{getGroupStatusBadge(group.status)}</td>
                         <td className="px-5 py-4">
                           <div className="flex items-center gap-1 relative">
@@ -763,7 +907,7 @@ export function InvoicesModule() {
                     );
                   })}
                   {filteredGroups.length === 0 && (
-                    <tr><td colSpan={8} className="px-6 py-8 text-center text-sm text-gray-500">No invoice groups found.</td></tr>
+                    <tr><td colSpan={7} className="px-6 py-8 text-center text-sm text-gray-500">No invoice groups found.</td></tr>
                   )}
                 </tbody>
               </table>
@@ -784,29 +928,6 @@ export function InvoicesModule() {
         </div>
       )}
 
-      {/* DocuSign Simulation Modal for Murabaha Contract */}
-      {showMurabahaSign && activeGroup && (
-        <DocuSignModal
-          documentTitle="Murabaha Contract"
-          entityName={activeGroup.buyerName}
-          referenceId={activeGroup.id}
-          additionalDetails={[
-            { label: "Total Invoice Amount", value: formatCurrency(activeGroup.totalInvoiceAmount) },
-            { label: "Contract ID", value: `MRB-${activeGroup.id.replace("GRP-", "")}` },
-          ]}
-          onSign={() => {
-            setShowMurabahaSign(false);
-            setShowCommodityExchange(true);
-            setTimeout(() => {
-              setGroups(prev => prev.map(g => g.id === activeGroup.id ? { ...g, status: "disbursed" as GroupStatus, totalDisbursementAmount: g.totalInvoiceAmount } : g));
-              showToast("success", "Funds disbursed successfully.");
-              setShowCommodityExchange(false);
-            }, 10000);
-          }}
-          onClose={() => setShowMurabahaSign(false)}
-        />
-      )}
-
       {/* Commodity Exchange & Contract Execution Loader */}
       {showCommodityExchange && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
@@ -815,19 +936,14 @@ export function InvoicesModule() {
               <div className="absolute inset-0 w-16 h-16 bg-amber-100 rounded-full animate-ping opacity-30" style={{ animationDuration: "2s" }} />
               <Loader2 className="relative w-16 h-16 text-amber-500 animate-spin" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Commodity Exchange in Progress</h3>
-            <p className="text-sm text-gray-500 max-w-sm mb-4">The exchange of commodities and contract execution is in progress. This may take a few moments.</p>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Murabaha Contract Execution in Progress</h3>
+            <p className="text-sm text-gray-500 max-w-sm mb-4">Executing Murabaha contract and sending details to LMS. This may take a few moments.</p>
             <div className="flex items-center gap-2 text-xs text-gray-400">
               <div className="w-2 h-2 bg-amber-400 rounded-full animate-pulse" />
               <span>Processing Murabaha transaction...</span>
             </div>
           </div>
         </div>
-      )}
-
-      {/* Spotlight overlays */}
-      {spotlightTarget === "murabaha" && murabahaBtnRef.current && (
-        <Spotlight targetRef={murabahaBtnRef} message="All invoices approved! Sign the Murabaha contract to proceed with disbursement." onDismiss={() => setSpotlightTarget(null)} />
       )}
     </div>
   );

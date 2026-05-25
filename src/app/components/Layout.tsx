@@ -3,6 +3,7 @@ import { LayoutDashboard, FileText, LogOut, Building2, FlaskConical, X } from "l
 import { useState, useRef, useEffect } from "react";
 import { getMerchantRole, getUnderwritingStatus } from "./MerchantDashboard";
 import type { MerchantRole } from "./MerchantDashboard";
+import { showToast } from "./Toast";
 
 import { MalLogo } from "./MalLogo";
 import biz2xLogo from "@/assets/biz2X-m-logo.svg";
@@ -186,7 +187,7 @@ export function Layout() {
                     <button onClick={() => { window.dispatchEvent(new Event("demo-complete-esign")); setShowDemoPanel(false); }} className="px-3 py-2 rounded-md text-xs font-medium text-left bg-blue-50 text-blue-800 border border-blue-300 hover:bg-blue-100 transition-colors">Complete E-Signing</button>
                   )}
                   {uwStatus === "security-pending" && (
-                    <button onClick={() => { const choice = localStorage.getItem("pending_financing_choice") || "both"; localStorage.setItem("demo_merchant_role", choice); localStorage.setItem("merchant_underwriting_status", "none"); localStorage.removeItem("pending_financing_choice"); window.dispatchEvent(new Event("demo-role-change")); setShowDemoPanel(false); navigate("/"); }} className="px-3 py-2 rounded-md text-xs font-medium text-left bg-green-50 text-green-800 border border-green-300 hover:bg-green-100 transition-colors">Approve Security Onboarding</button>
+                    <button onClick={() => { const choice = localStorage.getItem("pending_financing_choice") || "both"; localStorage.setItem("demo_merchant_role", choice); localStorage.setItem("merchant_underwriting_status", "none"); localStorage.removeItem("pending_financing_choice"); window.dispatchEvent(new Event("demo-role-change")); showToast("success", "Security cheque approved. Customer account activated."); setShowDemoPanel(false); navigate("/"); }} className="px-3 py-2 rounded-md text-xs font-medium text-left bg-green-50 text-green-800 border border-green-300 hover:bg-green-100 transition-colors">Approve Security Cheque</button>
                   )}
                   <button onClick={() => { localStorage.setItem("merchant_underwriting_status", "none"); window.dispatchEvent(new Event("demo-role-change")); setShowDemoPanel(false); }} className="px-3 py-2 rounded-md text-xs font-medium text-left bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors">Skip Underwriting (Reset)</button>
                   <div className="border-t border-gray-200 my-1"></div>
@@ -251,6 +252,28 @@ export function Layout() {
                       key={opt.key}
                       onClick={() => { localStorage.setItem("demo_invoice_outcome", opt.key); setInvoiceOutcome(opt.key); window.dispatchEvent(new Event("demo-role-change")); }}
                       className={`px-2 py-1.5 rounded-md text-[11px] font-medium text-center transition-colors border ${invoiceOutcome === opt.key ? opt.active : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"}`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {/* Borrower Category Toggle */}
+              <div className="mb-1">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <FileText className="w-3 h-3 text-purple-600" />
+                  <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Borrower Category</span>
+                </div>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {([
+                    { key: "A", label: "A (Anchor)", desc: ">250m", active: "bg-green-100 text-green-800 border-green-300" },
+                    { key: "B", label: "B (Standard)", desc: "50-250m", active: "bg-blue-100 text-blue-800 border-blue-300" },
+                    { key: "C", label: "C (Spot)", desc: "<50m", active: "bg-amber-100 text-amber-800 border-amber-300" },
+                  ] as const).map(opt => (
+                    <button
+                      key={opt.key}
+                      onClick={() => { localStorage.setItem("demo_borrower_category", opt.key); window.dispatchEvent(new Event("demo-role-change")); }}
+                      className={`px-2 py-1.5 rounded-md text-[11px] font-medium text-center transition-colors border ${(localStorage.getItem("demo_borrower_category") || "B") === opt.key ? opt.active : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"}`}
                     >
                       {opt.label}
                     </button>

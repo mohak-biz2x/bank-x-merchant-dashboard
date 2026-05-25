@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { FileText, X, PenTool, Loader2, CheckCircle } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { FileText, X, PenTool, Loader2, CheckCircle, AlertCircle } from "lucide-react";
 
 interface DocuSignModalProps {
   documentTitle: string;
@@ -10,19 +10,171 @@ interface DocuSignModalProps {
   onClose: () => void;
 }
 
+const DOCUSIGN_BACKEND_URL = "http://localhost:3001";
+
+type Mode = "loading" | "embedded" | "simulated" | "error";
+
 export function DocuSignModal({ documentTitle, entityName, referenceId, additionalDetails, onSign, onClose }: DocuSignModalProps) {
+  const [mode, setMode] = useState<Mode>("loading");
+  const [signingUrl, setSigningUrl] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState("");
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  // Simulated signing state (fallback)
   const [signed, setSigned] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [docId] = useState(() => `DOC-${Math.random().toString(36).substring(2, 8).toUpperCase()}`);
   const today = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
 
-  const handleSubmit = () => {
+  // Try to get a real embedded signing URL from the backend
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchSigningUrl() {
+      try {
+        const healthRes = await fetch(`${DOCUSIGN_BACKEND_URL}/api/health`, { signal: AbortSignal.timeout(3000) });
+        if (!healthRes.ok) throw new Error("Backend not available");
+
+        const res = await fetch(`${DOCUSIGN_BACKEND_URL}/api/envelopes`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            signerEmail: "demo@bankx.com",
+            signerName: entityName,
+            subject: `${documentTitle} - ${referenceId}`,
+          }),
+        });
+
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || `Server error: ${res.status}`);
+        }
+
+        const data = await res.json();
+        if (!cancelled) {
+          setSigningUrl(data.signingUrl);
+          setMode("embedded");
+        }
+      } catch (err: any) {
+        if (!cancelled) {
+          console.warn("DocuSign backend unavailable, falling back to simulation:", err.message);
+          setMode("simulated");
+        }
+      }
+    }
+
+    fetchSigningUrl();
+    return () => { cancelled = true; };
+  }, [documentTitle, entityName, referenceId]);
+
+  // Listen for messages from the DocuSign iframe (redirect events)
+  useEffect(() => {
+    if (mode !== "embedded") return;
+
+    function handleMessage(event: MessageEvent) {
+      // DocuSign sends a message when signing is complete
+      if (event.data && typeof event.data === "string" && event.data.includes("signing_complete")) {
+        onSign();
+      }
+    }
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [mode, onSign]);
+
+  // Poll for URL changes in the iframe (fallback for redirect detection)
+  useEffect(() => {
+    if (mode !== "embedded") return;
+
+    const interval = setInterval(() => {
+      try {
+        const iframe = iframeRef.current;
+        if (iframe && iframe.contentWindow) {
+          const url = iframe.contentWindow.location.href;
+          if (url.includes("/signing-complete") || url.includes("event=signing_complete")) {
+            clearInterval(interval);
+            onSign();
+          }
+        }
+      } catch {
+        // Cross-origin - can't read iframe URL, that's expected
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [mode, onSign]);
+
+  const handleSimulatedSubmit = () => {
     setSubmitting(true);
     setTimeout(() => {
       onSign();
     }, 1500);
   };
 
+  // Loading state
+  if (mode === "loading") {
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+        <div className="bg-white rounded-lg max-w-md w-full shadow-2xl p-8 flex flex-col items-center gap-4">
+          <Loader2 className="w-8 h-8 animate-spin text-[#4F8DFF]" />
+          <p className="text-sm text-gray-600">Preparing document for signing...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Embedded signing mode (real DocuSign)
+  if (mode === "embedded" && signingUrl) {
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+        <div className="bg-white rounded-lg w-full max-w-4xl h-[90vh] shadow-2xl flex flex-col">
+          {/* Header */}
+          <div className="bg-[#1A1A2E] px-5 py-3 rounded-t-lg flex items-center justify-between flex-shrink-0">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 bg-yellow-400 rounded flex items-center justify-center text-[10px] font-bold text-[#1A1A2E]">DS</div>
+              <span className="text-white text-sm font-medium">DocuSign</span>
+              <span className="text-gray-400 text-xs ml-2">{documentTitle}</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setMode("simulated")}
+                className="text-gray-400 hover:text-white text-xs underline"
+              >
+                Use simulated signing
+              </button>
+              <button onClick={onClose} className="text-gray-400 hover:text-white">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* DocuSign iframe */}
+          <div className="flex-1 relative">
+            <iframe
+              ref={iframeRef}
+              src={signingUrl}
+              className="w-full h-full border-0"
+              title="DocuSign Signing"
+              allow="geolocation"
+            />
+          </div>
+
+          {/* Footer */}
+          <div className="border-t border-gray-200 px-5 py-3 flex items-center justify-between flex-shrink-0 bg-gray-50 rounded-b-lg">
+            <p className="text-xs text-gray-500">Complete the signing process in the document above</p>
+            <button
+              onClick={onSign}
+              className="px-4 py-2 text-xs text-[#4F8DFF] hover:text-[#3A7AE8] font-medium"
+            >
+              I've completed signing →
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Simulated signing mode (fallback)
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
       <div className="bg-white rounded-lg max-w-2xl w-full shadow-2xl max-h-[90vh] flex flex-col">
@@ -32,6 +184,9 @@ export function DocuSignModal({ documentTitle, entityName, referenceId, addition
             <div className="w-6 h-6 bg-yellow-400 rounded flex items-center justify-center text-[10px] font-bold text-[#1A1A2E]">DS</div>
             <span className="text-white text-sm font-medium">DocuSign</span>
             <span className="text-gray-400 text-xs ml-2">Electronic Signature</span>
+            {mode === "simulated" && (
+              <span className="text-yellow-400 text-xs ml-2">(Simulated)</span>
+            )}
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-white"><X className="w-4 h-4" /></button>
         </div>
@@ -141,7 +296,7 @@ export function DocuSignModal({ documentTitle, entityName, referenceId, addition
             <span>By submitting, you agree this electronic signature is legally binding.</span>
           </div>
           <button
-            onClick={handleSubmit}
+            onClick={handleSimulatedSubmit}
             disabled={!signed || submitting}
             className={`px-6 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors ${signed && !submitting ? "bg-[#4F8DFF] text-white hover:bg-[#3A7AE8]" : "bg-gray-200 text-gray-400 cursor-not-allowed"}`}
           >

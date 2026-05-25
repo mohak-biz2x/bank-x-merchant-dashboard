@@ -1,7 +1,10 @@
-import { Users, Plus, CheckCircle, X, Loader2 } from "lucide-react";
+import { Users, Plus, CheckCircle, X, Loader2, FileText, Receipt, Upload } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router";
 import { showToast } from "./Toast";
+
+type ModalStep = "choose-document" | "processing" | "form";
+type UploadSource = "trade-license" | "invoice" | "manual" | null;
 
 type IbanStatus = "success" | "failed";
 type KybStatus = "success" | "failed";
@@ -32,6 +35,12 @@ export function BuyerSuppliersModule() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [verifying, setVerifying] = useState(false);
 
+  // Document upload wizard state
+  const [modalStep, setModalStep] = useState<ModalStep>("choose-document");
+  const [uploadSource, setUploadSource] = useState<UploadSource>(null);
+  const [uploadedFileName, setUploadedFileName] = useState("");
+  const [autoFilledFields, setAutoFilledFields] = useState<Set<string>>(new Set());
+
   // TL Number lookup state
   const [tlLookupStatus, setTlLookupStatus] = useState<"idle" | "loading" | "found" | "not-found">("idle");
   const [tlFieldsDisabled, setTlFieldsDisabled] = useState(true);
@@ -59,6 +68,60 @@ export function BuyerSuppliersModule() {
   });
 
   useEffect(() => { if (searchParams.get("add") === "true") setShowAddModal(true); }, [searchParams]);
+
+  // Handle document upload and simulate OCR extraction
+  const handleDocumentUpload = (source: "trade-license" | "invoice", file: File) => {
+    setUploadSource(source);
+    setUploadedFileName(file.name);
+    setModalStep("processing");
+
+    setTimeout(() => {
+      if (source === "trade-license") {
+        // Trade License: fills ~30% of fields
+        setFormData(prev => ({
+          ...prev,
+          tradeLicenseNumber: "789456",
+          name: "Desert Steel Manufacturing LLC",
+          countryOfIncorporation: "United Arab Emirates",
+          contactPerson: "Khalid Al Rashid",
+        }));
+        setAutoFilledFields(new Set(["tradeLicenseNumber", "name", "countryOfIncorporation", "contactPerson"]));
+        setTlLookupStatus("not-found");
+        setTlFieldsDisabled(false);
+      } else {
+        // Invoice: fills ~85-100% of fields
+        setFormData(prev => ({
+          ...prev,
+          tradeLicenseNumber: "654321",
+          name: "Desert Steel Manufacturing LLC",
+          trnNumber: "100876543210987",
+          countryOfIncorporation: "United Arab Emirates",
+          contactPerson: "Khalid Al Rashid",
+          email: "accounts@desertsteel.ae",
+          phone: "+971 4 321 9876",
+        }));
+        setBankData({
+          bankName: "Abu Dhabi Commercial Bank",
+          accountName: "Desert Steel Manufacturing LLC",
+          iban: "AE460261234567890654321",
+          swiftCode: "ADCBAEAAXXX",
+        });
+        setAutoFilledFields(new Set([
+          "tradeLicenseNumber", "name", "trnNumber", "countryOfIncorporation",
+          "contactPerson", "email", "phone", "bankName", "accountName", "iban", "swiftCode"
+        ]));
+        setTlLookupStatus("not-found");
+        setTlFieldsDisabled(false);
+      }
+      setModalStep("form");
+    }, 1800);
+  };
+
+  const handleSkipUpload = () => {
+    setUploadSource("manual");
+    setAutoFilledFields(new Set());
+    setModalStep("form");
+  };
 
   // TRN validation: 15 digits starting with 100
   const validateTrn = (trn: string): boolean => {
@@ -164,6 +227,10 @@ export function BuyerSuppliersModule() {
   const resetAddForm = () => {
     setShowAddModal(false);
     setVerifying(false);
+    setModalStep("choose-document");
+    setUploadSource(null);
+    setUploadedFileName("");
+    setAutoFilledFields(new Set());
     setTlLookupStatus("idle");
     setTlFieldsDisabled(true);
     setTrnError("");
@@ -232,7 +299,7 @@ export function BuyerSuppliersModule() {
         )}
       </div>
 
-      {/* Add Supplier Modal — Single Form */}
+      {/* Add Supplier Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-[#CBD2DD]/[.72] flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded max-w-2xl w-full max-h-[90vh] flex flex-col">
@@ -242,27 +309,96 @@ export function BuyerSuppliersModule() {
               <button onClick={resetAddForm} className="text-gray-500 hover:text-gray-900"><X className="w-5 h-5" /></button>
             </div>
 
+            {/* Step 1: Document Choice */}
+            {modalStep === "choose-document" && (
+              <div className="flex-1 px-6 py-6">
+                <p className="text-sm text-gray-600 mb-6">Upload a document to auto-fill supplier details, or skip to fill manually.</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <label className="relative flex flex-col items-center border-2 border-dashed border-gray-300 rounded-lg p-6 cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-colors group">
+                    <input type="file" accept=".pdf,.png,.jpg,.jpeg" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleDocumentUpload("trade-license", f); }} />
+                    <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center mb-3"><FileText className="w-6 h-6 text-amber-600" /></div>
+                    <p className="text-sm font-semibold text-gray-900 mb-1">Trade License</p>
+                    <p className="text-xs text-gray-500 text-center mb-3">Auto-fills ~30% of fields</p>
+                    <div className="text-xs text-gray-400 text-left w-full space-y-0.5">
+                      <p>✓ Company Name</p><p>✓ Trade License Number</p><p>✓ Country of Incorporation</p><p>✓ Contact Person (owner)</p>
+                    </div>
+                    <div className="mt-4 flex items-center gap-1.5 text-xs font-medium text-blue-600 group-hover:text-blue-700"><Upload className="w-3.5 h-3.5" /> Upload PDF or Image</div>
+                  </label>
+                  <label className="relative flex flex-col items-center border-2 border-dashed border-gray-300 rounded-lg p-6 cursor-pointer hover:border-green-400 hover:bg-green-50/30 transition-colors group">
+                    <input type="file" accept=".pdf,.png,.jpg,.jpeg" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleDocumentUpload("invoice", f); }} />
+                    <div className="absolute -top-2 -right-2 bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">RECOMMENDED</div>
+                    <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mb-3"><Receipt className="w-6 h-6 text-green-600" /></div>
+                    <p className="text-sm font-semibold text-gray-900 mb-1">Supplier Invoice</p>
+                    <p className="text-xs text-gray-500 text-center mb-3">Auto-fills ~85–100% of fields</p>
+                    <div className="text-xs text-gray-400 text-left w-full space-y-0.5">
+                      <p>✓ Company Name & TRN</p><p>✓ Contact Info (email, phone)</p><p>✓ Bank Details (IBAN, SWIFT)</p><p>✓ Country of Incorporation</p>
+                    </div>
+                    <div className="mt-4 flex items-center gap-1.5 text-xs font-medium text-green-600 group-hover:text-green-700"><Upload className="w-3.5 h-3.5" /> Upload PDF or Image</div>
+                  </label>
+                </div>
+                <div className="relative flex items-center justify-center my-4">
+                  <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200"></div></div>
+                  <span className="relative bg-white px-3 text-xs text-gray-400 uppercase">or</span>
+                </div>
+                <button onClick={handleSkipUpload} className="w-full py-2.5 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 text-sm font-medium transition-colors">Skip — Fill all fields manually</button>
+              </div>
+            )}
+
+            {/* Step 2: Processing */}
+            {modalStep === "processing" && (
+              <div className="flex-1 flex flex-col items-center justify-center p-12">
+                <Loader2 className="w-12 h-12 text-[#4F8DFF] animate-spin mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Extracting supplier details...</h3>
+                <p className="text-sm text-gray-500">Processing {uploadedFileName}</p>
+              </div>
+            )}
             {/* Verification loading state */}
-            {verifying ? (
+            {modalStep === "form" && verifying && (
               <div className="flex-1 flex flex-col items-center justify-center p-12">
                 <Loader2 className="w-12 h-12 text-[#4F8DFF] animate-spin mb-4" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Verifying supplier details...</h3>
                 <p className="text-sm text-gray-500">Running Lite KYB &amp; IBAN Verification</p>
               </div>
-            ) : (
+            )}
+
+            {/* Step 3: Form */}
+            {modalStep === "form" && !verifying && (
               <>
                 {/* Scrollable body */}
                 <div className="flex-1 overflow-y-auto px-6 py-4">
+                  {/* Status banner */}
+                  {tlLookupStatus === "found" && (
+                    <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-xs font-medium text-blue-800">
+                        ✓ Existing supplier matched — all fields populated from your records. Fields are locked to maintain data integrity.
+                      </p>
+                    </div>
+                  )}
+                  {uploadSource && uploadSource !== "manual" && tlLookupStatus !== "found" && (
+                    <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <p className="text-xs font-medium text-green-800">
+                        ✓ {autoFilledFields.size} of 11 fields extracted from {uploadSource === "trade-license" ? "Trade License" : "Invoice"} — please review and complete the remaining fields.
+                      </p>
+                    </div>
+                  )}
+                  {uploadSource === "manual" && tlLookupStatus !== "found" && tlLookupStatus !== "loading" && (
+                    <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                      <p className="text-xs font-medium text-gray-600">
+                        Fill in all supplier details below. Enter the Trade License Number first to check for existing records.
+                      </p>
+                    </div>
+                  )}
+
                   {/* TL Number — gating field */}
                   <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Trade License Number *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Trade License Number *
+                    </label>
                     <div className="relative">
-                      <input type="text" value={formData.tradeLicenseNumber} onChange={(e) => handleTlChange(e.target.value)} onBlur={handleTlBlur} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter numeric TL number" />
+                      <input type="text" value={formData.tradeLicenseNumber} onChange={(e) => handleTlChange(e.target.value)} onBlur={handleTlBlur} className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent border-gray-300`} placeholder="Enter numeric TL number" />
                       {tlLookupStatus === "loading" && <div className="absolute right-3 top-1/2 -translate-y-1/2"><Loader2 className="w-4 h-4 text-[#4F8DFF] animate-spin" /></div>}
                       {tlLookupStatus === "found" && <div className="absolute right-3 top-1/2 -translate-y-1/2"><CheckCircle className="w-4 h-4 text-green-500" /></div>}
                     </div>
-                    {tlLookupStatus === "found" && <p className="text-xs text-green-600 mt-1">Existing supplier found — details auto-populated.</p>}
-                    {tlLookupStatus === "not-found" && <p className="text-xs text-blue-600 mt-1">New supplier — please fill in the details below</p>}
                   </div>
 
                   {/* Section: Basic Details */}
@@ -270,17 +406,23 @@ export function BuyerSuppliersModule() {
                     <h4 className="text-sm font-semibold text-gray-800 mb-3">Basic Details</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Company Name *</label>
-                        <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} disabled={tlFieldsDisabled} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-sm" placeholder="Enter company name" />
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Company Name *
+                        </label>
+                        <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} disabled={tlLookupStatus === "found" || (uploadSource === "manual" && tlFieldsDisabled)} className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-sm border-gray-300`} placeholder="Enter company name" />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">TRN Number *</label>
-                        <input type="text" value={formData.trnNumber} onChange={(e) => { setFormData({ ...formData, trnNumber: e.target.value }); setTrnError(""); }} onBlur={() => { if (formData.trnNumber && !validateTrn(formData.trnNumber)) setTrnError("Invalid TRN. Must be 15 digits starting with 100."); }} disabled={tlFieldsDisabled} className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-sm ${trnError ? "border-red-400" : "border-gray-300"}`} placeholder="e.g. 100234567890123" maxLength={15} />
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          TRN Number *
+                        </label>
+                        <input type="text" value={formData.trnNumber} onChange={(e) => { setFormData({ ...formData, trnNumber: e.target.value }); setTrnError(""); }} onBlur={() => { if (formData.trnNumber && !validateTrn(formData.trnNumber)) setTrnError("Invalid TRN. Must be 15 digits starting with 100."); }} disabled={tlLookupStatus === "found" || (uploadSource === "manual" && tlFieldsDisabled)} className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-sm ${trnError ? "border-red-400" : "border-gray-300"}`} placeholder="e.g. 100234567890123" maxLength={15} />
                         {trnError && <p className="text-xs text-red-500 mt-1">{trnError}</p>}
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Country of Incorporation *</label>
-                        <select value={formData.countryOfIncorporation} onChange={(e) => setFormData({ ...formData, countryOfIncorporation: e.target.value })} disabled={tlFieldsDisabled} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm disabled:bg-gray-100 disabled:cursor-not-allowed">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Country of Incorporation *
+                        </label>
+                        <select value={formData.countryOfIncorporation} onChange={(e) => setFormData({ ...formData, countryOfIncorporation: e.target.value })} disabled={tlLookupStatus === "found" || (uploadSource === "manual" && tlFieldsDisabled)} className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm disabled:bg-gray-100 disabled:cursor-not-allowed border-gray-300`}>
                           {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
                       </div>
@@ -292,16 +434,22 @@ export function BuyerSuppliersModule() {
                     <h4 className="text-sm font-semibold text-gray-800 mb-3">Contact Details</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Contact Person Name *</label>
-                        <input type="text" value={formData.contactPerson} onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })} disabled={tlFieldsDisabled} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-sm" placeholder="Enter contact person name" />
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Contact Person Name *
+                        </label>
+                        <input type="text" value={formData.contactPerson} onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })} disabled={tlLookupStatus === "found" || (uploadSource === "manual" && tlFieldsDisabled)} className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-sm border-gray-300`} placeholder="Enter contact person name" />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Email Address *</label>
-                        <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} disabled={tlFieldsDisabled} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-sm" placeholder="supplier@example.ae" />
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Email Address *
+                        </label>
+                        <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} disabled={tlLookupStatus === "found" || (uploadSource === "manual" && tlFieldsDisabled)} className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-sm border-gray-300`} placeholder="supplier@example.ae" />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number *</label>
-                        <input type="tel" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} disabled={tlFieldsDisabled} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-sm" placeholder="+971 X XXXX XXXX" />
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Phone Number *
+                        </label>
+                        <input type="tel" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} disabled={tlLookupStatus === "found" || (uploadSource === "manual" && tlFieldsDisabled)} className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-sm border-gray-300`} placeholder="+971 X XXXX XXXX" />
                       </div>
                     </div>
                   </div>
@@ -311,20 +459,28 @@ export function BuyerSuppliersModule() {
                     <h4 className="text-sm font-semibold text-gray-800 mb-3">Bank Account Details</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Bank Name *</label>
-                        <input type="text" value={bankData.bankName} onChange={(e) => setBankData({ ...bankData, bankName: e.target.value })} disabled={tlFieldsDisabled} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-sm" placeholder="Enter bank name" />
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Bank Name *
+                        </label>
+                        <input type="text" value={bankData.bankName} onChange={(e) => setBankData({ ...bankData, bankName: e.target.value })} disabled={tlLookupStatus === "found" || (uploadSource === "manual" && tlFieldsDisabled)} className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-sm border-gray-300`} placeholder="Enter bank name" />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Account Name *</label>
-                        <input type="text" value={bankData.accountName} onChange={(e) => setBankData({ ...bankData, accountName: e.target.value })} disabled={tlFieldsDisabled} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-sm" placeholder="Enter account name" />
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Account Name *
+                        </label>
+                        <input type="text" value={bankData.accountName} onChange={(e) => setBankData({ ...bankData, accountName: e.target.value })} disabled={tlLookupStatus === "found" || (uploadSource === "manual" && tlFieldsDisabled)} className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-sm border-gray-300`} placeholder="Enter account name" />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">IBAN *</label>
-                        <input type="text" value={bankData.iban} onChange={(e) => setBankData({ ...bankData, iban: e.target.value.replace(/[\s-]/g, "").toUpperCase() })} disabled={tlFieldsDisabled} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-sm" placeholder="e.g. AE070331234567890123456" />
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          IBAN *
+                        </label>
+                        <input type="text" value={bankData.iban} onChange={(e) => setBankData({ ...bankData, iban: e.target.value.replace(/[\s-]/g, "").toUpperCase() })} disabled={tlLookupStatus === "found" || (uploadSource === "manual" && tlFieldsDisabled)} className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-sm border-gray-300`} placeholder="e.g. AE070331234567890123456" />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">SWIFT/BIC Code *</label>
-                        <input type="text" value={bankData.swiftCode} onChange={(e) => setBankData({ ...bankData, swiftCode: e.target.value.toUpperCase() })} disabled={tlFieldsDisabled} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-sm" placeholder="e.g. EABORAEADXXX" />
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          SWIFT/BIC Code *
+                        </label>
+                        <input type="text" value={bankData.swiftCode} onChange={(e) => setBankData({ ...bankData, swiftCode: e.target.value.toUpperCase() })} disabled={tlLookupStatus === "found" || (uploadSource === "manual" && tlFieldsDisabled)} className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-sm border-gray-300`} placeholder="e.g. EABORAEADXXX" />
                       </div>
                     </div>
                   </div>

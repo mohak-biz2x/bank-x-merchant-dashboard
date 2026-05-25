@@ -3,6 +3,7 @@ import { LayoutDashboard, FileText, Building2, LogOut, FlaskConical, X, Zap } fr
 import { useState, useRef, useEffect } from "react";
 import { getMerchantRole, getUnderwritingStatus, getStpEligibility } from "./MerchantDashboard";
 import type { MerchantRole } from "./MerchantDashboard";
+import { showToast } from "./Toast";
 
 import { MalLogo } from "./MalLogo";
 import biz2xLogo from "@/assets/biz2X-m-logo.svg";
@@ -144,7 +145,7 @@ export function PremiumBuyerLayout() {
                     <button onClick={() => { window.dispatchEvent(new Event("demo-complete-esign")); setShowDemoPanel(false); }} className="px-3 py-2 rounded-md text-xs font-medium text-left bg-blue-50 text-blue-800 border border-blue-300 hover:bg-blue-100 transition-colors">Complete E-Signing</button>
                   )}
                   {uwStatus === "security-pending" && (
-                    <button onClick={() => { const choice = localStorage.getItem("pending_financing_choice") || "both"; localStorage.setItem("demo_merchant_role", choice); localStorage.setItem("merchant_underwriting_status", "none"); localStorage.removeItem("pending_financing_choice"); window.dispatchEvent(new Event("demo-role-change")); setShowDemoPanel(false); }} className="px-3 py-2 rounded-md text-xs font-medium text-left bg-green-50 text-green-800 border border-green-300 hover:bg-green-100 transition-colors">Approve Security Onboarding</button>
+                    <button onClick={() => { const choice = localStorage.getItem("pending_financing_choice") || "both"; localStorage.setItem("demo_merchant_role", choice); localStorage.setItem("merchant_underwriting_status", "none"); localStorage.removeItem("pending_financing_choice"); window.dispatchEvent(new Event("demo-role-change")); showToast("success", "Security cheque approved. Customer account activated."); setShowDemoPanel(false); }} className="px-3 py-2 rounded-md text-xs font-medium text-left bg-green-50 text-green-800 border border-green-300 hover:bg-green-100 transition-colors">Approve Security Cheque</button>
                   )}
                   <button onClick={() => { localStorage.setItem("merchant_underwriting_status", "none"); window.dispatchEvent(new Event("demo-role-change")); setShowDemoPanel(false); }} className="px-3 py-2 rounded-md text-xs font-medium text-left bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors">Skip Underwriting (Reset)</button>
                   <div className="border-t border-gray-200 my-1"></div>

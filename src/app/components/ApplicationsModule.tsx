@@ -1,8 +1,8 @@
 import { useState, Fragment, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { FileText, ChevronDown, ChevronUp, Upload, CheckCircle, Clock, AlertCircle, MoreVertical, X, ShieldCheck, ArrowLeft, PenTool, Loader2, Zap } from "lucide-react";
+import { FileText, ChevronDown, ChevronUp, Upload, CheckCircle, Clock, AlertCircle, MoreVertical, X, ShieldCheck, ArrowLeft } from "lucide-react";
 import { showToast } from "./Toast";
-import { DocuSignModal } from "./DocuSignModal";
+import { AgreementSigningModal } from "./AgreementSigningModal";
 
 type AppStatus = "under_review" | "in_progress" | "kyc_verification" | "analysis" | "credit_decisioning" | "invoice_processing" | "security_onboarding" | "security_verification" | "limit_approved" | "rejected";
 
@@ -128,14 +128,8 @@ export function ApplicationsModule({ onSecurityOnboarding, embedded }: Applicati
   const [expandedDocs, setExpandedDocs] = useState<string | null>(null);
   const [actionMenuOpen, setActionMenuOpen] = useState<string | null>(null);
 
-  // Security onboarding modal state
-  const [showSecurityModal, setShowSecurityModal] = useState(false);
-  const [securityStep, setSecurityStep] = useState(1); // 1=agreements, 2=security
-  const [signedAgreements, setSignedAgreements] = useState<Record<string, boolean>>({ financing: false, directDebit: false });
-  const [securityChequeFile, setSecurityChequeFile] = useState<File | null>(null);
-  const [showStpSuccess, setShowStpSuccess] = useState(false);
-  const [stpTimer, setStpTimer] = useState(10);
-  const [docuSignDoc, setDocuSignDoc] = useState<{ key: string; label: string } | null>(null);
+  // Agreement signing modal state (non-STP path only)
+  const [showAgreementModal, setShowAgreementModal] = useState(false);
   const isStp = (localStorage.getItem("demo_stp_eligibility") || "approved") === "approved";
 
   useEffect(() => {
@@ -144,34 +138,14 @@ export function ApplicationsModule({ onSecurityOnboarding, embedded }: Applicati
     return () => window.removeEventListener("demo-role-change", onDataChange);
   }, []);
 
-  // Auto-open security onboarding modal when an application is in security_onboarding status
+  // Auto-open agreement signing modal when an application is in security_onboarding status (non-STP only)
   useEffect(() => {
     const secApp = applications.find(a => a.status === "security_onboarding");
-    if (secApp && !showSecurityModal) {
-      setShowSecurityModal(true);
-      setSecurityStep(1);
-      setSignedAgreements({ financing: false, directDebit: false });
-      setSecurityChequeFile(null);
+    if (secApp && !isStp && !showAgreementModal) {
+      setShowAgreementModal(true);
     }
   }, [applications]);
 
-  // STP auto-redirect countdown
-  useEffect(() => {
-    if (!showStpSuccess) return;
-    if (stpTimer <= 0) {
-      const product = localStorage.getItem("selected_product") || "receivable";
-      localStorage.setItem("demo_merchant_role", product);
-      localStorage.setItem("merchant_underwriting_status", "none");
-      localStorage.removeItem("pending_financing_choice");
-      window.dispatchEvent(new Event("demo-role-change"));
-      setShowSecurityModal(false);
-      setShowStpSuccess(false);
-      navigate('/');
-      return;
-    }
-    const t = setTimeout(() => setStpTimer(prev => prev - 1), 1000);
-    return () => clearTimeout(t);
-  }, [showStpSuccess, stpTimer, navigate]);
 
   const toggleDocs = (appId: string) => {
     setExpandedDocs(expandedDocs === appId ? null : appId);
@@ -259,10 +233,7 @@ export function ApplicationsModule({ onSecurityOnboarding, embedded }: Applicati
                           <div className="absolute right-3 top-8 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-20 py-1">
                             {app.status === "security_onboarding" && (
                               <button onClick={() => {
-                                setShowSecurityModal(true);
-                                setSecurityStep(1);
-                                setSignedAgreements({ financing: false, directDebit: false });
-                                setSecurityChequeFile(null);
+                                setShowAgreementModal(true);
                                 setActionMenuOpen(null);
                               }} className="w-full px-3 py-2 text-left text-xs text-gray-700 hover:bg-gray-50 flex items-center gap-2">
                                 <ShieldCheck className="w-3.5 h-3.5 text-amber-600" /> Complete Security
@@ -316,141 +287,15 @@ export function ApplicationsModule({ onSecurityOnboarding, embedded }: Applicati
         </div>
       </div>
 
-      {/* Security Onboarding Modal */}
-      {showSecurityModal && (
-        <div className="fixed inset-0 bg-[#CBD2DD]/[.72] flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded max-w-2xl w-full max-h-[85vh] overflow-y-auto">
-            <div className="px-5 py-3 flex items-center justify-between bg-[#C3D2E7] text-gray-900 rounded-t">
-              <h3 className="text-base font-semibold text-gray-900">{isStp ? "E-sign Agreements" : "Security Onboarding"}</h3>
-              <button onClick={() => setShowSecurityModal(false)} className="text-gray-500 hover:text-gray-900"><X className="w-5 h-5" /></button>
-            </div>
-            <div className="p-5">
-
-            {/* Step indicators */}
-            {!isStp && (
-              <div className="flex items-center justify-center gap-2 mb-6">
-                {[{ id: 1, name: "Digital Agreements" }, { id: 2, name: "Upload Cheque" }].map((s, i) => (
-                  <div key={s.id} className="flex items-center gap-2">
-                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium ${securityStep > s.id ? "bg-green-600 text-white" : securityStep === s.id ? "bg-[#4F8DFF] text-white" : "bg-gray-200 text-gray-500"}`}>
-                      {securityStep > s.id ? <CheckCircle className="w-3.5 h-3.5" /> : s.id}
-                    </div>
-                    <span className={`text-xs ${securityStep === s.id ? "font-medium text-gray-900" : "text-gray-500"}`}>{s.name}</span>
-                    {i === 0 && <div className="w-10 h-px bg-gray-300 mx-1" />}
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Step 1: Agreements */}
-            {securityStep === 1 && !showStpSuccess && (
-              <div>
-                <h4 className="text-sm font-semibold text-gray-900 mb-1">Sign Digital Agreements</h4>
-                <p className="text-xs text-gray-500 mb-4">Review and e-sign the following agreements to proceed.</p>
-                <div className="space-y-3">
-                  {[
-                    { key: "financing", label: "Financing Agreement", desc: "Master financing agreement covering terms, rates, and conditions" },
-                    { key: "directDebit", label: "Direct Debit Agreement", desc: "Authorization for automatic debit of repayment amounts from your account" },
-                  ].map(ag => (
-                    <div key={ag.key} className={`border rounded-lg p-4 ${signedAgreements[ag.key] ? "border-green-300 bg-green-50" : "border-gray-200"}`}>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">{ag.label}</p>
-                          <p className="text-xs text-gray-500 mt-0.5">{ag.desc}</p>
-                        </div>
-                        {signedAgreements[ag.key] ? (
-                          <span className="flex items-center gap-1 px-2.5 py-1 bg-green-100 text-green-700 rounded-lg text-xs font-medium"><CheckCircle className="w-3.5 h-3.5" /> Signed</span>
-                        ) : (
-                          <button onClick={() => setDocuSignDoc({ key: ag.key, label: ag.label })} className="flex items-center gap-1 px-3 py-1.5 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] text-xs"><PenTool className="w-3.5 h-3.5" /> Sign</button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                {signedAgreements.financing && signedAgreements.directDebit && isStp && (
-                  <div className="mt-4 bg-green-50 border border-green-200 rounded-lg p-3 flex items-start gap-2">
-                    <Zap className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
-                    <p className="text-xs text-green-800">STP Eligible — Security step will be skipped and your account activated immediately.</p>
-                  </div>
-                )}
-                <div className="mt-5 flex justify-end">
-                  <button
-                    onClick={() => {
-                      if (isStp) { setShowStpSuccess(true); setStpTimer(5); }
-                      else { setSecurityStep(2); }
-                    }}
-                    disabled={!signedAgreements.financing || !signedAgreements.directDebit}
-                    className={`px-5 py-2 rounded-lg text-sm font-medium ${signedAgreements.financing && signedAgreements.directDebit ? "bg-[#4F8DFF] text-white hover:bg-[#3A7AE8]" : "bg-gray-200 text-gray-400 cursor-not-allowed"}`}
-                  >{isStp ? "Submit" : "Continue"}</button>
-                </div>
-              </div>
-            )}
-
-            {/* Step 2: Upload Cheque (non-STP only) */}
-            {securityStep === 2 && (
-              <div>
-                <h4 className="text-sm font-semibold text-gray-900 mb-1">Upload Security Cheque</h4>
-                <p className="text-xs text-gray-500 mb-4">Upload a scanned security cheque to complete the security requirement.</p>
-                <div className="border border-gray-200 rounded-lg p-4 mb-4">
-                  {securityChequeFile ? (
-                    <div className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /><span className="text-sm text-green-700">{securityChequeFile.name}</span><button onClick={() => setSecurityChequeFile(null)} className="text-gray-400 hover:text-red-500 ml-auto"><X className="w-4 h-4" /></button></div>
-                  ) : (
-                    <label className="flex flex-col items-center gap-2 py-4 cursor-pointer">
-                      <Upload className="w-6 h-6 text-gray-400" />
-                      <span className="text-sm text-blue-600 font-medium">Upload Security Cheque</span>
-                      <span className="text-xs text-gray-400">PDF, JPG, or PNG</span>
-                      <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png" onChange={e => { if (e.target.files?.[0]) setSecurityChequeFile(e.target.files[0]); }} />
-                    </label>
-                  )}
-                </div>
-                <div className="flex justify-between">
-                  <button onClick={() => setSecurityStep(1)} className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm">Back</button>
-                  <button
-                    onClick={() => {
-                      const product = localStorage.getItem("selected_product") || "receivable";
-                      localStorage.setItem("pending_financing_choice", product);
-                      localStorage.setItem("merchant_underwriting_status", "security-pending");
-                      window.dispatchEvent(new Event("demo-role-change"));
-                      setShowSecurityModal(false);
-                      showToast("success", "Security cheque submitted successfully. Verification in progress.");
-                    }}
-                    disabled={!securityChequeFile}
-                    className={`px-5 py-2 rounded-lg text-sm font-medium ${securityChequeFile ? "bg-[#4F8DFF] text-white hover:bg-[#3A7AE8]" : "bg-gray-200 text-gray-400 cursor-not-allowed"}`}
-                  >Submit</button>
-                </div>
-              </div>
-            )}
-
-            {/* STP Success */}
-            {showStpSuccess && (
-              <div className="text-center py-4">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4"><Zap className="w-8 h-8 text-green-600" /></div>
-                <h4 className="text-lg font-semibold text-gray-900 mb-2">STP Auto-Approved</h4>
-                <p className="text-sm text-gray-600 mb-4">You're auto-approved for security. Enabling dashboard...</p>
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                  <p className="text-sm text-blue-800">Redirecting in <span className="font-semibold">{stpTimer}</span> seconds...</p>
-                </div>
-                <div className="flex items-center justify-center gap-2 text-green-600"><Loader2 className="w-4 h-4 animate-spin" /><span className="text-sm font-medium">Activating...</span></div>
-              </div>
-            )}
-          </div>
-          </div>
-        </div>
-      )}
-
-      {/* DocuSign Simulation Modal */}
-      {docuSignDoc && (
-        <DocuSignModal
-          documentTitle={docuSignDoc.label}
-          entityName="Al Masraf Industries LLC"
-          referenceId="APP-2025-001"
-          onSign={() => {
-            setSignedAgreements(prev => ({ ...prev, [docuSignDoc.key]: true }));
-            showToast("success", `${docuSignDoc.label} signed successfully via DocuSign.`);
-            setDocuSignDoc(null);
-          }}
-          onClose={() => setDocuSignDoc(null)}
-        />
-      )}
+      {/* Agreement Signing Modal (non-STP path) */}
+      <AgreementSigningModal
+        isOpen={showAgreementModal}
+        onClose={() => setShowAgreementModal(false)}
+        onComplete={() => setShowAgreementModal(false)}
+        approvedLimit={5000000}
+        entityName="Al Masraf Industries LLC"
+        applicationId="APP-2025-001"
+      />
     </div>
   );
 }

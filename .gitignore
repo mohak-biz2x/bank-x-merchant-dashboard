@@ -1,5 +1,6 @@
 # Dependencies
 node_modules/
+server/node_modules/
 
 # Build output
 dist/
@@ -8,6 +9,8 @@ dist/
 .env
 .env.local
 .env.*.local
+docusign.env
+*.pem
 
 # IDE / Editor
 .vscode/

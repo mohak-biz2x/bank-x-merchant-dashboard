@@ -1,10 +1,10 @@
 import { useState, Fragment, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { FileText, ChevronDown, ChevronUp, Upload, CheckCircle, Clock, AlertCircle, MoreVertical, X, ShieldCheck, ArrowLeft } from "lucide-react";
+import { FileText, ChevronDown, ChevronUp, Upload, CheckCircle, Clock, AlertCircle, MoreVertical, X, ShieldCheck, ArrowLeft, XCircle, MinusCircle } from "lucide-react";
 import { showToast } from "./Toast";
 import { AgreementSigningModal } from "./AgreementSigningModal";
 
-type AppStatus = "under_review" | "in_progress" | "kyc_verification" | "analysis" | "credit_decisioning" | "invoice_processing" | "security_onboarding" | "security_verification" | "limit_approved" | "rejected";
+type AppStatus = "in_review" | "approved" | "offer_accepted" | "pending_agreements_signing" | "pending_security_cheque" | "drawdown" | "application_declined" | "offer_declined" | "application_withdrawn";
 
 interface DocumentRequest {
   id: string;
@@ -25,23 +25,22 @@ interface Application {
 }
 
 const STATUS_CONFIG: Record<AppStatus, { label: string; color: string; icon: typeof Clock }> = {
-  under_review: { label: "Under Review", color: "bg-blue-100 text-blue-700", icon: Clock },
-  in_progress: { label: "In Progress", color: "bg-blue-100 text-blue-700", icon: Clock },
-  kyc_verification: { label: "KYC Verification", color: "bg-purple-100 text-purple-700", icon: Clock },
-  analysis: { label: "Analysis", color: "bg-yellow-100 text-yellow-700", icon: Clock },
-  credit_decisioning: { label: "Credit Decisioning", color: "bg-orange-100 text-orange-700", icon: Clock },
-  invoice_processing: { label: "Invoice Processing", color: "bg-cyan-100 text-cyan-700", icon: Clock },
-  security_onboarding: { label: "Security Onboarding", color: "bg-amber-100 text-amber-700", icon: ShieldCheck },
-  security_verification: { label: "Security Verification", color: "bg-indigo-100 text-indigo-700", icon: Clock },
-  limit_approved: { label: "Limit Approved", color: "bg-green-100 text-green-700", icon: CheckCircle },
-  rejected: { label: "Rejected", color: "bg-red-100 text-red-700", icon: AlertCircle },
+  in_review: { label: "In Review", color: "bg-blue-100 text-blue-700", icon: Clock },
+  approved: { label: "Approved", color: "bg-green-100 text-green-700", icon: CheckCircle },
+  offer_accepted: { label: "Offer Accepted", color: "bg-green-100 text-green-700", icon: CheckCircle },
+  pending_agreements_signing: { label: "Pending Agreements Signing", color: "bg-amber-100 text-amber-700", icon: ShieldCheck },
+  pending_security_cheque: { label: "Pending Security Cheque", color: "bg-amber-100 text-amber-700", icon: Clock },
+  drawdown: { label: "Drawdown", color: "bg-green-100 text-green-700", icon: CheckCircle },
+  application_declined: { label: "Application Declined", color: "bg-red-100 text-red-700", icon: XCircle },
+  offer_declined: { label: "Offer Declined", color: "bg-red-100 text-red-700", icon: AlertCircle },
+  application_withdrawn: { label: "Application Withdrawn", color: "bg-gray-100 text-gray-700", icon: MinusCircle },
 };
 
 function getSingleDataset(): Application[] {
   const product = localStorage.getItem("selected_product") || "receivable";
   const productLabel = product === "payable" ? "Payable Invoice Financing" : "Receivable Invoice Financing";
   const uwStatus = localStorage.getItem("merchant_underwriting_status") || "pending";
-  const appStatus: AppStatus = uwStatus === "none" ? "limit_approved" : uwStatus === "approved" ? "security_onboarding" : uwStatus === "security-pending" ? "security_verification" : "under_review";
+  const appStatus: AppStatus = uwStatus === "none" ? "drawdown" : uwStatus === "approved" ? "pending_agreements_signing" : uwStatus === "security-pending" ? "pending_security_cheque" : "in_review";
   return [{
     id: "APP-2025-001",
     product: productLabel,
@@ -69,7 +68,7 @@ function getMultiDataset(): Application[] {
       businessName: "Al Masraf Industries LLC",
       financeAmount: "AED 5,000,000",
       relationshipManager: "Sarah Al Maktoum",
-      status: "limit_approved",
+      status: "drawdown",
       limitExpiry: "2026-03-15",
       documents: [],
     },
@@ -79,7 +78,7 @@ function getMultiDataset(): Application[] {
       businessName: "Al Masraf Industries LLC",
       financeAmount: "AED 2,500,000",
       relationshipManager: "Sarah Al Maktoum",
-      status: "security_onboarding",
+      status: "pending_agreements_signing",
       limitExpiry: "2026-06-30",
       documents: [
         { id: "d5", name: "Audited Financial Statements (FY24, FY25)", uploaded: true, fileName: "AuditedFS-2024-2025.pdf" },
@@ -92,7 +91,7 @@ function getMultiDataset(): Application[] {
       businessName: "Al Masraf Industries LLC",
       financeAmount: "AED 3,000,000",
       relationshipManager: "Omar Al Farsi",
-      status: "credit_decisioning",
+      status: "in_review",
       limitExpiry: "2026-09-30",
       documents: [
         { id: "d7", name: "Revised Financial Projections", uploaded: false },
@@ -105,7 +104,7 @@ function getMultiDataset(): Application[] {
       businessName: "Al Masraf Industries LLC",
       financeAmount: "AED 1,500,000",
       relationshipManager: "Sarah Al Maktoum",
-      status: "limit_approved",
+      status: "drawdown",
       limitExpiry: "2025-12-31",
       documents: [],
     },
@@ -138,9 +137,9 @@ export function ApplicationsModule({ onSecurityOnboarding, embedded }: Applicati
     return () => window.removeEventListener("demo-role-change", onDataChange);
   }, []);
 
-  // Auto-open agreement signing modal when an application is in security_onboarding status (non-STP only)
+  // Auto-open agreement signing modal when an application is in pending_agreements_signing status (non-STP only)
   useEffect(() => {
-    const secApp = applications.find(a => a.status === "security_onboarding");
+    const secApp = applications.find(a => a.status === "pending_agreements_signing");
     if (secApp && !isStp && !showAgreementModal) {
       setShowAgreementModal(true);
     }
@@ -231,15 +230,15 @@ export function ApplicationsModule({ onSecurityOnboarding, embedded }: Applicati
                         </button>
                         {actionMenuOpen === app.id && (
                           <div className="absolute right-3 top-8 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-20 py-1">
-                            {app.status === "security_onboarding" && (
+                            {app.status === "pending_agreements_signing" && (
                               <button onClick={() => {
                                 setShowAgreementModal(true);
                                 setActionMenuOpen(null);
                               }} className="w-full px-3 py-2 text-left text-xs text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-                                <ShieldCheck className="w-3.5 h-3.5 text-amber-600" /> Complete Security
+                                <ShieldCheck className="w-3.5 h-3.5 text-amber-600" /> Sign Agreements
                               </button>
                             )}
-                            {app.status !== "security_onboarding" && (
+                            {app.status !== "pending_agreements_signing" && (
                               <p className="px-3 py-2 text-xs text-gray-400">No actions accessible</p>
                             )}
                           </div>

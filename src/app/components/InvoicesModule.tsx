@@ -625,13 +625,14 @@ export function InvoicesModule() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Tenure *</label>
-                  <select value={selectedTenure || ""} onChange={e => setSelectedTenure(Number(e.target.value))} className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="">Select tenure</option>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Tenor *</label>
+                  <div className="flex gap-1.5">
                     {TENURE_OPTIONS[repaymentStructure].map(t => (
-                      <option key={t} value={t}>{t} Days</option>
+                      <button key={t} type="button" onClick={() => setSelectedTenure(t)} className={`px-3 py-2 border-2 rounded-lg text-sm font-medium transition-colors ${selectedTenure === t ? "border-blue-600 bg-blue-50 text-blue-700" : "border-gray-200 text-gray-700 hover:border-gray-300"}`}>
+                        {t}d
+                      </button>
                     ))}
-                  </select>
+                  </div>
                 </div>
               </div>
               {/* Real-time Pricing Preview */}

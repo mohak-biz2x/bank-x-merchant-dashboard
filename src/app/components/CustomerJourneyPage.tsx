@@ -8,7 +8,8 @@ import { MalLogo } from "./MalLogo";
 export function CustomerJourneyPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [currentStep, setCurrentStep] = useState(1);
+  const skipMalJour = searchParams.get("skip_mal_jour") === "true";
+  const [currentStep, setCurrentStep] = useState(skipMalJour ? 5 : 1);
 
   // Step 1: Profile Creation state
   const [showOtpModal, setShowOtpModal] = useState(false);
@@ -63,7 +64,7 @@ export function CustomerJourneyPage() {
 
   // Loan Product state
   const [selectedProduct, setSelectedProduct] = useState<"receivable" | "payable" | null>(null);
-  const [journeyType, setJourneyType] = useState<"loan" | "account_opening" | null>(null);
+  const [journeyType, setJourneyType] = useState<"loan" | "account_opening" | null>(skipMalJour ? "loan" : null);
   const [showAccountOpeningPlaceholder, setShowAccountOpeningPlaceholder] = useState(false);
   const [showTransition, setShowTransition] = useState(false);
 

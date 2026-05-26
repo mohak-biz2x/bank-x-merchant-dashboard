@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <title>Mal</title>
+    <script>
+      (function() {
+        var params = new URLSearchParams(window.location.search);
+        var redirect = params.get('p');
+        if (redirect) {
+          var base = window.location.pathname.replace(/\/$/, '');
+          window.history.replaceState(null, '', base + redirect);
+        }
+      })();
+    </script>
+    <script type="module" crossorigin src="/bank-x-merchant-dashboard/assets/index-RCn9yL67.js"></script>
+    <link rel="stylesheet" crossorigin href="/bank-x-merchant-dashboard/assets/index-DeOc5KXp.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

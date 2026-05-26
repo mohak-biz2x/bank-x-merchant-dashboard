@@ -38,11 +38,11 @@ Step 4: Push
 
 ### One-Liner (when user says "commit and push everything")
 
-```
-git add -A && git commit -m "message" && git push origin main
+```powershell
+git add -A; git commit -m "message"; git push origin main
 ```
 
-Run this as a single command in `control_pwsh_process`. The `&&` chains ensure each step succeeds before the next.
+Run this as a single command in `control_pwsh_process`. Use `;` as separator (PowerShell on this machine doesn't support `&&`).
 
 ### Important Notes
 

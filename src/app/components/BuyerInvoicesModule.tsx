@@ -1,4 +1,4 @@
-import { FileText, Plus, Upload, X, CheckCircle, Clock, AlertCircle, DollarSign, Eye, Download, MoreVertical, ArrowLeft, ChevronLeft, ChevronRight, Loader2, PenTool } from "lucide-react";
+import { FileText, Plus, Upload, X, CheckCircle, Clock, AlertCircle, DollarSign, Eye, Download, MoreVertical, ArrowLeft, ChevronLeft, ChevronRight, Loader2, PenTool, Settings } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router";
 import { showToast } from "./Toast";
@@ -94,7 +94,7 @@ interface LineItem {
   expanded: boolean;
 }
 
-type AddInvoicePhase = "upload" | "parsing" | "review" | "validating";
+type AddInvoicePhase = "config" | "upload" | "parsing" | "review" | "validating";
 
 interface Supplier {
   id: string;
@@ -184,13 +184,14 @@ export function BuyerInvoicesModule() {
   const [currentPage, setCurrentPage] = useState(1);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [selectedSupplier, setSelectedSupplier] = useState("");
-  const [financingTenor, setFinancingTenor] = useState("60");
+  const [financingTenor, setFinancingTenor] = useState("");
   const [repaymentStructure, setRepaymentStructure] = useState<"bullet" | "installments">("bullet");
-  const [addPhase, setAddPhase] = useState<AddInvoicePhase>("upload");
+  const [addPhase, setAddPhase] = useState<AddInvoicePhase>("config");
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [lineItems, setLineItems] = useState<LineItem[]>([]);
   const [showCommodityExchange, setShowCommodityExchange] = useState(false);
+  const [showFeeRate, setShowFeeRate] = useState(false);
 
   useEffect(() => {
     if (searchParams.get("add") === "true") setShowAddForm(true);
@@ -362,7 +363,7 @@ export function BuyerInvoicesModule() {
         setShowAddForm(false);
         setAddToExistingGroup(null);
         setSubmitting(false);
-        setAddPhase("upload");
+        setAddPhase("config");
         setUploadedFiles([]);
         setLineItems([]);
         setViewingGroup(addToExistingGroup);
@@ -410,11 +411,12 @@ export function BuyerInvoicesModule() {
         setAddToExistingGroup(null);
         setSubmitting(false);
         setSelectedSupplier("");
-        setFinancingTenor("60");
+        setFinancingTenor("");
         setRepaymentStructure("bullet");
-        setAddPhase("upload");
+        setAddPhase("config");
         setUploadedFiles([]);
         setLineItems([]);
+        setShowFeeRate(false);
         setViewingGroup(groupId);
         setSearchTerm("");
         setCurrentPage(1);
@@ -428,11 +430,12 @@ export function BuyerInvoicesModule() {
     setShowSuccess(false);
     setSubmitting(false);
     setSelectedSupplier("");
-    setFinancingTenor("60");
+    setFinancingTenor("");
     setRepaymentStructure("bullet");
-    setAddPhase("upload");
+    setAddPhase("config");
     setUploadedFiles([]);
     setLineItems([]);
+    setShowFeeRate(false);
   };
 
   const stats = [
@@ -482,6 +485,13 @@ export function BuyerInvoicesModule() {
             <p className="text-sm font-medium text-gray-700">Click to upload invoice documents</p>
             <p className="text-xs text-gray-400 mt-1">PDF, JPG, PNG accepted · Up to 10 files</p>
           </div>
+          {!addToExistingGroup && (
+            <div className="flex justify-start mt-4">
+              <button onClick={() => setAddPhase("config")} className="text-sm text-gray-600 hover:text-gray-900 flex items-center gap-1">
+                <ArrowLeft className="w-3.5 h-3.5" /> Back to Payment Configuration
+              </button>
+            </div>
+          )}
         </div>
       );
     }
@@ -609,14 +619,47 @@ export function BuyerInvoicesModule() {
 
   /* ───── Inline Add Form Page ───── */
   if (showAddForm) {
+    const stepLabels = ["Payment Config", "Upload", "Review & Submit"];
+    const stepIcons = [<Settings className="w-3.5 h-3.5" />, <Upload className="w-3.5 h-3.5" />, <CheckCircle className="w-3.5 h-3.5" />];
+    const currentStep = addPhase === "config" ? 0 : (addPhase === "upload") ? 1 : 2;
+
     return (
-      <div className="p-6 max-w-7xl mx-auto">
+      <div className="p-6 max-w-3xl mx-auto">
         <button onClick={resetForm} className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 mb-6">
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
 
         <h2 className="text-2xl font-semibold text-gray-900 mb-1">{addToExistingGroup ? `Add Invoices to ${addToExistingGroup}` : "Add Invoice"}</h2>
         <p className="text-sm text-gray-500 mb-6">{addToExistingGroup ? "Add new invoices to the existing group" : "Create a new payable invoice financing request"}</p>
+
+        {/* Step Indicator — Enhanced with progress line */}
+        {!addToExistingGroup && (
+          <div className="relative flex items-center justify-between mb-8 px-2">
+            {/* Background connector line */}
+            <div className="absolute top-5 left-[calc(16.67%)] right-[calc(16.67%)] h-0.5 bg-gray-200 z-0" />
+            {/* Filled progress line */}
+            <div
+              className="absolute top-5 left-[calc(16.67%)] h-0.5 bg-blue-500 z-0 transition-all duration-500"
+              style={{ width: currentStep === 0 ? "0%" : currentStep === 1 ? "33.33%" : "66.67%" }}
+            />
+            {stepLabels.map((label, idx) => (
+              <div key={idx} className="relative z-10 flex flex-col items-center gap-1.5">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${
+                  idx < currentStep
+                    ? "bg-green-500 text-white shadow-md shadow-green-200"
+                    : idx === currentStep
+                    ? "bg-blue-600 text-white shadow-lg shadow-blue-200 ring-4 ring-blue-100"
+                    : "bg-gray-100 text-gray-400 border-2 border-gray-200"
+                }`}>
+                  {idx < currentStep ? <CheckCircle className="w-5 h-5" /> : stepIcons[idx]}
+                </div>
+                <span className={`text-xs font-medium ${
+                  idx < currentStep ? "text-green-700" : idx === currentStep ? "text-blue-700" : "text-gray-400"
+                }`}>{label}</span>
+              </div>
+            ))}
+          </div>
+        )}
 
         <div className="space-y-6">
           {/* Group Details Section */}
@@ -630,78 +673,118 @@ export function BuyerInvoicesModule() {
               <span className="text-gray-400">|</span>
               <span className="text-gray-500">Repayment:</span> <span className="font-medium text-gray-900 capitalize">{existingGroupForForm.repaymentStructure}</span>
             </div>
-          ) : (
-            <div className="bg-white rounded-lg border border-gray-200 px-4 py-3">
-              <div className="flex items-end gap-4 flex-wrap">
-                <div className="flex-1 min-w-[200px]">
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Supplier *</label>
-                  <select value={selectedSupplier} onChange={e => setSelectedSupplier(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-                    <option value="">Choose a supplier...</option>
-                    {approvedSuppliers.map(s => (
-                      <option key={s.id} value={s.id}>{s.name} ({s.tln})</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Repayment *</label>
-                  <div className="flex gap-2">
-                    <button type="button" onClick={() => { setRepaymentStructure("bullet"); setFinancingTenor("60"); }} className={`px-4 py-2 border-2 rounded-lg text-sm font-medium transition-colors ${repaymentStructure === "bullet" ? "border-blue-600 bg-blue-50 text-blue-700" : "border-gray-200 text-gray-700 hover:border-gray-300"}`}>Bullet</button>
-                    <button type="button" onClick={() => { setRepaymentStructure("installments"); setFinancingTenor("30"); }} className={`px-4 py-2 border-2 rounded-lg text-sm font-medium transition-colors ${repaymentStructure === "installments" ? "border-blue-600 bg-blue-50 text-blue-700" : "border-gray-200 text-gray-700 hover:border-gray-300"}`}>Installments</button>
+          ) : addPhase === "config" ? (
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="p-6">
+                {/* Section header with icon */}
+                <div className="flex items-center gap-2.5 mb-1">
+                  <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+                    <Settings className="w-4 h-4 text-blue-600" />
                   </div>
+                  <h3 className="text-base font-semibold text-gray-900">Payment Configuration</h3>
                 </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Tenor *</label>
-                  <div className="flex gap-1.5">
-                    {TENURE_OPTIONS[repaymentStructure].map(t => (
-                      <button key={t} type="button" onClick={() => setFinancingTenor(String(t))} className={`px-3 py-2 border-2 rounded-lg text-sm font-medium transition-colors ${financingTenor === String(t) ? "border-blue-600 bg-blue-50 text-blue-700" : "border-gray-200 text-gray-700 hover:border-gray-300"}`}>
-                        {t}d
-                      </button>
-                    ))}
+                <p className="text-xs text-gray-500 mb-6 ml-[42px]">Select supplier, repayment type and tenor.</p>
+
+                <div className="space-y-5">
+                  {/* Supplier — separate visual zone */}
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                    <label className="block text-xs font-medium text-gray-600 mb-1.5">Supplier *</label>
+                    <select value={selectedSupplier} onChange={e => setSelectedSupplier(e.target.value)} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white">
+                      <option value="">Choose a supplier...</option>
+                      {approvedSuppliers.map(s => (
+                        <option key={s.id} value={s.id}>{s.name} ({s.tln})</option>
+                      ))}
+                    </select>
                   </div>
-                </div>
-              </div>
-              {/* Real-time Pricing Preview */}
-              {financingTenor && totalAmount > 0 && (() => {
-                const preview = calculatePricing(repaymentStructure, Number(financingTenor), totalAmount);
-                return (
-                  <div className="mt-3 border border-blue-200 rounded-lg overflow-hidden">
-                    <div className="bg-blue-50 px-4 py-2 flex items-center gap-2 border-b border-blue-200">
-                      <DollarSign className="w-3.5 h-3.5 text-blue-600" />
-                      <span className="text-xs font-semibold text-blue-800">Pricing</span>
+
+                  {/* Payment Terms — grouped together */}
+                  <div className="grid grid-cols-2 gap-5 items-end">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-2.5">Repayment Type *</label>
+                      {/* Segmented control */}
+                      <div className="flex rounded-lg border border-gray-200 overflow-hidden">
+                        <button
+                          type="button"
+                          onClick={() => { setRepaymentStructure("bullet"); setFinancingTenor(""); setShowFeeRate(false); }}
+                          className={`flex-1 px-4 py-2.5 text-sm font-medium transition-all ${
+                            repaymentStructure === "bullet"
+                              ? "bg-blue-600 text-white shadow-inner"
+                              : "bg-white text-gray-600 hover:bg-gray-50"
+                          }`}
+                        >
+                          Bullet
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { setRepaymentStructure("installments"); setFinancingTenor(""); setShowFeeRate(false); }}
+                          className={`flex-1 px-4 py-2.5 text-sm font-medium transition-all border-l border-gray-200 ${
+                            repaymentStructure === "installments"
+                              ? "bg-blue-600 text-white shadow-inner"
+                              : "bg-white text-gray-600 hover:bg-gray-50"
+                          }`}
+                        >
+                          Installments
+                        </button>
+                      </div>
                     </div>
-                    <div className="bg-white px-4 py-3">
-                      <div className="flex items-center gap-6">
-                        <div>
-                          <p className="text-[10px] uppercase tracking-wide text-gray-400 mb-0.5">Fee %</p>
-                          <p className="text-lg font-bold text-gray-900">{(preview.flatFeePercent * 100).toFixed(2)}%</p>
+                    <div className="flex gap-3 items-end">
+                      <div className="flex-1">
+                        <label className="block text-xs font-medium text-gray-600 mb-1.5">Tenor *</label>
+                        <select value={financingTenor} onChange={e => { setFinancingTenor(e.target.value); setShowFeeRate(false); }} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                          <option value="">Select tenor</option>
+                          {TENURE_OPTIONS[repaymentStructure].map(t => (
+                            <option key={t} value={String(t)}>{t} days</option>
+                          ))}
+                        </select>
+                      </div>
+                      {financingTenor && !showFeeRate && (
+                        <button type="button" onClick={() => setShowFeeRate(true)} className="px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors font-medium text-sm whitespace-nowrap">
+                          View Fee Rate
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Fee Rate display */}
+                  {showFeeRate && financingTenor && (() => {
+                    const feePercent = PRICING_MATRIX[getBorrowerCategory()]?.[repaymentStructure]?.[Number(financingTenor)] || 0;
+                    return (
+                      <div className="border border-blue-200 rounded-lg overflow-hidden">
+                        <div className="bg-blue-50 px-4 py-2.5 flex items-center gap-2 border-b border-blue-200">
+                          <DollarSign className="w-4 h-4 text-blue-600" />
+                          <span className="text-sm font-semibold text-blue-800">Applicable Fee Rate</span>
                         </div>
-                        <div className="h-8 w-px bg-gray-200" />
-                        <div className="flex items-center gap-2 text-sm">
-                          <div className="text-center">
-                            <p className="text-[10px] uppercase tracking-wide text-gray-400 mb-0.5">Fee</p>
-                            <p className="font-medium text-gray-900">{formatCurrency(preview.flatFeeAmount)}</p>
-                          </div>
-                          <span className="text-gray-300 text-lg">+</span>
-                          <div className="text-center">
-                            <p className="text-[10px] uppercase tracking-wide text-gray-400 mb-0.5">VAT (5%)</p>
-                            <p className="font-medium text-gray-900">{formatCurrency(preview.vatAmount)}</p>
-                          </div>
-                          <span className="text-gray-300 text-lg">=</span>
-                          <div className="text-center">
-                            <p className="text-[10px] uppercase tracking-wide text-gray-400 mb-0.5">Total Fee</p>
-                            <p className="font-bold text-green-700">{formatCurrency(preview.totalFeeWithVat)}</p>
+                        <div className="bg-white px-4 py-4">
+                          <div className="flex items-center gap-4">
+                            <div>
+                              <p className="text-xs uppercase tracking-wide text-gray-400 mb-1">Processing Fee</p>
+                              <p className="text-2xl font-bold text-gray-900">{(feePercent * 100).toFixed(2)}%</p>
+                            </div>
+                            <div className="h-10 w-px bg-gray-200" />
+                            <div className="flex-1">
+                              <p className="text-xs uppercase tracking-wide text-gray-400 mb-1">Structure</p>
+                              <p className="text-sm font-medium text-gray-900 capitalize">{repaymentStructure} · {financingTenor} days</p>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
-                );
-              })()}
-            </div>
-          )}
+                    );
+                  })()}
+                </div>
 
-          {/* Invoices Section */}
-          {renderAddInvoiceContent()}
+                {/* Footer with divider */}
+                <div className="border-t border-gray-100 mt-6 pt-4 flex justify-end">
+                  <button onClick={() => setAddPhase("upload")} disabled={!selectedSupplier || !financingTenor} className="px-6 py-2.5 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                    Next — Upload Invoices
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {/* Invoices Section — only show after config */}
+          {addPhase !== "config" && renderAddInvoiceContent()}
 
           {/* Submit — only show in review phase */}
           {addPhase === "review" && (

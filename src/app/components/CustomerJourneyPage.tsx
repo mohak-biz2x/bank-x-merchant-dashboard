@@ -73,9 +73,6 @@ export function CustomerJourneyPage() {
 
   // Bank Account Details state
   const [bankAccountData, setBankAccountData] = useState({ bankName: "", accountName: "", iban: "", swiftCode: "" });
-  const [ibanVerified, setIbanVerified] = useState(false);
-  const [ibanVerifying, setIbanVerifying] = useState(false);
-  const [bankAccountError, setBankAccountError] = useState("");
 
   // KYC Documents state
   const [kycDocs, setKycDocs] = useState<Record<string, { emiratesId: File | null; passport: File | null }>>({});
@@ -197,16 +194,7 @@ export function CustomerJourneyPage() {
       return;
     }
     if (currentStep === 5 && !selectedProduct) return;
-    if (currentStep === 7 && !ibanVerified) return;
-    if (currentStep === 7 && ibanVerified) {
-      const businessName = (companyInfo.legalBusinessName || profileData.companyLegalName).trim().toLowerCase();
-      const accountName = bankAccountData.accountName.trim().toLowerCase();
-      if (accountName !== businessName) {
-        setBankAccountError("Account Name does not match the registered business name. Please verify your IBAN or contact your bank.");
-        setTimeout(() => setBankAccountError(""), 6000);
-        return;
-      }
-    }
+    if (currentStep === 7 && (!bankAccountData.bankName || !bankAccountData.accountName || !bankAccountData.iban || !bankAccountData.swiftCode)) return;
     if (currentStep === 8) {
       if (acceptedAgreements) {
         localStorage.setItem("merchant_underwriting_status", "pending");
@@ -641,33 +629,6 @@ export function CustomerJourneyPage() {
     </div>
   );
 
-  const verifyIban = () => {
-    if (!bankAccountData.iban || bankAccountData.iban.length < 23) return;
-    setIbanVerifying(true);
-    setBankAccountError("");
-    setTimeout(() => {
-      if (bankAccountData.iban === "AE550444987654321000001") {
-        setIbanVerifying(false);
-        setBankAccountError("We could not find any bank account matching this IBAN. Please check and enter the correct IBAN.");
-        return;
-      }
-      setBankAccountData(prev => ({
-        ...prev,
-        bankName: "Emirates NBD",
-        accountName: "Al Masraf Industries LLC",
-        swiftCode: "ABORAEADXXX",
-      }));
-      setIbanVerified(true);
-      setIbanVerifying(false);
-    }, 2000);
-  };
-
-  const resetIban = () => {
-    setIbanVerified(false);
-    setBankAccountData({ bankName: "", accountName: "", iban: "", swiftCode: "" });
-    setBankAccountError("");
-  };
-
   const renderBankAccountDetails = () => (
     <div>
       <div className="flex items-center gap-3 mb-1">
@@ -676,91 +637,32 @@ export function CustomerJourneyPage() {
       </div>
       <p className="text-sm text-gray-500 mb-6 ml-4">Provide your bank account details for disbursements and repayments</p>
 
-      {/* Error Toaster */}
-      {bankAccountError && (
-        <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
-          <div className="w-5 h-5 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-            <X className="w-3 h-3 text-red-600" />
-          </div>
-          <div className="flex-1">
-            <p className="text-sm font-medium text-red-800">Validation Error</p>
-            <p className="text-sm text-red-700 mt-0.5">{bankAccountError}</p>
-          </div>
-          <button onClick={() => setBankAccountError("")} className="text-red-400 hover:text-red-600">
-            <X className="w-4 h-4" />
-          </button>
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+        <div className="flex items-start gap-3">
+          <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+          <p className="text-sm text-blue-700">These details will be used for all financing disbursements and repayment collections.</p>
         </div>
-      )}
+      </div>
 
       <div className="bg-white border border-gray-200 rounded-lg p-6">
-        {/* IBAN Input */}
-        <div className="mb-5">
-          <label className="block text-sm font-medium text-gray-700 mb-2">IBAN *</label>
-          <div className="flex gap-3">
-            <input
-              type="text"
-              value={bankAccountData.iban}
-              onChange={e => {
-                if (!ibanVerified) {
-                  setBankAccountData(prev => ({ ...prev, iban: e.target.value.toUpperCase().replace(/[\s-]/g, "") }));
-                }
-              }}
-              disabled={ibanVerified}
-              placeholder="e.g. AE070331234567890123456"
-              className={`flex-1 px-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${ibanVerified ? 'border-gray-200 bg-gray-50 text-gray-700 cursor-not-allowed' : 'border-gray-300'}`}
-            />
-            {!ibanVerified ? (
-              <button
-                onClick={verifyIban}
-                disabled={!bankAccountData.iban || bankAccountData.iban.length < 23 || ibanVerifying}
-                className="px-5 py-2.5 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium flex items-center gap-2"
-              >
-                {ibanVerifying ? <><Loader2 className="w-4 h-4 animate-spin" /> Verifying...</> : <><Landmark className="w-4 h-4" /> Verify IBAN</>}
-              </button>
-            ) : (
-              <button
-                onClick={resetIban}
-                className="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
-              >
-                Change IBAN
-              </button>
-            )}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Bank Name *</label>
+            <input type="text" value={bankAccountData.bankName} onChange={e => setBankAccountData(prev => ({ ...prev, bankName: e.target.value }))} placeholder="Bank Name" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
-          {!ibanVerified && (
-            <p className="text-xs text-gray-500 mt-1.5">Enter your UAE IBAN (23 characters starting with AE) and click Verify to auto-populate bank details</p>
-          )}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Account Name *</label>
+            <input type="text" value={bankAccountData.accountName} onChange={e => setBankAccountData(prev => ({ ...prev, accountName: e.target.value }))} placeholder="Account Name" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">IBAN *</label>
+            <input type="text" value={bankAccountData.iban} onChange={e => setBankAccountData(prev => ({ ...prev, iban: e.target.value.toUpperCase().replace(/[\s-]/g, "") }))} placeholder="IBAN" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">SWIFT/BIC Code *</label>
+            <input type="text" value={bankAccountData.swiftCode} onChange={e => setBankAccountData(prev => ({ ...prev, swiftCode: e.target.value.toUpperCase() }))} placeholder="SWIFT/BIC Code" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
         </div>
-
-        {/* Auto-populated fields (shown after verification) */}
-        {ibanVerifying && (
-          <div className="flex items-center gap-3 py-8 justify-center">
-            <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
-            <span className="text-sm text-gray-600">Fetching bank details...</span>
-          </div>
-        )}
-
-        {ibanVerified && (
-          <>
-            <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-4 py-2.5 mb-5">
-              <CheckCircle className="w-4 h-4 text-green-600" />
-              <span className="text-sm text-green-700 font-medium">IBAN verified — Bank details populated successfully</span>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Bank Name</label>
-                <input type="text" value={bankAccountData.bankName} readOnly className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-700 text-sm cursor-not-allowed" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Account Name</label>
-                <input type="text" value={bankAccountData.accountName} readOnly className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-700 text-sm cursor-not-allowed" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">SWIFT/BIC Code</label>
-                <input type="text" value={bankAccountData.swiftCode} readOnly className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-700 text-sm cursor-not-allowed" />
-              </div>
-            </div>
-          </>
-        )}
       </div>
     </div>
   );
@@ -1027,10 +929,10 @@ export function CustomerJourneyPage() {
             </button>
             <div className="text-xs text-gray-400">{currentStep === 1 ? '' : `Step ${visibleSteps.findIndex(s => s.id === currentStep) + 1} of ${visibleSteps.length}`}</div>
             <button onClick={handleNext}
-              disabled={(currentStep === 8 && !acceptedAgreements) || (currentStep === 7 && !ibanVerified) || (currentStep === 5 && !selectedProduct) || (currentStep === 4 && !journeyType) || (currentStep === 3 && !aecbConsent)}
+              disabled={(currentStep === 8 && !acceptedAgreements) || (currentStep === 7 && (!bankAccountData.bankName || !bankAccountData.accountName || !bankAccountData.iban || !bankAccountData.swiftCode)) || (currentStep === 5 && !selectedProduct) || (currentStep === 4 && !journeyType) || (currentStep === 3 && !aecbConsent)}
               className={`px-6 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                 currentStep === 8 ? acceptedAgreements ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                : (currentStep === 7 && !ibanVerified) ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                : (currentStep === 7 && (!bankAccountData.bankName || !bankAccountData.accountName || !bankAccountData.iban || !bankAccountData.swiftCode)) ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 : (currentStep === 5 && !selectedProduct) ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 : (currentStep === 4 && !journeyType) ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 : (currentStep === 3 && !aecbConsent) ? 'bg-gray-200 text-gray-400 cursor-not-allowed'

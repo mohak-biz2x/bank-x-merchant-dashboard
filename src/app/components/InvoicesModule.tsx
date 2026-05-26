@@ -1,4 +1,4 @@
-import { FileText, Plus, Upload, X, CheckCircle, Clock, AlertCircle, DollarSign, Eye, Download, MoreVertical, ArrowLeft, ChevronLeft, ChevronRight, Loader2, PenTool, Info } from "lucide-react";
+import { FileText, Plus, Upload, X, CheckCircle, Clock, AlertCircle, DollarSign, Eye, Download, MoreVertical, ArrowLeft, ChevronLeft, ChevronRight, Loader2, PenTool, Info, CreditCard, Settings, FileUp, ClipboardCheck } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router";
 import { showToast } from "./Toast";
@@ -463,75 +463,109 @@ export function InvoicesModule() {
     if (addPhase === "config") {
       const feePercent = selectedTenure ? (PRICING_MATRIX[getBorrowerCategory()]?.[repaymentStructure]?.[selectedTenure] || 0) : null;
       return (
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h3 className="text-base font-semibold text-gray-900 mb-1">Payment Configuration</h3>
-          <p className="text-xs text-gray-500 mb-5">Select your preferred payment type and tenure to view applicable fees.</p>
-          <div className="space-y-5">
-            {!addToExistingGroup && (
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Buyer Name *</label>
-                <input type="text" value={buyerName} onChange={e => setBuyerName(e.target.value)} placeholder="Enter buyer name" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="p-6">
+            {/* Section header with icon */}
+            <div className="flex items-center gap-2.5 mb-1">
+              <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+                <Settings className="w-4 h-4 text-blue-600" />
               </div>
-            )}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-2">Payment Type *</label>
-                <div className="flex gap-4">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="radio" name="repaymentStructure" checked={repaymentStructure === "bullet"} onChange={() => { setRepaymentStructure("bullet"); setSelectedTenure(null); setShowFeeRate(false); }} className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500" />
-                    <span className="text-sm font-medium text-gray-700">Bullet</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="radio" name="repaymentStructure" checked={repaymentStructure === "installments"} onChange={() => { setRepaymentStructure("installments"); setSelectedTenure(null); setShowFeeRate(false); }} className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500" />
-                    <span className="text-sm font-medium text-gray-700">Installments</span>
-                  </label>
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Tenor *</label>
-                <select value={selectedTenure ?? ""} onChange={e => { setSelectedTenure(e.target.value ? Number(e.target.value) : null); setShowFeeRate(false); }} disabled={!repaymentStructure} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed bg-white">
-                  <option value="">Select tenor</option>
-                  {TENURE_OPTIONS[repaymentStructure].map(t => (
-                    <option key={t} value={t}>{t} days</option>
-                  ))}
-                </select>
-              </div>
+              <h3 className="text-base font-semibold text-gray-900">Payment Configuration</h3>
             </div>
-            {selectedTenure && !showFeeRate && (
-              <button type="button" onClick={() => setShowFeeRate(true)} className="px-4 py-2 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] transition-colors font-medium text-sm">
-                View Applicable Fee Rate
-              </button>
-            )}
-            {showFeeRate && feePercent !== null && (
-              <div className="border border-blue-200 rounded-lg overflow-hidden">
-                <div className="bg-blue-50 px-4 py-2.5 flex items-center gap-2 border-b border-blue-200">
-                  <DollarSign className="w-4 h-4 text-blue-600" />
-                  <span className="text-sm font-semibold text-blue-800">Applicable Fee Rate</span>
+            <p className="text-xs text-gray-500 mb-6 ml-[42px]">Select your preferred payment type and tenure to view applicable fees.</p>
+
+            <div className="space-y-6">
+              {/* Buyer Name — separate visual zone */}
+              {!addToExistingGroup && (
+                <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                  <label className="block text-xs font-medium text-gray-600 mb-1.5">Buyer Name *</label>
+                  <input type="text" value={buyerName} onChange={e => setBuyerName(e.target.value)} placeholder="Enter buyer name" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
                 </div>
-                <div className="bg-white px-4 py-4">
-                  <div className="flex items-center gap-4">
-                    <div>
-                      <p className="text-xs uppercase tracking-wide text-gray-400 mb-1">Processing Fee</p>
-                      <p className="text-2xl font-bold text-gray-900">{(feePercent * 100).toFixed(2)}%</p>
-                    </div>
-                    <div className="h-10 w-px bg-gray-200" />
-                    <div className="flex-1">
-                      <p className="text-xs uppercase tracking-wide text-gray-400 mb-1">Structure</p>
-                      <p className="text-sm font-medium text-gray-900 capitalize">{repaymentStructure} · {selectedTenure} days</p>
-                    </div>
+              )}
+
+              {/* Payment Terms — grouped together */}
+              <div className="grid grid-cols-2 gap-5 items-end">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-2.5">Payment Type *</label>
+                  {/* Segmented control */}
+                  <div className="flex rounded-lg border border-gray-200 overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => { setRepaymentStructure("bullet"); setSelectedTenure(null); setShowFeeRate(false); }}
+                      className={`flex-1 px-4 py-2.5 text-sm font-medium transition-all ${
+                        repaymentStructure === "bullet"
+                          ? "bg-blue-600 text-white shadow-inner"
+                          : "bg-white text-gray-600 hover:bg-gray-50"
+                      }`}
+                    >
+                      Bullet
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setRepaymentStructure("installments"); setSelectedTenure(null); setShowFeeRate(false); }}
+                      className={`flex-1 px-4 py-2.5 text-sm font-medium transition-all border-l border-gray-200 ${
+                        repaymentStructure === "installments"
+                          ? "bg-blue-600 text-white shadow-inner"
+                          : "bg-white text-gray-600 hover:bg-gray-50"
+                      }`}
+                    >
+                      Installments
+                    </button>
                   </div>
-                  <div className="mt-3 flex items-start gap-2 p-2.5 bg-amber-50 border border-amber-200 rounded-lg">
-                    <Info className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-                    <p className="text-xs text-amber-700">An additional VAT of 5% will be levied on the processing fee at the time of disbursement.</p>
+                </div>
+                <div className="flex gap-3 items-end">
+                  <div className="flex-1">
+                    <label className="block text-xs font-medium text-gray-600 mb-1.5">Tenor *</label>
+                    <select value={selectedTenure ?? ""} onChange={e => { setSelectedTenure(e.target.value ? Number(e.target.value) : null); setShowFeeRate(false); }} disabled={!repaymentStructure} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed bg-white">
+                      <option value="">Select tenor</option>
+                      {TENURE_OPTIONS[repaymentStructure].map(t => (
+                        <option key={t} value={t}>{t} days</option>
+                      ))}
+                    </select>
                   </div>
+                  {selectedTenure && !showFeeRate && (
+                    <button type="button" onClick={() => setShowFeeRate(true)} className="px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors font-medium text-sm whitespace-nowrap">
+                      View Fee Rate
+                    </button>
+                  )}
                 </div>
               </div>
-            )}
-          </div>
-          <div className="flex justify-end mt-6">
-            <button onClick={() => setAddPhase("upload")} disabled={!addToExistingGroup && (!buyerName.trim() || !selectedTenure)} className="px-6 py-2.5 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed">
-              Next — Upload Invoices
-            </button>
+
+              {/* Fee Rate display */}
+              {showFeeRate && feePercent !== null && (
+                <div className="border border-blue-200 rounded-lg overflow-hidden">
+                  <div className="bg-blue-50 px-4 py-2.5 flex items-center gap-2 border-b border-blue-200">
+                    <DollarSign className="w-4 h-4 text-blue-600" />
+                    <span className="text-sm font-semibold text-blue-800">Applicable Fee Rate</span>
+                  </div>
+                  <div className="bg-white px-4 py-4">
+                    <div className="flex items-center gap-4">
+                      <div>
+                        <p className="text-xs uppercase tracking-wide text-gray-400 mb-1">Processing Fee</p>
+                        <p className="text-2xl font-bold text-gray-900">{(feePercent * 100).toFixed(2)}%</p>
+                      </div>
+                      <div className="h-10 w-px bg-gray-200" />
+                      <div className="flex-1">
+                        <p className="text-xs uppercase tracking-wide text-gray-400 mb-1">Structure</p>
+                        <p className="text-sm font-medium text-gray-900 capitalize">{repaymentStructure} · {selectedTenure} days</p>
+                      </div>
+                    </div>
+                    <div className="mt-3 flex items-start gap-2 p-2.5 bg-amber-50 border border-amber-200 rounded-lg">
+                      <Info className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                      <p className="text-xs text-amber-700">An additional VAT of 5% will be levied on the processing fee at the time of disbursement.</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer with divider */}
+            <div className="border-t border-gray-100 mt-6 pt-4 flex justify-end">
+              <button onClick={() => setAddPhase("upload")} disabled={!addToExistingGroup && (!buyerName.trim() || !selectedTenure)} className="px-6 py-2.5 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                Next — Upload Invoices
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
       );
@@ -769,10 +803,11 @@ export function InvoicesModule() {
   /* ───── Inline Add Form Page ───── */
   if (showAddForm) {
     const stepLabels = ["Payment Config", "Upload", "Review & Submit"];
+    const stepIcons = [<CreditCard className="w-3.5 h-3.5" />, <FileUp className="w-3.5 h-3.5" />, <ClipboardCheck className="w-3.5 h-3.5" />];
     const currentStep = addPhase === "config" ? 0 : (addPhase === "upload" || addPhase === "file-review") ? 1 : 2;
 
     return (
-      <div className="p-6 max-w-7xl mx-auto">
+      <div className="p-6 max-w-3xl mx-auto">
         <button onClick={resetForm} className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 mb-6">
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
@@ -780,18 +815,30 @@ export function InvoicesModule() {
         <h2 className="text-2xl font-semibold text-gray-900 mb-1">{addToExistingGroup ? `Add Invoices to ${addToExistingGroup}` : "Add Invoice"}</h2>
         <p className="text-sm text-gray-500 mb-6">{addToExistingGroup ? "Add new invoices to the existing group" : "Create a new invoice financing request"}</p>
 
-        {/* Step Indicator */}
+        {/* Step Indicator — Enhanced with progress line */}
         {!addToExistingGroup && (
-          <div className="flex items-center gap-2 mb-6">
+          <div className="relative flex items-center justify-between mb-8 px-2">
+            {/* Background connector line */}
+            <div className="absolute top-5 left-[calc(16.67%)] right-[calc(16.67%)] h-0.5 bg-gray-200 z-0" />
+            {/* Filled progress line */}
+            <div
+              className="absolute top-5 left-[calc(16.67%)] h-0.5 bg-blue-500 z-0 transition-all duration-500"
+              style={{ width: currentStep === 0 ? "0%" : currentStep === 1 ? "33.33%" : "66.67%" }}
+            />
             {stepLabels.map((label, idx) => (
-              <div key={idx} className="flex items-center gap-2">
-                <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium ${idx < currentStep ? "bg-green-100 text-green-700" : idx === currentStep ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-500"}`}>
-                  <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${idx < currentStep ? "bg-green-600 text-white" : idx === currentStep ? "bg-blue-600 text-white" : "bg-gray-300 text-white"}`}>
-                    {idx < currentStep ? "✓" : idx + 1}
-                  </span>
-                  {label}
+              <div key={idx} className="relative z-10 flex flex-col items-center gap-1.5">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${
+                  idx < currentStep
+                    ? "bg-green-500 text-white shadow-md shadow-green-200"
+                    : idx === currentStep
+                    ? "bg-blue-600 text-white shadow-lg shadow-blue-200 ring-4 ring-blue-100"
+                    : "bg-gray-100 text-gray-400 border-2 border-gray-200"
+                }`}>
+                  {idx < currentStep ? <CheckCircle className="w-5 h-5" /> : stepIcons[idx]}
                 </div>
-                {idx < stepLabels.length - 1 && <div className={`w-8 h-0.5 ${idx < currentStep ? "bg-green-300" : "bg-gray-200"}`} />}
+                <span className={`text-xs font-medium ${
+                  idx < currentStep ? "text-green-700" : idx === currentStep ? "text-blue-700" : "text-gray-400"
+                }`}>{label}</span>
               </div>
             ))}
           </div>

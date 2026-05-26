@@ -22,6 +22,9 @@ docusign.env
 .DS_Store
 Thumbs.db
 
+# Office temp files
+~$*
+
 # Logs
 *.log
 npm-debug.log*

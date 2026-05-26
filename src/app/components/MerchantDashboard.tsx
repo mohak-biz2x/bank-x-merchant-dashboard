@@ -47,8 +47,8 @@ export function MerchantDashboard() {
   // Post-approval multi-step state
   const [postApprovalStep, setPostApprovalStep] = useState(1); // 1=eSign, 2=security
   const [signedAgreements, setSignedAgreements] = useState<Record<string, boolean>>({
-    financing: false,
-    murabaha: false,
+    "on-sale": false,
+    second: false,
   });
   const [securityMethod, setSecurityMethod] = useState<"cheque" | "mandate" | null>(null);
   const [securityChequeFile, setSecurityChequeFile] = useState<File | null>(null);
@@ -77,7 +77,7 @@ export function MerchantDashboard() {
 
   useEffect(() => {
     const onCompleteEsign = () => {
-      setSignedAgreements({ financing: true, murabaha: true });
+      setSignedAgreements({ "on-sale": true, second: true });
       setDocuSignDoc(null);
     };
     window.addEventListener("demo-complete-esign", onCompleteEsign);
@@ -229,7 +229,7 @@ export function MerchantDashboard() {
 
   // Financing choice screen (after underwriting approved) — multi-step
   if (uwStatus === "approved") {
-    const allSigned = signedAgreements.financing && signedAgreements.murabaha;
+    const allSigned = signedAgreements["on-sale"] && signedAgreements.second;
     const securityComplete = securityMethod === "cheque" ? !!securityChequeFile : securityMethod === "mandate" ? mandateConfirmed : false;
 
     const openMandateFlow = () => {
@@ -283,10 +283,16 @@ export function MerchantDashboard() {
               <h3 className="text-xl font-semibold text-gray-900 mb-2">Sign Digital Agreements</h3>
               <p className="text-gray-600 text-sm mb-6">Please review and e-sign the following agreements to proceed.</p>
               <div className="space-y-4">
-                {[
-                  { key: "financing", label: "Financing Agreement", desc: "Master financing agreement covering terms, rates, and conditions of the credit facility" },
-                  { key: "murabaha", label: "Murabaha Agreement", desc: "Master Murabaha agreement governing commodity purchase and sale transactions" },
-                ].map((agreement) => (
+                {(() => {
+                  const productType = localStorage.getItem("selected_product") || "receivable";
+                  const isPayable = productType === "payable";
+                  const agreementsList = [
+                    { key: "on-sale", label: "On-sale Agreement", desc: "Agreement governing the sale and assignment of invoices to Mal Finance LLC" },
+                    isPayable
+                      ? { key: "second", label: "Murabaha Agreement", desc: "Master Murabaha agreement governing commodity purchase and sale transactions" }
+                      : { key: "second", label: "Master Purchase Agreement", desc: "Master purchase agreement governing the purchase of receivables" },
+                  ];
+                  return agreementsList.map((agreement) => (
                   <div key={agreement.key} className={`border rounded-lg p-5 transition-all ${signedAgreements[agreement.key] ? "border-green-300 bg-green-50" : "border-gray-200"}`}>
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -309,7 +315,8 @@ export function MerchantDashboard() {
                       </div>
                     </div>
                   </div>
-                ))}
+                  ));
+                })()}
               </div>
               <div className="mt-6 flex justify-end">
                 <button

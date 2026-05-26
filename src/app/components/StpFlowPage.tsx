@@ -18,11 +18,17 @@ export function StpFlowPage() {
   const [phase, setPhase] = useState<Phase>("processing");
   const [progress, setProgress] = useState(0);
   const [fadeIn, setFadeIn] = useState(true);
-  const [agreements, setAgreements] = useState<Agreement[]>([
-    { id: "financing", title: "Financing Agreement", description: "Master financing agreement covering terms, rates, and conditions", signed: false },
-    { id: "murabaha", title: "Murabaha Agreement", description: "Master Murabaha agreement governing commodity purchase and sale transactions", signed: false },
-    { id: "debit", title: "Direct Debit Agreement", description: "Authorization for automatic debit of repayment amounts from your account", signed: false },
-  ]);
+  const productType = localStorage.getItem("selected_product") || "receivable";
+  const [agreements, setAgreements] = useState<Agreement[]>(() => {
+    const secondAgreement = productType === "payable"
+      ? { id: "murabaha", title: "Murabaha Agreement", description: "Master Murabaha agreement governing commodity purchase and sale transactions", signed: false }
+      : { id: "master-purchase", title: "Master Purchase Agreement", description: "Master purchase agreement governing the purchase of receivables", signed: false };
+    return [
+      { id: "on-sale", title: "On-sale Agreement", description: "Agreement governing the sale and assignment of invoices to Mal Finance LLC", signed: false },
+      secondAgreement,
+      { id: "debit", title: "Direct Debit Agreement", description: "Authorization for automatic debit of repayment amounts from your account", signed: false },
+    ];
+  });
   const [redirectCountdown, setRedirectCountdown] = useState(5);
   const [docuSignDoc, setDocuSignDoc] = useState<{ id: string; title: string } | null>(null);
 

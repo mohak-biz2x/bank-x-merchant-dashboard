@@ -23,18 +23,20 @@ Replace the existing 2-step inline security onboarding modal in `ApplicationsMod
     - On final submission, clear `agreement_signing_progress` from localStorage
     - _Requirements: 10.3, 10.4_
 
-- [x] 2. Implement Step 1 - Financing Agreement (DocuSign)
+- [x] 2. Implement Step 1 - On-sale Agreement (DocuSign)
   - [x] 2.1 Implement Step 1 content within AgreementSigningModal
-    - When `currentStep === 1`, render Financing Agreement card with title, description, and "Sign" button
-    - On "Sign" click, set `showDocuSign` state to `{ title: "Financing Agreement", step: 1 }`
+    - When `currentStep === 1`, render On-sale Agreement card with title, description, and "Sign" button
+    - On "Sign" click, set `showDocuSign` state to `{ title: "On-sale Agreement", step: 1 }`
     - Render `DocuSignModal` when `showDocuSign` is set, passing `documentTitle`, `entityName`, `referenceId` (applicationId), `onSign`, `onClose`
     - On `onSign` callback: mark step 1 complete, advance to step 2, clear `showDocuSign`
     - _Requirements: 3.1, 3.2, 3.3, 3.4_
 
-- [x] 3. Implement Step 2 - Murabaha Agreement (DocuSign)
+- [x] 3. Implement Step 2 - Product-specific Agreement (DocuSign)
   - [x] 3.1 Implement Step 2 content within AgreementSigningModal
-    - When `currentStep === 2`, render Murabaha Agreement card with title, description, and "Sign" button
-    - On "Sign" click, set `showDocuSign` state to `{ title: "Murabaha Agreement", step: 2 }`
+    - When `currentStep === 2`, determine product type from `localStorage.getItem("selected_product")`
+    - If payable: render Murabaha Agreement card with title, description, and "Sign" button
+    - If receivable: render Master Purchase Agreement card with title, description, and "Sign" button
+    - On "Sign" click, set `showDocuSign` state to `{ title: <product-specific title>, step: 2 }`
     - On `onSign` callback: mark step 2 complete, advance to step 3, clear `showDocuSign`
     - _Requirements: 4.1, 4.2, 4.3, 4.4_
 

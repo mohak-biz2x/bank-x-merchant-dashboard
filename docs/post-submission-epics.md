@@ -300,7 +300,7 @@ When an application is STP-approved (auto-approve + STP pass), the customer sees
 - Application Approved screen (Drawdown status)
 - "Proceed to Agreements" CTA
 - Sign Agreements screen (embedded DocuSign)
-- Agreements: Financing Agreement + Direct Debit Agreement
+- Agreements: On-sale Agreement + product-specific agreement (Master Purchase Agreement for receivable / Murabaha Agreement for payable) + Direct Debit Agreement
 - Post-signing: "All agreements signed" confirmation + countdown redirect to dashboard
 - Dashboard activation with financing limit
 
@@ -353,7 +353,8 @@ Application Approved Screen → Proceed to Agreements → Sign (DocuSign embedde
 - Title: "Sign Agreements"
 - Subtitle: "Please review and sign the following agreements to activate your financing facility."
 - Agreement cards:
-  - Financing Agreement — "Master financing agreement covering terms, rates, and conditions" — [Sign] button
+  - On-sale Agreement — "Agreement governing the sale and assignment of invoices" — [Sign] button
+  - Master Purchase Agreement (receivable) / Murabaha Agreement (payable) — product-specific agreement — [Sign] button
   - Direct Debit Agreement — "Authorization for automatic debit of repayment amounts from your account" — [Sign] button
 - Each agreement signed via embedded DocuSign flow
 - After signing: button changes to "✓ Signed" (green)
@@ -394,7 +395,7 @@ Mal Team
 ```
 
 #### Acceptance Criteria
-- [ ] Two agreements displayed: Financing Agreement + Direct Debit Agreement
+- [ ] Three agreements displayed: On-sale Agreement + product-specific agreement (Master Purchase / Murabaha) + Direct Debit Agreement
 - [ ] Each "Sign" button opens embedded DocuSign signing flow
 - [ ] After signing, button shows "Signed" with green checkmark
 - [ ] Both agreements must be signed before redirect
@@ -445,7 +446,8 @@ Banker approves (Drawdown) → Application Approved Screen → Security Onboardi
 - Section title: "Sign Digital Agreements"
 - Subtitle: "Review and e-sign the following agreements to proceed."
 - Agreement cards:
-  - Financing Agreement — "Master financing agreement covering terms, rates, and conditions" — [Sign] button
+  - On-sale Agreement — "Agreement governing the sale and assignment of invoices" — [Sign] button
+  - Master Purchase Agreement (receivable) / Murabaha Agreement (payable) — product-specific agreement — [Sign] button
   - Direct Debit Agreement — "Authorization for automatic debit of repayment amounts from your account" — [Sign] button
 - After signing both: [Continue] button enabled
 

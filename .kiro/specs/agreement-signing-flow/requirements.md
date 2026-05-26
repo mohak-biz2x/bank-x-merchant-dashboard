@@ -24,7 +24,7 @@ This feature replaces the existing 2-step non-STP security onboarding modal in `
 
 #### Acceptance Criteria
 
-1. WHEN the `merchant_underwriting_status` localStorage value changes to "approved", THE Agreement_Signing_Modal SHALL generate three agreement records: Financing Agreement, Murabaha Agreement, and Direct Debit Agreement.
+1. WHEN the `merchant_underwriting_status` localStorage value changes to "approved", THE Agreement_Signing_Modal SHALL generate three agreement records: On-sale Agreement, a product-specific second agreement (Master Purchase Agreement for receivable, Murabaha Agreement for payable), and Direct Debit Agreement.
 2. WHEN all three agreement records have been generated, THE Customer_Portal SHALL display a toast notification indicating that agreements are ready for signing.
 3. WHEN all three agreement records have been generated, THE Customer_Portal SHALL dispatch a simulated callback event via localStorage to signal readiness.
 
@@ -35,29 +35,30 @@ This feature replaces the existing 2-step non-STP security onboarding modal in `
 #### Acceptance Criteria
 
 1. WHEN the application status is `security_onboarding` and agreements are ready, THE Agreement_Signing_Modal SHALL open automatically without requiring user action.
-2. THE Agreement_Signing_Modal SHALL display a 4-step progress indicator showing: Financing Agreement, Murabaha Agreement, DDS Agreement, and Bank Account & Security Cheque.
+2. THE Agreement_Signing_Modal SHALL display a 4-step progress indicator showing: On-sale Agreement, product-specific second agreement (Master Purchase Agreement for receivable / Murabaha Agreement for payable), DDS Agreement, and Bank Account & Security Cheque.
 3. WHEN the Agreement_Signing_Modal is open, THE Agreement_Signing_Modal SHALL start at Step 1.
 
-### Requirement 3: Step 1 - Financing Agreement Signing
+### Requirement 3: Step 1 - On-sale Agreement Signing
 
-**User Story:** As a customer, I want to sign the Financing Agreement using DocuSign, so that I can complete the first agreement electronically.
+**User Story:** As a customer, I want to sign the On-sale Agreement using DocuSign, so that I can complete the first agreement electronically.
 
 #### Acceptance Criteria
 
-1. WHEN Step 1 is active, THE Agreement_Signing_Modal SHALL display the Financing Agreement with a "Sign" button.
-2. WHEN the customer clicks "Sign" on the Financing Agreement, THE Agreement_Signing_Modal SHALL open the DocuSign_Modal with the document title "Financing Agreement".
+1. WHEN Step 1 is active, THE Agreement_Signing_Modal SHALL display the On-sale Agreement with a "Sign" button.
+2. WHEN the customer clicks "Sign" on the On-sale Agreement, THE Agreement_Signing_Modal SHALL open the DocuSign_Modal with the document title "On-sale Agreement".
 3. WHEN the customer completes signing in the DocuSign_Modal, THE Agreement_Signing_Modal SHALL mark Step 1 as complete and advance to Step 2.
 4. THE Agreement_Signing_Modal SHALL reuse the existing `DocuSignModal` component without modification.
 
-### Requirement 4: Step 2 - Murabaha Agreement Signing
+### Requirement 4: Step 2 - Product-Specific Agreement Signing
 
-**User Story:** As a customer, I want to sign the Murabaha Agreement using DocuSign, so that I can complete the second agreement electronically.
+**User Story:** As a customer, I want to sign the product-specific agreement (Master Purchase Agreement for receivable financing, Murabaha Agreement for payable financing) using DocuSign, so that I can complete the second agreement electronically.
 
 #### Acceptance Criteria
 
-1. WHEN Step 2 is active, THE Agreement_Signing_Modal SHALL display the Murabaha Agreement with a "Sign" button.
-2. WHEN the customer clicks "Sign" on the Murabaha Agreement, THE Agreement_Signing_Modal SHALL open the DocuSign_Modal with the document title "Murabaha Agreement".
-3. WHEN the customer completes signing in the DocuSign_Modal, THE Agreement_Signing_Modal SHALL mark Step 2 as complete and advance to Step 3.
+1. WHEN Step 2 is active AND the selected product is "receivable", THE Agreement_Signing_Modal SHALL display the Master Purchase Agreement with a "Sign" button.
+2. WHEN Step 2 is active AND the selected product is "payable", THE Agreement_Signing_Modal SHALL display the Murabaha Agreement with a "Sign" button.
+3. WHEN the customer clicks "Sign" on the product-specific agreement, THE Agreement_Signing_Modal SHALL open the DocuSign_Modal with the appropriate document title.
+4. WHEN the customer completes signing in the DocuSign_Modal, THE Agreement_Signing_Modal SHALL mark Step 2 as complete and advance to Step 3.
 4. THE Agreement_Signing_Modal SHALL reuse the existing `DocuSignModal` component without modification.
 
 ### Requirement 5: Step 3 - DDS Agreement via UAE Pass

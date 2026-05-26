@@ -67,12 +67,17 @@ interface BankAccount {
 Inline within `AgreementSigningModal`. Renders a horizontal 4-step progress bar.
 
 ```typescript
-const STEPS = [
-  { id: 1, label: "Financing Agreement" },
-  { id: 2, label: "Murabaha Agreement" },
-  { id: 3, label: "DDS Agreement" },
-  { id: 4, label: "Bank Account & Security Cheque" },
-];
+// Steps are dynamically determined based on product type
+function getSteps() {
+  const productType = localStorage.getItem("selected_product") || "receivable";
+  const secondAgreement = productType === "payable" ? "Murabaha Agreement" : "Master Purchase Agreement";
+  return [
+    { id: 1, label: "On-sale Agreement" },
+    { id: 2, label: secondAgreement },
+    { id: 3, label: "DDS Agreement" },
+    { id: 4, label: "Bank Account & Security Cheque" },
+  ];
+}
 ```
 
 Visual states:

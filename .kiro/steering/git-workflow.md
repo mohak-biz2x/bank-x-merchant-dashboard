@@ -62,9 +62,25 @@ Run this as a single command in `control_pwsh_process`. Use `;` as separator (Po
 
 ### Deployment
 
-Pushing to `main` triggers `.github/workflows/deploy.yml` which:
-1. Checks out code
-2. Runs `npm ci` + `npm run build`
-3. Deploys `dist/` to GitHub Pages
+GitHub Actions workflow is currently disabled (minutes exhausted). Deploy manually using `gh-pages`:
 
-No manual build step needed before pushing.
+```powershell
+npm run build; npx gh-pages -d dist
+```
+
+Run this as a single command in `control_pwsh_process` after committing code to `main`.
+
+**GitHub Pages config:**
+- Source: Deploy from branch `gh-pages` / `/ (root)`
+- URL: https://mohak-biz2x.github.io/bank-x-merchant-dashboard/
+- Base path in vite.config.ts: `/bank-x-merchant-dashboard/`
+
+**Full commit + deploy sequence:**
+```
+Step 1: git add -A
+Step 2: git commit -m "message"
+Step 3: git push origin main
+Step 4: npm run build; npx gh-pages -d dist
+```
+
+When GitHub Actions minutes reset, the `.github/workflows/deploy.yml` workflow can be re-enabled by switching Pages source back to "GitHub Actions" in repo Settings → Pages.

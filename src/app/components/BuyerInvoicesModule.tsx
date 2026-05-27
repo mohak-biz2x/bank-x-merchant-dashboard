@@ -1,4 +1,4 @@
-import { FileText, Plus, Upload, X, CheckCircle, Clock, AlertCircle, DollarSign, Eye, Download, MoreVertical, ArrowLeft, ChevronLeft, ChevronRight, Loader2, PenTool, Settings } from "lucide-react";
+import { FileText, Plus, Upload, X, CheckCircle, Clock, AlertCircle, DollarSign, Eye, Download, MoreVertical, ArrowLeft, ChevronLeft, ChevronRight, Loader2, PenTool, Settings, Info } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router";
 import { showToast } from "./Toast";
@@ -94,7 +94,7 @@ interface LineItem {
   expanded: boolean;
 }
 
-type AddInvoicePhase = "config" | "upload" | "parsing" | "review" | "validating";
+type AddInvoicePhase = "config" | "upload" | "file-review" | "parsing" | "review" | "validating";
 
 interface Supplier {
   id: string;
@@ -271,12 +271,20 @@ export function BuyerInvoicesModule() {
 
   const handleBulkUpload = (files: FileList | null) => {
     if (!files) return;
-    const newFiles = Array.from(files).slice(0, 10);
-    setUploadedFiles(newFiles);
-    // Auto-start parsing
+    const newFiles = Array.from(files).slice(0, 10 - uploadedFiles.length);
+    setUploadedFiles(prev => [...prev, ...newFiles].slice(0, 10));
+    setAddPhase("file-review");
+  };
+
+  const handleRemoveUploadedFile = (idx: number) => {
+    setUploadedFiles(prev => prev.filter((_, i) => i !== idx));
+    if (uploadedFiles.length <= 1) setAddPhase("upload");
+  };
+
+  const handleSubmitForParsing = () => {
     setAddPhase("parsing");
     setTimeout(() => {
-      const parsed: LineItem[] = newFiles.map((file) => {
+      const parsed: LineItem[] = uploadedFiles.map((file) => {
         const isFailed = Math.random() < 0.15;
         const num = String(Math.floor(Math.random() * 9000) + 1000);
         const today = new Date().toISOString().split("T")[0];
@@ -475,11 +483,95 @@ export function BuyerInvoicesModule() {
 
   /* ───── Inline Add Invoice Form ───── */
   const renderAddInvoiceContent = () => {
+    // Phase: Config — Payment type & tenure selection
+    if (addPhase === "config") {
+      const feePercent = financingTenor ? (PRICING_MATRIX[getBorrowerCategory()]?.[repaymentStructure]?.[Number(financingTenor)] || 0) : null;
+      return (
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="p-6">
+            <div className="flex items-center gap-2.5 mb-1">
+              <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+                <Settings className="w-4 h-4 text-blue-600" />
+              </div>
+              <h3 className="text-base font-semibold text-gray-900">Payment Configuration</h3>
+            </div>
+            <p className="text-xs text-gray-500 mb-6 ml-[42px]">Select supplier, repayment type and tenor to view applicable fees.</p>
+            <div className="space-y-6">
+              {!addToExistingGroup && (
+                <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                  <label className="block text-xs font-medium text-gray-600 mb-1.5">Supplier *</label>
+                  <select value={selectedSupplier} onChange={e => setSelectedSupplier(e.target.value)} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white">
+                    <option value="">Choose a supplier...</option>
+                    {approvedSuppliers.map(s => (
+                      <option key={s.id} value={s.id}>{s.name} ({s.tln})</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              <div className="grid grid-cols-2 gap-5 items-end">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-2.5">Payment Type *</label>
+                  <div className="flex rounded-lg border border-gray-200 overflow-hidden">
+                    <button type="button" onClick={() => { setRepaymentStructure("bullet"); setFinancingTenor(""); setShowFeeRate(false); }} className={`flex-1 px-4 py-2.5 text-sm font-medium transition-all ${repaymentStructure === "bullet" ? "bg-blue-600 text-white shadow-inner" : "bg-white text-gray-600 hover:bg-gray-50"}`}>Bullet</button>
+                    <button type="button" onClick={() => { setRepaymentStructure("installments"); setFinancingTenor(""); setShowFeeRate(false); }} className={`flex-1 px-4 py-2.5 text-sm font-medium transition-all border-l border-gray-200 ${repaymentStructure === "installments" ? "bg-blue-600 text-white shadow-inner" : "bg-white text-gray-600 hover:bg-gray-50"}`}>Installments</button>
+                  </div>
+                </div>
+                <div className="flex gap-3 items-end">
+                  <div className="flex-1">
+                    <label className="block text-xs font-medium text-gray-600 mb-1.5">Tenor *</label>
+                    <select value={financingTenor} onChange={e => { setFinancingTenor(e.target.value); setShowFeeRate(false); }} disabled={!repaymentStructure} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed bg-white">
+                      <option value="">Select tenor</option>
+                      {TENURE_OPTIONS[repaymentStructure].map(t => (<option key={t} value={String(t)}>{t} days</option>))}
+                    </select>
+                  </div>
+                  {financingTenor && !showFeeRate && (
+                    <button type="button" onClick={() => setShowFeeRate(true)} className="px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors font-medium text-sm whitespace-nowrap">View Fee Rate</button>
+                  )}
+                </div>
+              </div>
+              {showFeeRate && feePercent !== null && (
+                <div className="border border-blue-200 rounded-lg overflow-hidden">
+                  <div className="bg-blue-50 px-4 py-2.5 flex items-center gap-2 border-b border-blue-200">
+                    <DollarSign className="w-4 h-4 text-blue-600" />
+                    <span className="text-sm font-semibold text-blue-800">Applicable Fee Rate</span>
+                  </div>
+                  <div className="bg-white px-4 py-4">
+                    <div className="flex items-center gap-4">
+                      <div>
+                        <p className="text-xs uppercase tracking-wide text-gray-400 mb-1">Processing Fee</p>
+                        <p className="text-2xl font-bold text-gray-900">{(feePercent * 100).toFixed(2)}%</p>
+                      </div>
+                      <div className="h-10 w-px bg-gray-200" />
+                      <div className="flex-1">
+                        <p className="text-xs uppercase tracking-wide text-gray-400 mb-1">Structure</p>
+                        <p className="text-sm font-medium text-gray-900 capitalize">{repaymentStructure} · {financingTenor} days</p>
+                      </div>
+                    </div>
+                    <div className="mt-3 flex items-start gap-2 p-2.5 bg-amber-50 border border-amber-200 rounded-lg">
+                      <Info className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                      <p className="text-xs text-amber-700">An additional VAT of 5% will be levied on the processing fee at the time of disbursement.</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="border-t border-gray-100 mt-6 pt-4 flex justify-end">
+              <button onClick={() => setAddPhase("upload")} disabled={!addToExistingGroup && (!selectedSupplier || !financingTenor)} className="px-6 py-2.5 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                Next — Upload Invoices
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Phase: Upload
     if (addPhase === "upload") {
       return (
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <h3 className="text-base font-semibold text-gray-900 mb-1">Upload Invoices</h3>
-          <p className="text-xs text-gray-500 mb-5">Upload up to 10 invoice documents. Parsing will start automatically.</p>
+          <p className="text-xs text-gray-500 mb-5">Upload up to 10 invoice documents. You can review them before submitting for parsing.</p>
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 hover:bg-blue-50/30 transition-colors cursor-pointer" onClick={() => { const inp = document.createElement("input"); inp.type = "file"; inp.accept = ".pdf,.jpg,.jpeg,.png"; inp.multiple = true; inp.onchange = () => handleBulkUpload(inp.files); inp.click(); }}>
             <Upload className="w-10 h-10 text-gray-400 mx-auto mb-3" />
             <p className="text-sm font-medium text-gray-700">Click to upload invoice documents</p>
@@ -492,6 +584,50 @@ export function BuyerInvoicesModule() {
               </button>
             </div>
           )}
+        </div>
+      );
+    }
+
+    // Phase: File Review — review uploaded files before parsing
+    if (addPhase === "file-review") {
+      return (
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <h3 className="text-base font-semibold text-gray-900 mb-1">Review Uploaded Files</h3>
+          <p className="text-xs text-gray-500 mb-5">{uploadedFiles.length} file{uploadedFiles.length !== 1 ? "s" : ""} uploaded · {10 - uploadedFiles.length} remaining slot{10 - uploadedFiles.length !== 1 ? "s" : ""}</p>
+          <div className="space-y-2 mb-5">
+            {uploadedFiles.map((file, idx) => (
+              <div key={idx} className="flex items-center justify-between px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                    <FileText className="w-4 h-4 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900 truncate max-w-[300px]">{file.name}</p>
+                    <p className="text-xs text-gray-400">{(file.size / 1024).toFixed(1)} KB</p>
+                  </div>
+                </div>
+                <button onClick={() => handleRemoveUploadedFile(idx)} className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+          {uploadedFiles.length < 10 && (
+            <button onClick={() => { const inp = document.createElement("input"); inp.type = "file"; inp.accept = ".pdf,.jpg,.jpeg,.png"; inp.multiple = true; inp.onchange = () => handleBulkUpload(inp.files); inp.click(); }} className="w-full border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-400 hover:bg-blue-50/30 transition-colors cursor-pointer mb-5">
+              <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
+                <Plus className="w-4 h-4" />
+                <span>Upload More Invoices ({10 - uploadedFiles.length} slots remaining)</span>
+              </div>
+            </button>
+          )}
+          <div className="flex items-center justify-between">
+            <button onClick={() => { setUploadedFiles([]); setAddPhase("upload"); }} className="text-sm text-gray-600 hover:text-gray-900 flex items-center gap-1">
+              <ArrowLeft className="w-3.5 h-3.5" /> Back
+            </button>
+            <button onClick={handleSubmitForParsing} disabled={uploadedFiles.length === 0} className="px-6 py-2.5 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+              Submit for Parsing
+            </button>
+          </div>
         </div>
       );
     }
@@ -522,8 +658,47 @@ export function BuyerInvoicesModule() {
       );
     }
 
+    // Phase: Review
     return (
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
+      <div className="space-y-5">
+        {/* Pricing Breakdown — shown at the top when amounts are available */}
+        {financingTenor && totalAmount > 0 && (() => {
+          const pricing = calculatePricing(repaymentStructure, Number(financingTenor), totalAmount);
+          return (
+            <div className="border border-green-200 rounded-lg overflow-hidden">
+              <div className="bg-green-50 px-4 py-2.5 flex items-center gap-2 border-b border-green-200">
+                <DollarSign className="w-4 h-4 text-green-600" />
+                <span className="text-sm font-semibold text-green-800">Invoice Group Pricing</span>
+              </div>
+              <div className="bg-white px-5 py-4">
+                <div className="grid grid-cols-5 gap-4 items-end">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wide text-gray-400 mb-1">Total Invoice Amount</p>
+                    <p className="text-lg font-bold text-gray-900">{formatCurrency(totalAmount)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wide text-gray-400 mb-1">Fee Rate</p>
+                    <p className="text-lg font-bold text-gray-900">{(pricing.flatFeePercent * 100).toFixed(2)}%</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wide text-gray-400 mb-1">Processing Fee</p>
+                    <p className="text-base font-semibold text-gray-900">{formatCurrency(pricing.flatFeeAmount)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wide text-gray-400 mb-1">VAT (5%)</p>
+                    <p className="text-base font-semibold text-gray-900">{formatCurrency(pricing.vatAmount)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wide text-gray-400 mb-1">Total Fee</p>
+                    <p className="text-lg font-bold text-gray-900">{formatCurrency(pricing.totalFeeWithVat)}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
         <div className="flex items-center justify-between mb-5">
           <div>
             <h3 className="text-base font-semibold text-gray-900">Review Invoices</h3>
@@ -614,6 +789,7 @@ export function BuyerInvoicesModule() {
           </div>
         )}
       </div>
+      </div>
     );
   };
 
@@ -621,7 +797,7 @@ export function BuyerInvoicesModule() {
   if (showAddForm) {
     const stepLabels = ["Payment Config", "Upload", "Review & Submit"];
     const stepIcons = [<Settings className="w-3.5 h-3.5" />, <Upload className="w-3.5 h-3.5" />, <CheckCircle className="w-3.5 h-3.5" />];
-    const currentStep = addPhase === "config" ? 0 : (addPhase === "upload") ? 1 : 2;
+    const currentStep = addPhase === "config" ? 0 : (addPhase === "upload" || addPhase === "file-review") ? 1 : 2;
 
     return (
       <div className="p-6 max-w-3xl mx-auto">
@@ -661,130 +837,22 @@ export function BuyerInvoicesModule() {
           </div>
         )}
 
+        {/* Existing group info banner */}
+        {addToExistingGroup && existingGroupForForm && (
+          <div className="bg-gray-50 rounded-lg border border-gray-200 px-4 py-2.5 flex items-center gap-3 text-sm mb-6">
+            <span className="font-semibold text-gray-900">{existingGroupForForm.id}</span>
+            <span className="text-gray-400">|</span>
+            <span className="text-gray-500">Supplier:</span> <span className="font-medium text-gray-900">{existingGroupForForm.supplierName}</span>
+            <span className="text-gray-400">|</span>
+            <span className="text-gray-500">Repayment:</span> <span className="font-medium text-gray-900 capitalize">{existingGroupForForm.repaymentStructure}</span>
+            <span className="text-gray-400">|</span>
+            <span className="text-gray-500">Total:</span> <span className="font-medium text-gray-900">{formatCurrency(existingGroupForForm.totalInvoiceAmount)}</span>
+          </div>
+        )}
+
         <div className="space-y-6">
-          {/* Group Details Section */}
-          {addToExistingGroup && existingGroupForForm ? (
-            <div className="bg-gray-50 rounded-lg border border-gray-200 px-4 py-2.5 flex items-center gap-3 text-sm flex-wrap">
-              <span className="font-semibold text-gray-900">{existingGroupForForm.id}</span>
-              <span className="text-gray-400">|</span>
-              <span className="text-gray-500">Supplier:</span> <span className="font-medium text-gray-900">{existingGroupForForm.supplierName}</span>
-              <span className="text-gray-400">|</span>
-              <span className="text-gray-500">Tenor:</span> <span className="font-medium text-gray-900">{existingGroupForForm.financingTenor} days</span>
-              <span className="text-gray-400">|</span>
-              <span className="text-gray-500">Repayment:</span> <span className="font-medium text-gray-900 capitalize">{existingGroupForForm.repaymentStructure}</span>
-            </div>
-          ) : addPhase === "config" ? (
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-              <div className="p-6">
-                {/* Section header with icon */}
-                <div className="flex items-center gap-2.5 mb-1">
-                  <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
-                    <Settings className="w-4 h-4 text-blue-600" />
-                  </div>
-                  <h3 className="text-base font-semibold text-gray-900">Payment Configuration</h3>
-                </div>
-                <p className="text-xs text-gray-500 mb-6 ml-[42px]">Select supplier, repayment type and tenor.</p>
-
-                <div className="space-y-5">
-                  {/* Supplier — separate visual zone */}
-                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
-                    <label className="block text-xs font-medium text-gray-600 mb-1.5">Supplier *</label>
-                    <select value={selectedSupplier} onChange={e => setSelectedSupplier(e.target.value)} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white">
-                      <option value="">Choose a supplier...</option>
-                      {approvedSuppliers.map(s => (
-                        <option key={s.id} value={s.id}>{s.name} ({s.tln})</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Payment Terms — grouped together */}
-                  <div className="grid grid-cols-2 gap-5 items-end">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-2.5">Repayment Type *</label>
-                      {/* Segmented control */}
-                      <div className="flex rounded-lg border border-gray-200 overflow-hidden">
-                        <button
-                          type="button"
-                          onClick={() => { setRepaymentStructure("bullet"); setFinancingTenor(""); setShowFeeRate(false); }}
-                          className={`flex-1 px-4 py-2.5 text-sm font-medium transition-all ${
-                            repaymentStructure === "bullet"
-                              ? "bg-blue-600 text-white shadow-inner"
-                              : "bg-white text-gray-600 hover:bg-gray-50"
-                          }`}
-                        >
-                          Bullet
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => { setRepaymentStructure("installments"); setFinancingTenor(""); setShowFeeRate(false); }}
-                          className={`flex-1 px-4 py-2.5 text-sm font-medium transition-all border-l border-gray-200 ${
-                            repaymentStructure === "installments"
-                              ? "bg-blue-600 text-white shadow-inner"
-                              : "bg-white text-gray-600 hover:bg-gray-50"
-                          }`}
-                        >
-                          Installments
-                        </button>
-                      </div>
-                    </div>
-                    <div className="flex gap-3 items-end">
-                      <div className="flex-1">
-                        <label className="block text-xs font-medium text-gray-600 mb-1.5">Tenor *</label>
-                        <select value={financingTenor} onChange={e => { setFinancingTenor(e.target.value); setShowFeeRate(false); }} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                          <option value="">Select tenor</option>
-                          {TENURE_OPTIONS[repaymentStructure].map(t => (
-                            <option key={t} value={String(t)}>{t} days</option>
-                          ))}
-                        </select>
-                      </div>
-                      {financingTenor && !showFeeRate && (
-                        <button type="button" onClick={() => setShowFeeRate(true)} className="px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors font-medium text-sm whitespace-nowrap">
-                          View Fee Rate
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Fee Rate display */}
-                  {showFeeRate && financingTenor && (() => {
-                    const feePercent = PRICING_MATRIX[getBorrowerCategory()]?.[repaymentStructure]?.[Number(financingTenor)] || 0;
-                    return (
-                      <div className="border border-blue-200 rounded-lg overflow-hidden">
-                        <div className="bg-blue-50 px-4 py-2.5 flex items-center gap-2 border-b border-blue-200">
-                          <DollarSign className="w-4 h-4 text-blue-600" />
-                          <span className="text-sm font-semibold text-blue-800">Applicable Fee Rate</span>
-                        </div>
-                        <div className="bg-white px-4 py-4">
-                          <div className="flex items-center gap-4">
-                            <div>
-                              <p className="text-xs uppercase tracking-wide text-gray-400 mb-1">Processing Fee</p>
-                              <p className="text-2xl font-bold text-gray-900">{(feePercent * 100).toFixed(2)}%</p>
-                            </div>
-                            <div className="h-10 w-px bg-gray-200" />
-                            <div className="flex-1">
-                              <p className="text-xs uppercase tracking-wide text-gray-400 mb-1">Structure</p>
-                              <p className="text-sm font-medium text-gray-900 capitalize">{repaymentStructure} · {financingTenor} days</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })()}
-                </div>
-
-                {/* Footer with divider */}
-                <div className="border-t border-gray-100 mt-6 pt-4 flex justify-end">
-                  <button onClick={() => setAddPhase("upload")} disabled={!selectedSupplier || !financingTenor} className="px-6 py-2.5 bg-[#4F8DFF] text-white rounded-lg hover:bg-[#3A7AE8] transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
-                    Next — Upload Invoices
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          ) : null}
-
-          {/* Invoices Section — only show after config */}
-          {addPhase !== "config" && renderAddInvoiceContent()}
+          {/* Invoices Section */}
+          {renderAddInvoiceContent()}
 
           {/* Submit — only show in review phase */}
           {addPhase === "review" && (
@@ -794,7 +862,7 @@ export function BuyerInvoicesModule() {
               disabled={submitting || !lineItems.some(i => i.invoiceNumber.trim()) || (!addToExistingGroup && !selectedSupplier)}
               className="px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
-              Submit
+              Submit Invoices
             </button>
           </div>
           )}

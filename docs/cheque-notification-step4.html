@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Cheque Submission</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #0a0b14;
+            color: #e4e4e7;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(5, 5, 15, 0.8);
+            backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            padding: 24px;
+        }
+
+        /* Card */
+        .card {
+            background: rgba(30, 31, 48, 0.9);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 40px 36px 32px;
+            max-width: 580px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+        }
+
+        /* Close Button — same as post-submission-processing-screen.html */
+        .close-btn {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            width: 32px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 50%;
+            color: #a1a1aa;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .close-btn:hover {
+            color: #ffffff;
+            border-color: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .close-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        /* Loader Icon with slow drop effect */
+        .loader-container {
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .loader-icon {
+            width: 80px;
+            height: 80px;
+            animation: slowDrop 2.5s ease-in-out infinite;
+        }
+
+        .loader-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        @keyframes slowDrop {
+            0%, 100% { transform: translateY(-8px); opacity: 0.9; }
+            50% { transform: translateY(8px); opacity: 1; }
+        }
+
+        /* Title */
+        .card-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 20px;
+            letter-spacing: -0.3px;
+        }
+
+        /* Info Section */
+        .info-section {
+            text-align: left;
+            margin-bottom: 24px;
+        }
+
+        .info-section p {
+            font-size: 14px;
+            color: #8a8a9a;
+            line-height: 1.7;
+            margin-bottom: 12px;
+        }
+
+        .info-section p:last-child {
+            margin-bottom: 0;
+        }
+
+        .info-section strong {
+            color: #d4d4d8;
+        }
+
+        /* Address Card */
+        .address-card {
+            background-color: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 18px 20px;
+            margin-bottom: 24px;
+            text-align: left;
+        }
+
+        .address-card-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #71717a;
+            margin-bottom: 8px;
+        }
+
+        .address-card p {
+            font-size: 13px;
+            color: #d4d4d8;
+            line-height: 1.8;
+        }
+
+        /* Understood Button — same as Manual Review modal */
+        .understood-btn {
+            background-color: #ffffff;
+            border: none;
+            color: #0f1019;
+            padding: 10px 32px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            margin-bottom: 16px;
+        }
+
+        .understood-btn:hover {
+            opacity: 0.9;
+        }
+
+        /* App Reference — same as Manual Review modal */
+        .app-reference {
+            font-size: 11px;
+            color: #52525b;
+        }
+
+        .app-reference span {
+            color: #71717a;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="modal-overlay">
+        <div class="card">
+            <!-- Close Button -->
+            <button class="close-btn" aria-label="Close">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+
+            <!-- Loader Icon with slow drop -->
+            <div class="loader-container">
+                <div class="loader-icon">
+                    <img src="https://raw.githubusercontent.com/mohak-biz2x/bank-x-merchant-dashboard/main/src/assets/Group%202147260758.svg" alt="Processing">
+                </div>
+            </div>
+
+            <!-- Title -->
+            <h1 class="card-title">Security Cheque Submission</h1>
+
+            <!-- Info Content -->
+            <div class="info-section">
+                <p>
+                    To activate your drawdown facility, you are required to physically send a security cheque of <strong>AED 5,500,000</strong> (approved limit + 10%) to Mal Bank. Your financing facility will remain on hold until the cheque is received and verified by our operations team.
+                </p>
+                <p>
+                    Once Mal Bank confirms receipt of your security cheque, your <strong>drawdown facility will be enabled</strong> and you will be notified via email and within the portal.
+                </p>
+                <p>
+                    Processing may take 2–3 business days after receipt.
+                </p>
+            </div>
+
+            <!-- Mailing Address -->
+            <div class="address-card">
+                <div class="address-card-label">Send cheque to</div>
+                <p>
+                    Mal Bank — Supply Chain Finance Operations<br>
+                    P.O. Box 12345, King Fahd Road<br>
+                    Al Olaya District, Tower B, Floor 3<br>
+                    Riyadh 11554, Kingdom of Saudi Arabia
+                </p>
+            </div>
+
+            <!-- Understood Button -->
+            <button class="understood-btn">Understood</button>
+
+            <!-- App Reference -->
+            <p class="app-reference">Reference: <span>APP-2026-00847</span></p>
+        </div>
+    </div>
+</body>
+</html>

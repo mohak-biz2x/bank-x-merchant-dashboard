@@ -134,18 +134,6 @@
             color: #60a5fa;
         }
 
-        .status-badge .dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background-color: #3b82f6;
-            animation: blink 2s infinite;
-        }
-
-        .status-badge .refresh-btn {
-            margin-left: 2px;
-        }
-
         @keyframes blink {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.4; }
@@ -807,9 +795,10 @@
                             <td>ENCORE CLACK</td>
                             <td>Mohak Gupta</td>
                             <td>
-                                <div class="status-badge">
-                                    <span class="dot"></span>
-                                    In Review
+                                <div style="display:flex;align-items:center;gap:8px;">
+                                    <div class="status-badge">
+                                        In Review
+                                    </div>
                                     <button class="refresh-btn" onclick="refreshStatus()" aria-label="Refresh status">
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                             <polyline points="23 4 23 10 17 10"/>
@@ -1048,20 +1037,12 @@
                 badge.style.backgroundColor = 'rgba(245, 158, 11, 0.12)';
                 badge.style.borderColor = 'rgba(245, 158, 11, 0.3)';
                 badge.style.color = '#fbbf24';
-                badge.querySelector('.dot').style.backgroundColor = '#f59e0b';
             } else {
                 badge.style.backgroundColor = 'rgba(59, 130, 246, 0.12)';
                 badge.style.borderColor = 'rgba(59, 130, 246, 0.3)';
                 badge.style.color = '#60a5fa';
-                badge.querySelector('.dot').style.backgroundColor = '#3b82f6';
             }
-            // Update text (keep dot and refresh btn)
-            var dot = badge.querySelector('.dot');
-            var refreshBtn = badge.querySelector('.refresh-btn');
-            badge.innerHTML = '';
-            badge.appendChild(dot);
-            badge.appendChild(document.createTextNode(' ' + text + ' '));
-            badge.appendChild(refreshBtn);
+            badge.textContent = text;
         }
 
         // Direct demo triggers

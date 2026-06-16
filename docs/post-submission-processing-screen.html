@@ -14,6 +14,11 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background-color: #0a0b14;
+            background-image: url('../src/assets/Background.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
             color: #e4e4e7;
             min-height: 100vh;
         }
@@ -27,9 +32,11 @@
 
         /* Header */
         .header {
-            background-color: #0f1019;
+            background-color: transparent;
             border-bottom: 1px solid #1e1f2e;
-            padding: 14px 32px;
+            padding: 14px 0;
+            width: 75%;
+            margin: 0 auto;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -42,7 +49,7 @@
         }
 
         .header-logo img {
-            height: 28px;
+            height: 40px;
         }
 
         .header-user {
@@ -78,7 +85,7 @@
         /* Main Content */
         .main-content {
             flex: 1;
-            padding: 40px 48px;
+            padding: 40px 0;
         }
 
         .page-title {
@@ -86,16 +93,20 @@
             font-weight: 700;
             color: #ffffff;
             margin-bottom: 28px;
+            width: 75%;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         /* Application Table */
         .app-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: rgba(20, 21, 35, 0.6);
-            border-radius: 10px;
-            overflow: hidden;
-            border: 1px solid #1e1f2e;
+            width: 75%;
+            margin: 0 auto;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: #2D304A;
+            border-radius: 12px;
+            border: 0.5px solid #373A56;
         }
 
         .app-table thead th {
@@ -103,18 +114,38 @@
             font-size: 11px;
             font-weight: 600;
             color: #a1a1aa;
-            text-transform: uppercase;
+            text-transform: none;
             letter-spacing: 0.5px;
             padding: 14px 16px;
-            background-color: rgba(30, 31, 50, 0.8);
-            border-bottom: 1px solid #1e1f2e;
+            background-color: #36394F;
+            border-bottom: 0.5px solid #373A56;
+        }
+
+        .app-table thead th:first-child {
+            border-top-left-radius: 12px;
+        }
+
+        .app-table thead th:last-child {
+            border-top-right-radius: 12px;
+        }
+
+        .app-table tbody tr:last-child td:first-child {
+            border-bottom-left-radius: 12px;
+        }
+
+        .app-table tbody tr:last-child td:last-child {
+            border-bottom-right-radius: 12px;
         }
 
         .app-table tbody td {
             padding: 14px 16px;
             font-size: 13px;
             color: #d4d4d8;
-            border-bottom: 1px solid #1e1f2e;
+            border-bottom: 1px solid rgba(40, 42, 65, 0.5);
+        }
+
+        .app-table tbody tr:last-child td {
+            border-bottom: none;
         }
 
         .app-table tbody tr:hover {
@@ -132,6 +163,7 @@
             font-size: 12px;
             font-weight: 500;
             color: #60a5fa;
+            white-space: nowrap;
         }
 
         @keyframes blink {
@@ -143,6 +175,7 @@
             color: #a1a1aa;
             text-decoration: none;
             font-size: 13px;
+            white-space: nowrap;
         }
 
         .doc-link:hover {
@@ -150,19 +183,20 @@
         }
 
         .dashboard-btn {
-            background-color: transparent;
-            border: 1px solid #3f3f46;
-            color: #d4d4d8;
-            padding: 6px 14px;
-            border-radius: 6px;
+            background-color: #ffffff;
+            border: none;
+            color: #0f1019;
+            padding: 5px 14px;
+            border-radius: 20px;
             font-size: 12px;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.15s;
+            transition: opacity 0.15s;
+            white-space: nowrap;
         }
 
         .dashboard-btn:hover {
-            border-color: #6366f1;
-            color: #ffffff;
+            opacity: 0.9;
         }
 
         .action-cell {
@@ -174,11 +208,13 @@
 
         /* Table Footer */
         .table-footer {
+            width: 75%;
+            margin: 0 auto;
             display: flex;
             align-items: center;
             justify-content: flex-end;
             gap: 16px;
-            padding: 14px 16px;
+            padding: 14px 0;
             font-size: 12px;
             color: #71717a;
         }
@@ -226,12 +262,13 @@
 
         /* Footer */
         .footer {
-            padding: 16px 32px;
+            padding: 16px 0;
+            width: 75%;
+            margin: 0 auto;
             display: flex;
             align-items: center;
             justify-content: space-between;
             border-top: 1px solid #1e1f2e;
-            background-color: #0f1019;
         }
 
         .footer-links {
@@ -254,8 +291,8 @@
         .modal-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(5, 5, 15, 0.8);
-            backdrop-filter: blur(6px);
+            background: rgba(5, 5, 15, 0.95);
+            backdrop-filter: blur(10px);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -732,31 +769,7 @@
             opacity: 0.9;
         }
 
-        /* Demo controls */
-        .demo-controls {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 200;
-            display: flex;
-            gap: 8px;
-        }
 
-        .demo-btn {
-            background-color: #1e1f2e;
-            border: 1px solid #2a2b3a;
-            color: #a1a1aa;
-            padding: 8px 14px;
-            border-radius: 8px;
-            font-size: 11px;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-
-        .demo-btn:hover {
-            border-color: #6366f1;
-            color: #ffffff;
-        }
     </style>
 </head>
 <body>
@@ -778,11 +791,12 @@
                 <table class="app-table">
                     <thead>
                         <tr>
-                            <th>Application ID</th>
+                            <th>Application Id</th>
                             <th>Product</th>
                             <th>Business Name</th>
-                            <th>RM</th>
                             <th>Status</th>
+                            <th>Approved Limit</th>
+                            <th>Limit Expiry</th>
                             <th>Documents</th>
                             <th>Dashboard</th>
                             <th>Action</th>
@@ -793,9 +807,8 @@
                             <td>15739073966</td>
                             <td>Payable Invoice Financing</td>
                             <td>ENCORE CLACK</td>
-                            <td>Mohak Gupta</td>
                             <td>
-                                <div style="display:flex;align-items:center;gap:8px;">
+                                <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;">
                                     <div class="status-badge">
                                         In Review
                                     </div>
@@ -808,6 +821,10 @@
                                     </button>
                                 </div>
                             </td>
+                            <!-- Approved Limit: from CAM -> Facility Information -> Approved Limit. "-" when CAM not submitted -->
+                            <td>-</td>
+                            <!-- Limit Expiry: Latest Decision Date + CAM -> Facility Information -> Tenure (days). "-" when CAM not submitted -->
+                            <td>-</td>
                             <td><a href="#" class="doc-link">Documents ▾</a></td>
                             <td><button class="dashboard-btn">Go To Dashboard</button></td>
                             <td class="action-cell">⋮</td>
@@ -980,11 +997,7 @@
         </div>
     </div>
 
-    <!-- Demo Controls -->
-    <div class="demo-controls">
-        <button class="demo-btn" onclick="simulateManualReview()">Demo: Manual Review</button>
-        <button class="demo-btn" onclick="simulateAgreements()">Demo: Agreements</button>
-    </div>
+    <!-- Demo Controls removed -->
 
     <script>
         function closeModal() {
@@ -1043,19 +1056,6 @@
                 badge.style.color = '#60a5fa';
             }
             badge.textContent = text;
-        }
-
-        // Direct demo triggers
-        function simulateManualReview() {
-            document.getElementById('modalOverlay').classList.add('hidden');
-            updateTableBadge('In Manual Review', 'blue');
-            document.getElementById('manualReviewOverlay').classList.remove('hidden');
-        }
-
-        function simulateAgreements() {
-            document.getElementById('modalOverlay').classList.add('hidden');
-            updateTableBadge('Pending Agreement Signing', 'amber');
-            document.getElementById('agreementsOverlay').classList.remove('hidden');
         }
     </script>
 

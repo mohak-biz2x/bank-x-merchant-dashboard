@@ -1,0 +1,1363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Insights & Analytics - Mal Bank</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #0a0b14;
+            background-image: url('../src/assets/Background.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            color: #e4e4e7;
+            min-height: 100vh;
+        }
+
+        .bg-page {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            background-color: transparent;
+            border-bottom: 1px solid #1e1f2e;
+            padding: 14px 0;
+            width: 75%;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-logo img {
+            height: 40px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-name {
+            font-size: 13px;
+            color: #d4d4d8;
+            font-weight: 500;
+        }
+
+        .user-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        /* Navigation */
+        .nav-bar {
+            width: 75%;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 0;
+        }
+
+        .nav-tab {
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #a1a1aa;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-bottom: 2px solid transparent;
+        }
+
+        .nav-tab:hover {
+            color: #e4e4e7;
+        }
+
+        .nav-tab.active {
+            color: #ffffff;
+            border-bottom: 2px solid #ffffff;
+        }
+
+        .nav-icon {
+            width: 16px;
+            height: 16px;
+            opacity: 0.7;
+        }
+
+        .nav-tab.active .nav-icon {
+            opacity: 1;
+        }
+
+        /* Layout */
+        .main-content {
+            flex: 1;
+            padding: 28px 0;
+        }
+
+        .content-wrapper {
+            width: 75%;
+            margin: 0 auto;
+        }
+
+        /* Cards */
+        .card {
+            background: #2D304A;
+            border: 0.5px solid #373A56;
+            border-radius: 12px;
+            padding: 20px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            border-color: rgba(99, 102, 241, 0.4);
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.08);
+        }
+
+        /* Credit Card Section */
+        .credit-card {
+            margin-bottom: 24px;
+        }
+
+        .credit-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .credit-label {
+            font-size: 13px;
+            color: #a1a1aa;
+            font-weight: 500;
+        }
+
+        .ref-badge {
+            font-size: 11px;
+            color: #a1a1aa;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid #373A56;
+            border-radius: 12px;
+            padding: 3px 10px;
+        }
+
+        .credit-amount {
+            font-size: 32px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 16px;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 4px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 64%;
+            background: linear-gradient(90deg, #f97316, #ef4444);
+            border-radius: 4px;
+        }
+
+        .credit-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .credit-utilised {
+            font-size: 12px;
+            color: #f97316;
+        }
+
+        .credit-percent {
+            font-size: 12px;
+            color: #f97316;
+            font-weight: 600;
+        }
+
+        /* Section Title */
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 12px;
+        }
+
+        /* Recap Section */
+        .recap-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card-inner {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+        }
+
+        .stat-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #a1a1aa;
+            margin-bottom: 6px;
+        }
+
+        .stat-value {
+            font-size: 26px;
+            font-weight: 700;
+        }
+
+        .stat-value.orange { color: #ffffff; }
+        .stat-value.green { color: #ffffff; }
+        .stat-value.blue { color: #ffffff; }
+
+        .stat-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .stat-icon.orange {
+            background: rgba(249, 115, 22, 0.15);
+            border: 1px solid rgba(249, 115, 22, 0.3);
+        }
+
+        .stat-icon.green {
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .stat-icon.blue {
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .stat-icon svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Module Cards */
+        .module-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .module-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 4px;
+        }
+
+        .module-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .module-icon.green {
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid rgba(34, 197, 94, 0.25);
+        }
+
+        .module-icon.orange {
+            background: rgba(249, 115, 22, 0.15);
+            border: 1px solid rgba(249, 115, 22, 0.25);
+        }
+
+        .module-icon svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .module-title-group {
+            flex: 1;
+        }
+
+        .module-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .module-desc {
+            font-size: 12px;
+            color: #71717a;
+            margin-top: 2px;
+        }
+
+        .module-action-btn {
+            font-size: 12px;
+            padding: 6px 14px;
+            border-radius: 18px;
+            background: #ffffff;
+            border: none;
+            color: #0f1019;
+            cursor: pointer;
+            font-weight: 600;
+            white-space: nowrap;
+            transition: opacity 0.15s;
+        }
+
+        .module-action-btn:hover {
+            opacity: 0.85;
+        }
+
+        .module-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .module-stat {
+            text-align: center;
+        }
+
+        .module-stat-value {
+            font-size: 22px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 2px;
+        }
+
+        .module-stat-value.green { color: #22c55e; }
+        .module-stat-value.orange { color: #f97316; }
+
+        .module-stat-label {
+            font-size: 11px;
+            color: #71717a;
+        }
+
+        /* Chart Grid */
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .chart-card {
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chart-card.full-width {
+            grid-column: 1 / -1;
+            min-height: auto;
+        }
+
+        .chart-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .chart-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .time-selector {
+            display: flex;
+            gap: 2px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            padding: 2px;
+        }
+
+        .time-btn {
+            font-size: 11px;
+            padding: 4px 8px;
+            border: none;
+            border-radius: 4px;
+            background: transparent;
+            color: #a1a1aa;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.15s;
+        }
+
+        .time-btn.active {
+            background: rgba(99, 102, 241, 0.2);
+            color: #ffffff;
+        }
+
+        .time-btn:hover:not(.active) {
+            color: #e4e4e7;
+        }
+
+        .chart-container {
+            flex: 1;
+            position: relative;
+            min-height: 200px;
+        }
+
+        /* Donut center */
+        .donut-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+        }
+
+        .donut-center {
+            position: absolute;
+            text-align: center;
+            pointer-events: none;
+        }
+
+        .donut-center-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .donut-center-label {
+            font-size: 11px;
+            color: #a1a1aa;
+        }
+
+        .donut-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 16px;
+            margin-top: 12px;
+            justify-content: center;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: #a1a1aa;
+        }
+
+        .legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        /* Pipeline - Vertical rows */
+        .pipeline-vertical {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .pipeline-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .pipeline-row-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 3px;
+            flex-shrink: 0;
+        }
+
+        .pipeline-row-label {
+            font-size: 12px;
+            color: #a1a1aa;
+            width: 60px;
+            flex-shrink: 0;
+        }
+
+        .pipeline-row-bar {
+            flex: 1;
+            height: 20px;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pipeline-row-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.4s ease;
+        }
+
+        .pipeline-row-value {
+            font-size: 13px;
+            font-weight: 600;
+            color: #f1f5f9;
+            width: 50px;
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        /* Concentration Risk - Compact */
+        .risk-compact {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .risk-top-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .risk-score-compact {
+            display: flex;
+            align-items: baseline;
+            gap: 2px;
+        }
+
+        .risk-number {
+            font-size: 36px;
+            font-weight: 700;
+            color: #ffffff;
+            line-height: 1;
+        }
+
+        .risk-max {
+            font-size: 14px;
+            color: #71717a;
+            font-weight: 500;
+        }
+
+        .risk-badge {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 12px;
+        }
+
+        .risk-badge.moderate {
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: #fbbf24;
+        }
+
+        .risk-bar-track {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: linear-gradient(90deg, #22c55e 0%, #f59e0b 50%, #ef4444 100%);
+            position: relative;
+        }
+
+        .risk-bar-indicator {
+            position: absolute;
+            top: -5px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 3px solid #f59e0b;
+            transform: translateX(-50%);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        .risk-scale {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            font-size: 10px;
+            color: #71717a;
+        }
+
+        .risk-metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .risk-metric {
+            text-align: center;
+        }
+
+        .risk-metric-label {
+            display: block;
+            font-size: 10px;
+            color: #71717a;
+            margin-bottom: 4px;
+        }
+
+        .risk-metric-value {
+            display: block;
+            font-size: 16px;
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+
+        /* Footer */
+        .footer {
+            padding: 16px 0;
+            width: 75%;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 1px solid #1e1f2e;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 16px;
+        }
+
+        .footer-links a, .footer p {
+            font-size: 12px;
+            color: #52525b;
+            text-decoration: none;
+        }
+
+        .footer-links a:hover {
+            color: #6366f1;
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .chart-grid {
+                grid-template-columns: 1fr;
+            }
+            .module-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header, .nav-bar, .content-wrapper, .footer {
+                width: 90%;
+            }
+            .recap-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg-page">
+    <!-- Header -->
+    <header class="header">
+        <div class="header-logo">
+            <img src="https://raw.githubusercontent.com/mohak-biz2x/bank-x-merchant-dashboard/main/src/assets/Mal%20logo%20Dark.png" alt="Mal Business">
+        </div>
+        <div class="header-right">
+            <span class="user-name">Fatima Wadih</span>
+            <div class="user-avatar">FW</div>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="nav-bar">
+        <a class="nav-tab active" href="#">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            Dashboard
+        </a>
+        <a class="nav-tab" href="#">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            Suppliers
+        </a>
+        <a class="nav-tab" href="#">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            Payable Invoice
+        </a>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="content-wrapper">
+
+            <!-- Available Credit Card -->
+            <div class="card credit-card">
+                <div class="credit-card-header">
+                    <span class="credit-label">Available Credit</span>
+                    <span class="ref-badge">Reference - APP-2025-001</span>
+                </div>
+                <div class="credit-amount">AED 2,900,000</div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill"></div>
+                </div>
+                <div class="credit-footer">
+                    <span class="credit-utilised">Utilised: AED 5,100,000</span>
+                    <span class="credit-percent">64% used</span>
+                </div>
+            </div>
+
+            <!-- Recap Section -->
+            <h2 class="section-title">Recap</h2>
+            <div class="recap-grid">
+                <div class="card">
+                    <div class="stat-card-inner">
+                        <div class="stat-text">
+                            <div class="stat-label">Pending Invoices</div>
+                            <div class="stat-value orange">18</div>
+                        </div>
+                        <div class="stat-icon orange">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="stat-card-inner">
+                        <div class="stat-text">
+                            <div class="stat-label">Approved Invoices</div>
+                            <div class="stat-value green">64</div>
+                        </div>
+                        <div class="stat-icon green">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="stat-card-inner">
+                        <div class="stat-text">
+                            <div class="stat-label">Suppliers</div>
+                            <div class="stat-value blue">6</div>
+                        </div>
+                        <div class="stat-icon blue">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Module Cards -->
+            <div class="module-grid">
+                <div class="card">
+                    <div class="module-card-header">
+                        <div class="module-icon green">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                        </div>
+                        <div class="module-title-group">
+                            <div class="module-title">Suppliers</div>
+                            <div class="module-desc">Manage your supplier relationships and onboard new vendors.</div>
+                        </div>
+                        <button class="module-action-btn">+ Add new</button>
+                    </div>
+                    <div class="module-stats">
+                        <div class="module-stat">
+                            <div class="module-stat-value">6</div>
+                            <div class="module-stat-label">Total Suppliers</div>
+                        </div>
+                        <div class="module-stat">
+                            <div class="module-stat-value green">6</div>
+                            <div class="module-stat-label">Active Relationships</div>
+                        </div>
+                        <div class="module-stat">
+                            <div class="module-stat-value">0</div>
+                            <div class="module-stat-label">Pending Approvals</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="module-card-header">
+                        <div class="module-icon orange">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                        </div>
+                        <div class="module-title-group">
+                            <div class="module-title">Payable Invoices</div>
+                            <div class="module-desc">Track, review, and approve invoices submitted by your suppliers.</div>
+                        </div>
+                        <button class="module-action-btn">+ Create</button>
+                    </div>
+                    <div class="module-stats">
+                        <div class="module-stat">
+                            <div class="module-stat-value">82</div>
+                            <div class="module-stat-label">Total Invoices</div>
+                        </div>
+                        <div class="module-stat">
+                            <div class="module-stat-value">18</div>
+                            <div class="module-stat-label">Pending Approval</div>
+                        </div>
+                        <div class="module-stat">
+                            <div class="module-stat-value orange">64</div>
+                            <div class="module-stat-label">Approved</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Insights & Analytics Section -->
+            <h2 class="section-title">Insights &amp; Analytics</h2>
+            <div class="chart-grid">
+                <!-- Row 1: Time-series charts -->
+                <!-- Credit Utilisation -->
+                <div class="card chart-card">
+                    <div class="chart-card-header">
+                        <span class="chart-title">Credit Utilisation</span>
+                        <div class="time-selector" data-chart="utilisation">
+                            <button class="time-btn" data-period="3">3M</button>
+                            <button class="time-btn active" data-period="6">6M</button>
+                            <button class="time-btn" data-period="12">12M</button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="utilisationChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Invoice Volume Trend -->
+                <div class="card chart-card">
+                    <div class="chart-card-header">
+                        <span class="chart-title">Invoice Volume Trend</span>
+                        <div class="time-selector" data-chart="volume">
+                            <button class="time-btn" data-period="3">3M</button>
+                            <button class="time-btn active" data-period="6">6M</button>
+                            <button class="time-btn" data-period="12">12M</button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="volumeChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Row 2: Terms & Supplier exposure -->
+                <!-- Payment Terms Distribution -->
+                <div class="card chart-card">
+                    <div class="chart-card-header">
+                        <span class="chart-title">Payment Terms Distribution</span>
+                    </div>
+                    <div class="donut-wrapper">
+                        <canvas id="termsChart"></canvas>
+                        <div class="donut-center">
+                            <div class="donut-center-value">82</div>
+                            <div class="donut-center-label">Invoices</div>
+                        </div>
+                    </div>
+                    <div class="donut-legend" id="termsLegend"></div>
+                </div>
+
+                <!-- Row 3: Supplier exposure -->
+                <!-- Supplier Distribution -->
+                <div class="card chart-card">
+                    <div class="chart-card-header">
+                        <span class="chart-title">Supplier Distribution</span>
+                    </div>
+                    <div class="donut-wrapper">
+                        <canvas id="supplierChart"></canvas>
+                        <div class="donut-center">
+                            <div class="donut-center-value">AED 1.9M</div>
+                            <div class="donut-center-label">Total</div>
+                        </div>
+                    </div>
+                    <div class="donut-legend" id="supplierLegend"></div>
+                </div>
+
+                <!-- Row 3: Pipeline & Risk side by side -->
+                <!-- Invoice Status Pipeline -->
+                <div class="card chart-card" style="min-height:auto;">
+                    <div class="chart-card-header">
+                        <span class="chart-title">Invoice Status</span>
+                    </div>
+                    <div class="pipeline-vertical" id="pipelineVertical"></div>
+                </div>
+
+                <!-- Concentration Risk Score -->
+                <div class="card chart-card" style="min-height:auto;">
+                    <div class="chart-card-header">
+                        <span class="chart-title">Concentration Risk</span>
+                    </div>
+                    <div class="risk-compact">
+                        <div class="risk-top-row">
+                            <div class="risk-score-compact">
+                                <span class="risk-number">62</span>
+                                <span class="risk-max">/100</span>
+                            </div>
+                            <span class="risk-badge moderate">Moderate</span>
+                        </div>
+                        <div class="risk-bar-track">
+                            <div class="risk-bar-indicator" style="left: 62%;"></div>
+                        </div>
+                        <div class="risk-scale">
+                            <span>Low</span>
+                            <span>High</span>
+                        </div>
+                        <div class="risk-metrics">
+                            <div class="risk-metric">
+                                <span class="risk-metric-label">Top 1 Supplier</span>
+                                <span class="risk-metric-value">27.4%</span>
+                            </div>
+                            <div class="risk-metric">
+                                <span class="risk-metric-label">Top 3 Suppliers</span>
+                                <span class="risk-metric-value">65.3%</span>
+                            </div>
+                            <div class="risk-metric">
+                                <span class="risk-metric-label">HHI Index</span>
+                                <span class="risk-metric-value">1,840</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="#">Privacy policy</a>
+            <a href="#">Disclaimer</a>
+            <a href="#">Terms &amp; conditions</a>
+        </div>
+        <p>&copy; 2026 Mal Bank. All rights reserved.</p>
+    </footer>
+</div>
+
+<script>
+// ============================================================
+// Mock Data Generation (Deterministic)
+// ============================================================
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const FULL_MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+// Deterministic seed-based variance
+function seededVariance(index, base, variancePct) {
+    const factors = [0.92, 1.08, 0.95, 1.12, 0.88, 1.05, 0.97, 1.10, 0.91, 1.03, 0.94, 1.07];
+    return Math.round(base * factors[index % factors.length]);
+}
+
+// Generate trailing months labels
+function getTrailingMonths(count) {
+    const now = new Date(2025, 5); // June 2025
+    const labels = [];
+    for (let i = count - 1; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i);
+        labels.push(MONTHS[d.getMonth()] + ' ' + d.getFullYear().toString().slice(2));
+    }
+    return labels;
+}
+
+// Invoice volume data
+function getVolumeData(months) {
+    const data = [];
+    let base = 20;
+    for (let i = 0; i < 12; i++) {
+        base = Math.round(base * 1.05);
+        data.push(seededVariance(i, base, 15));
+    }
+    return data.slice(12 - months);
+}
+
+// Credit utilisation data (limit 8M)
+function getUtilisationData(months) {
+    const receivable = [];
+    const payable = [];
+    const bases = [4.2, 4.5, 4.1, 4.8, 4.6, 5.0, 4.3, 4.9, 4.7, 5.1, 4.4, 5.2]; // millions
+    for (let i = 0; i < 12; i++) {
+        const total = bases[i];
+        receivable.push(+(total * 0.6).toFixed(2));
+        payable.push(+(total * 0.4).toFixed(2));
+    }
+    return {
+        receivable: receivable.slice(12 - months),
+        payable: payable.slice(12 - months)
+    };
+}
+
+// Supplier distribution data
+const SUPPLIERS = [
+    { name: 'Al Futtaim Construction', amount: 520000, color: '#6366f1' },
+    { name: 'Emirates Steel', amount: 380000, color: '#8b5cf6' },
+    { name: 'Gulf Cement Co.', amount: 340000, color: '#a78bfa' },
+    { name: 'Deyaar MEP', amount: 290000, color: '#c4b5fd' },
+    { name: 'RAK Ceramics', amount: 210000, color: '#818cf8' },
+    { name: 'Dubai Cable Co.', amount: 160000, color: '#ddd6fe' }
+];
+
+// Pipeline data
+const PIPELINE = [
+    { status: 'Pending', count: 18, color: '#f97316' },
+    { status: 'Refer', count: 8, color: '#3b82f6' },
+    { status: 'Approved', count: 64, color: '#22c55e' },
+    { status: 'Rejected', count: 4, color: '#ef4444' }
+];
+
+// Payment Terms Distribution data
+const PAYMENT_TERMS = [
+    { term: '30 days', count: 12, color: '#06b6d4' },
+    { term: '60 days', count: 28, color: '#3b82f6' },
+    { term: '90 days', count: 30, color: '#6366f1' },
+    { term: '120 days', count: 12, color: '#8b5cf6' }
+];
+
+// ============================================================
+// Chart.js Global Defaults
+// ============================================================
+
+Chart.defaults.color = '#a1a1aa';
+Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
+Chart.defaults.font.size = 11;
+Chart.defaults.plugins.legend.display = false;
+
+const gridColor = 'rgba(255,255,255,0.05)';
+const tickColor = '#a1a1aa';
+
+// ============================================================
+// Chart Instances
+// ============================================================
+
+let volumeChartInstance = null;
+let utilisationChartInstance = null;
+let supplierChartInstance = null;
+let termsChartInstance = null;
+
+// ============================================================
+// 1. Invoice Volume Trend Chart
+// ============================================================
+
+function createVolumeChart(months) {
+    const ctx = document.getElementById('volumeChart').getContext('2d');
+    if (volumeChartInstance) volumeChartInstance.destroy();
+
+    const labels = getTrailingMonths(months);
+    const data = getVolumeData(months);
+
+    volumeChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Invoices',
+                data: data,
+                borderColor: '#06b6d4',
+                backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                fill: true,
+                tension: 0.4,
+                borderWidth: 2,
+                pointRadius: 3,
+                pointBackgroundColor: '#06b6d4',
+                pointHoverRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { intersect: false, mode: 'index' },
+            scales: {
+                x: {
+                    grid: { color: gridColor },
+                    ticks: { color: tickColor }
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: { color: gridColor },
+                    ticks: { color: tickColor, stepSize: 5 }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    backgroundColor: '#1e1f2e',
+                    titleColor: '#ffffff',
+                    bodyColor: '#a1a1aa',
+                    borderColor: '#373A56',
+                    borderWidth: 1,
+                    padding: 10
+                }
+            }
+        }
+    });
+}
+
+// ============================================================
+// 2. Credit Utilisation Chart
+// ============================================================
+
+function createUtilisationChart(months) {
+    const ctx = document.getElementById('utilisationChart').getContext('2d');
+    if (utilisationChartInstance) utilisationChartInstance.destroy();
+
+    const labels = getTrailingMonths(months);
+    const data = getUtilisationData(months);
+
+    utilisationChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Payable',
+                    data: data.payable,
+                    borderColor: '#f59e0b',
+                    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 2,
+                    pointRadius: 2
+                },
+                {
+                    label: 'Approved Limit',
+                    data: Array(months).fill(8),
+                    borderColor: '#ef4444',
+                    borderDash: [6, 4],
+                    borderWidth: 1.5,
+                    pointRadius: 0,
+                    fill: false
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { intersect: false, mode: 'index' },
+            scales: {
+                x: {
+                    grid: { color: gridColor },
+                    ticks: { color: tickColor }
+                },
+                y: {
+                    beginAtZero: true,
+                    max: 10,
+                    grid: { color: gridColor },
+                    ticks: {
+                        color: tickColor,
+                        callback: function(v) { return 'AED ' + v + 'M'; }
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    backgroundColor: '#1e1f2e',
+                    titleColor: '#ffffff',
+                    bodyColor: '#a1a1aa',
+                    borderColor: '#373A56',
+                    borderWidth: 1,
+                    padding: 10,
+                    callbacks: {
+                        label: function(ctx) {
+                            if (ctx.dataset.label === 'Approved Limit') return 'Limit: AED 8,000,000';
+                            return ctx.dataset.label + ': AED ' + (ctx.raw * 1000000).toLocaleString();
+                        }
+                    }
+                },
+                legend: { display: true, position: 'bottom', labels: { boxWidth: 10, padding: 12, color: '#a1a1aa' } }
+            }
+        }
+    });
+}
+
+// ============================================================
+// 3. Supplier Distribution Donut Chart
+// ============================================================
+
+function createSupplierChart() {
+    const ctx = document.getElementById('supplierChart').getContext('2d');
+    if (supplierChartInstance) supplierChartInstance.destroy();
+
+    const total = SUPPLIERS.reduce((sum, s) => sum + s.amount, 0);
+
+    supplierChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: SUPPLIERS.map(s => s.name),
+            datasets: [{
+                data: SUPPLIERS.map(s => s.amount),
+                backgroundColor: SUPPLIERS.map(s => s.color),
+                borderWidth: 0,
+                hoverOffset: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '65%',
+            plugins: {
+                tooltip: {
+                    backgroundColor: '#1e1f2e',
+                    titleColor: '#ffffff',
+                    bodyColor: '#a1a1aa',
+                    borderColor: '#373A56',
+                    borderWidth: 1,
+                    padding: 10,
+                    callbacks: {
+                        label: function(ctx) {
+                            const pct = ((ctx.raw / total) * 100).toFixed(1);
+                            return ctx.label + ': AED ' + ctx.raw.toLocaleString() + ' (' + pct + '%)';
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Build legend
+    const legendEl = document.getElementById('supplierLegend');
+    legendEl.innerHTML = SUPPLIERS.map(s => {
+        const pct = ((s.amount / total) * 100).toFixed(1);
+        return '<div class="legend-item"><span class="legend-dot" style="background:' + s.color + '"></span>' + s.name + ' (' + pct + '%)</div>';
+    }).join('');
+}
+
+// ============================================================
+// 6. Payment Terms Distribution Chart
+// ============================================================
+
+function createTermsChart() {
+    const ctx = document.getElementById('termsChart').getContext('2d');
+    if (termsChartInstance) termsChartInstance.destroy();
+
+    const total = PAYMENT_TERMS.reduce((sum, t) => sum + t.count, 0);
+
+    termsChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: PAYMENT_TERMS.map(t => t.term),
+            datasets: [{
+                data: PAYMENT_TERMS.map(t => t.count),
+                backgroundColor: PAYMENT_TERMS.map(t => t.color),
+                borderWidth: 0,
+                hoverOffset: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '65%',
+            plugins: {
+                tooltip: {
+                    backgroundColor: '#1e1f2e',
+                    titleColor: '#ffffff',
+                    bodyColor: '#a1a1aa',
+                    borderColor: '#373A56',
+                    borderWidth: 1,
+                    padding: 10,
+                    callbacks: {
+                        label: function(ctx) {
+                            const pct = ((ctx.raw / total) * 100).toFixed(1);
+                            return ctx.label + ': ' + ctx.raw + ' invoices (' + pct + '%)';
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Build legend
+    const legendEl = document.getElementById('termsLegend');
+    legendEl.innerHTML = PAYMENT_TERMS.map(t => {
+        const pct = ((t.count / total) * 100).toFixed(1);
+        return '<div class="legend-item"><span class="legend-dot" style="background:' + t.color + '"></span>' + t.term + ' (' + pct + '%)</div>';
+    }).join('');
+}
+
+// ============================================================
+// 7. Invoice Status Pipeline
+// ============================================================
+
+function createPipelineChart() {
+    const total = PIPELINE.reduce((sum, p) => sum + p.count, 0);
+    const container = document.getElementById('pipelineVertical');
+    const maxCount = Math.max(...PIPELINE.map(p => p.count));
+
+    container.innerHTML = PIPELINE.map(p => {
+        const pct = ((p.count / total) * 100).toFixed(1);
+        const barWidth = (p.count / maxCount) * 100;
+        return '<div class="pipeline-row">' +
+            '<div class="pipeline-row-dot" style="background:' + p.color + '"></div>' +
+            '<span class="pipeline-row-label">' + p.status + '</span>' +
+            '<div class="pipeline-row-bar" style="background:rgba(255,255,255,0.04)">' +
+                '<div class="pipeline-row-fill" style="width:' + barWidth + '%;background:' + p.color + ';opacity:0.7"></div>' +
+            '</div>' +
+            '<span class="pipeline-row-value">' + p.count + ' <span style="font-weight:400;font-size:11px;color:#71717a">(' + pct + '%)</span></span>' +
+        '</div>';
+    }).join('');
+}
+
+// ============================================================
+// Time Selector Interactivity
+// ============================================================
+
+document.querySelectorAll('.time-selector').forEach(selector => {
+    selector.querySelectorAll('.time-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Update active state
+            selector.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+
+            const chart = selector.getAttribute('data-chart');
+            const period = parseInt(this.getAttribute('data-period'));
+
+            // Recreate chart
+            if (chart === 'volume') createVolumeChart(period);
+            else if (chart === 'utilisation') createUtilisationChart(period);
+        });
+    });
+});
+
+// ============================================================
+// Initialize All Charts
+// ============================================================
+
+createVolumeChart(6);
+createUtilisationChart(6);
+createSupplierChart();
+createTermsChart();
+createPipelineChart();
+</script>
+
+</body>
+</html>

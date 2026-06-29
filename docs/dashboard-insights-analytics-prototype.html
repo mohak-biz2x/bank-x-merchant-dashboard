@@ -500,54 +500,93 @@
             border-radius: 50%;
         }
 
-        /* Pipeline - Vertical rows */
-        .pipeline-vertical {
+        /* Approval Ratio */
+        .approval-gauge {
             display: flex;
             flex-direction: column;
-            gap: 10px;
-        }
-
-        .pipeline-row {
-            display: flex;
-            align-items: center;
             gap: 12px;
         }
 
-        .pipeline-row-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 3px;
-            flex-shrink: 0;
+        .approval-score-row {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
         }
 
-        .pipeline-row-label {
+        .approval-percentage {
+            font-size: 36px;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .approval-subtitle {
             font-size: 12px;
-            color: #a1a1aa;
-            width: 60px;
-            flex-shrink: 0;
+            color: #71717a;
         }
 
-        .pipeline-row-bar {
-            flex: 1;
-            height: 20px;
+        .approval-badge {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 12px;
+        }
+
+        .approval-badge-green {
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            color: #4ade80;
+        }
+
+        .approval-badge-amber {
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: #fbbf24;
+        }
+
+        .approval-badge-red {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #f87171;
+        }
+
+        .approval-bar-track {
+            width: 100%;
+            height: 8px;
             border-radius: 4px;
-            position: relative;
+            background: rgba(255, 255, 255, 0.08);
             overflow: hidden;
         }
 
-        .pipeline-row-fill {
+        .approval-bar-fill {
             height: 100%;
             border-radius: 4px;
             transition: width 0.4s ease;
         }
 
-        .pipeline-row-value {
-            font-size: 13px;
-            font-weight: 600;
+        .approval-metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .approval-metric {
+            text-align: center;
+        }
+
+        .approval-metric-label {
+            display: block;
+            font-size: 10px;
+            color: #71717a;
+            margin-bottom: 4px;
+        }
+
+        .approval-metric-value {
+            display: block;
+            font-size: 16px;
+            font-weight: 700;
             color: #f1f5f9;
-            width: 50px;
-            text-align: right;
-            flex-shrink: 0;
         }
 
         /* Concentration Risk - Compact */
@@ -906,19 +945,43 @@
                     <div class="donut-legend" id="supplierLegend"></div>
                 </div>
 
-                <!-- Row 3: Pipeline & Risk side by side -->
-                <!-- Invoice Status Pipeline -->
+                <!-- Row 3: Approval Ratio & Risk side by side -->
+                <!-- Approval Ratio -->
                 <div class="card chart-card" style="min-height:auto;">
                     <div class="chart-card-header">
-                        <span class="chart-title">Invoice Status</span>
+                        <span class="chart-title">Approval Ratio</span>
+                        <span class="approval-badge approval-badge-green">Healthy</span>
                     </div>
-                    <div class="pipeline-vertical" id="pipelineVertical"></div>
+                    <div class="approval-gauge">
+                        <div class="approval-score-row">
+                            <span class="approval-percentage" style="color:#22c55e">94.1%</span>
+                            <span class="approval-subtitle">64 of 68 decisioned</span>
+                        </div>
+                        <div class="approval-bar-track">
+                            <div class="approval-bar-fill" style="width:94.1%;background:#22c55e"></div>
+                        </div>
+                        <div class="approval-metrics">
+                            <div class="approval-metric">
+                                <span class="approval-metric-label">Decisioned</span>
+                                <span class="approval-metric-value">68</span>
+                            </div>
+                            <div class="approval-metric">
+                                <span class="approval-metric-label">Approved</span>
+                                <span class="approval-metric-value" style="color:#22c55e">64</span>
+                            </div>
+                            <div class="approval-metric">
+                                <span class="approval-metric-label">Rejected</span>
+                                <span class="approval-metric-value" style="color:#ef4444">4</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Concentration Risk Score -->
                 <div class="card chart-card" style="min-height:auto;">
                     <div class="chart-card-header">
                         <span class="chart-title">Concentration Risk</span>
+                        <span class="risk-badge moderate">Moderate</span>
                     </div>
                     <div class="risk-compact">
                         <div class="risk-top-row">
@@ -926,7 +989,6 @@
                                 <span class="risk-number">62</span>
                                 <span class="risk-max">/100</span>
                             </div>
-                            <span class="risk-badge moderate">Moderate</span>
                         </div>
                         <div class="risk-bar-track">
                             <div class="risk-bar-indicator" style="left: 62%;"></div>
@@ -1029,13 +1091,7 @@ const SUPPLIERS = [
     { name: 'Dubai Cable Co.', amount: 160000, color: '#ddd6fe' }
 ];
 
-// Pipeline data
-const PIPELINE = [
-    { status: 'Pending', count: 18, color: '#f97316' },
-    { status: 'Refer', count: 8, color: '#3b82f6' },
-    { status: 'Approved', count: 64, color: '#22c55e' },
-    { status: 'Rejected', count: 4, color: '#ef4444' }
-];
+
 
 // Payment Terms Distribution data
 const PAYMENT_TERMS = [
@@ -1304,28 +1360,7 @@ function createTermsChart() {
     }).join('');
 }
 
-// ============================================================
-// 7. Invoice Status Pipeline
-// ============================================================
 
-function createPipelineChart() {
-    const total = PIPELINE.reduce((sum, p) => sum + p.count, 0);
-    const container = document.getElementById('pipelineVertical');
-    const maxCount = Math.max(...PIPELINE.map(p => p.count));
-
-    container.innerHTML = PIPELINE.map(p => {
-        const pct = ((p.count / total) * 100).toFixed(1);
-        const barWidth = (p.count / maxCount) * 100;
-        return '<div class="pipeline-row">' +
-            '<div class="pipeline-row-dot" style="background:' + p.color + '"></div>' +
-            '<span class="pipeline-row-label">' + p.status + '</span>' +
-            '<div class="pipeline-row-bar" style="background:rgba(255,255,255,0.04)">' +
-                '<div class="pipeline-row-fill" style="width:' + barWidth + '%;background:' + p.color + ';opacity:0.7"></div>' +
-            '</div>' +
-            '<span class="pipeline-row-value">' + p.count + ' <span style="font-weight:400;font-size:11px;color:#71717a">(' + pct + '%)</span></span>' +
-        '</div>';
-    }).join('');
-}
 
 // ============================================================
 // Time Selector Interactivity
@@ -1356,7 +1391,6 @@ createVolumeChart(6);
 createUtilisationChart(6);
 createSupplierChart();
 createTermsChart();
-createPipelineChart();
 </script>
 
 </body>

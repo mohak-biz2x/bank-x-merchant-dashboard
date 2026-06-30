@@ -6,12 +6,7 @@
     <title>Dashboard - Insights & Analytics (Low Activity) - Mal Bank</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background-color: #0a0b14;
@@ -23,747 +18,132 @@
             color: #e4e4e7;
             min-height: 100vh;
         }
-
-        .bg-page {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* Header */
-        .header {
-            background-color: transparent;
-            border-bottom: 1px solid #1e1f2e;
-            padding: 14px 0;
-            width: 75%;
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .header-logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .header-logo img {
-            height: 40px;
-        }
-
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .user-name {
-            font-size: 13px;
-            color: #d4d4d8;
-            font-weight: 500;
-        }
-
-        .user-avatar {
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: 600;
-            color: #fff;
-        }
-
-        /* Navigation */
-        .nav-bar {
-            width: 75%;
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 0;
-        }
-
-        .nav-tab {
-            padding: 8px 14px;
-            font-size: 13px;
-            font-weight: 500;
-            color: #a1a1aa;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            border-bottom: 2px solid transparent;
-        }
-
-        .nav-tab:hover {
-            color: #e4e4e7;
-        }
-
-        .nav-tab.active {
-            color: #ffffff;
-            border-bottom: 2px solid #ffffff;
-        }
-
-        .nav-icon {
-            width: 16px;
-            height: 16px;
-            opacity: 0.7;
-        }
-
-        .nav-tab.active .nav-icon {
-            opacity: 1;
-        }
-
-        /* Layout */
-        .main-content {
-            flex: 1;
-            padding: 28px 0;
-        }
-
-        .content-wrapper {
-            width: 75%;
-            margin: 0 auto;
-        }
-
-        /* Cards */
-        .card {
-            background: #2D304A;
-            border: 0.5px solid #373A56;
-            border-radius: 12px;
-            padding: 20px;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-
-        .card:hover {
-            border-color: rgba(99, 102, 241, 0.4);
-            box-shadow: 0 0 12px rgba(99, 102, 241, 0.08);
-        }
-
-        /* Credit Card Section */
-        .credit-card {
-            margin-bottom: 24px;
-        }
-
-        .credit-card-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 16px;
-        }
-
-        .credit-label {
-            font-size: 13px;
-            color: #a1a1aa;
-            font-weight: 500;
-        }
-
-        .ref-badge {
-            font-size: 11px;
-            color: #a1a1aa;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid #373A56;
-            border-radius: 12px;
-            padding: 3px 10px;
-        }
-
-        .credit-amount {
-            font-size: 32px;
-            font-weight: 700;
-            color: #ffffff;
-            margin-bottom: 16px;
-        }
-
-        .progress-bar-container {
-            width: 100%;
-            height: 8px;
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 4px;
-            margin-bottom: 10px;
-            overflow: hidden;
-        }
-
-        .progress-bar-fill {
-            height: 100%;
-            width: 6%;
-            background: linear-gradient(90deg, #f97316, #ef4444);
-            border-radius: 4px;
-        }
-
-        .credit-footer {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .credit-utilised {
-            font-size: 12px;
-            color: #f97316;
-        }
-
-        .credit-percent {
-            font-size: 12px;
-            color: #f97316;
-            font-weight: 600;
-        }
-
-        /* Section Title */
-        .section-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #ffffff;
-            margin-bottom: 12px;
-        }
-
-        /* Recap Section */
-        .recap-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin-bottom: 24px;
-        }
-
-        .stat-card-inner {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-        }
-
-        .stat-text {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .stat-label {
-            font-size: 12px;
-            color: #a1a1aa;
-            margin-bottom: 6px;
-        }
-
-        .stat-value {
-            font-size: 26px;
-            font-weight: 700;
-        }
-
-        .stat-value.orange { color: #ffffff; }
-        .stat-value.green { color: #ffffff; }
-        .stat-value.blue { color: #ffffff; }
-
-        .stat-icon {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .stat-icon.orange {
-            background: rgba(249, 115, 22, 0.15);
-            border: 1px solid rgba(249, 115, 22, 0.3);
-        }
-
-        .stat-icon.green {
-            background: rgba(34, 197, 94, 0.15);
-            border: 1px solid rgba(34, 197, 94, 0.3);
-        }
-
-        .stat-icon.blue {
-            background: rgba(59, 130, 246, 0.15);
-            border: 1px solid rgba(59, 130, 246, 0.3);
-        }
-
-        .stat-icon svg {
-            width: 16px;
-            height: 16px;
-        }
-
-        /* Module Cards */
-        .module-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin-bottom: 24px;
-        }
-
-        .module-card-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 4px;
-        }
-
-        .module-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .module-icon.green {
-            background: rgba(34, 197, 94, 0.15);
-            border: 1px solid rgba(34, 197, 94, 0.25);
-        }
-
-        .module-icon.orange {
-            background: rgba(249, 115, 22, 0.15);
-            border: 1px solid rgba(249, 115, 22, 0.25);
-        }
-
-        .module-icon svg {
-            width: 18px;
-            height: 18px;
-        }
-
-        .module-title-group {
-            flex: 1;
-        }
-
-        .module-title {
-            font-size: 15px;
-            font-weight: 600;
-            color: #ffffff;
-        }
-
-        .module-desc {
-            font-size: 12px;
-            color: #71717a;
-            margin-top: 2px;
-        }
-
-        .module-action-btn {
-            font-size: 12px;
-            padding: 6px 14px;
-            border-radius: 18px;
-            background: #ffffff;
-            border: none;
-            color: #0f1019;
-            cursor: pointer;
-            font-weight: 600;
-            white-space: nowrap;
-            transition: opacity 0.15s;
-        }
-
-        .module-action-btn:hover {
-            opacity: 0.85;
-        }
-
-        .module-stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin-top: 16px;
-            padding-top: 16px;
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
-        }
-
-        .module-stat {
-            text-align: center;
-        }
-
-        .module-stat-value {
-            font-size: 22px;
-            font-weight: 700;
-            color: #ffffff;
-            margin-bottom: 2px;
-        }
-
-        .module-stat-value.green { color: #22c55e; }
-        .module-stat-value.orange { color: #f97316; }
-
-        .module-stat-label {
-            font-size: 11px;
-            color: #71717a;
-        }
-
-        /* Chart Grid */
-        .chart-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-
-        .chart-card {
-            min-height: 300px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .chart-card.full-width {
-            grid-column: 1 / -1;
-            min-height: auto;
-        }
-
-        .chart-card-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 12px;
-        }
-
-        .chart-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: #ffffff;
-        }
-
-        .time-selector {
-            display: flex;
-            gap: 2px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 6px;
-            padding: 2px;
-        }
-
-        .time-btn {
-            font-size: 11px;
-            padding: 4px 8px;
-            border: none;
-            border-radius: 4px;
-            background: transparent;
-            color: #a1a1aa;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.15s;
-        }
-
-        .time-btn.active {
-            background: rgba(99, 102, 241, 0.2);
-            color: #ffffff;
-        }
-
-        .time-btn:hover:not(.active):not(.disabled) {
-            color: #e4e4e7;
-        }
-
-        .time-btn.disabled {
-            color: #52525b;
-            cursor: not-allowed;
-            opacity: 0.5;
-        }
-
-        .chart-container {
-            flex: 1;
-            position: relative;
-            min-height: 200px;
-        }
-
-        /* Donut center */
-        .donut-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex: 1;
-        }
-
-        .donut-center {
-            position: absolute;
-            text-align: center;
-            pointer-events: none;
-        }
-
-        .donut-center-value {
-            font-size: 18px;
-            font-weight: 700;
-            color: #ffffff;
-        }
-
-        .donut-center-label {
-            font-size: 11px;
-            color: #a1a1aa;
-        }
-
-        .donut-legend {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px 16px;
-            margin-top: 12px;
-            justify-content: center;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 11px;
-            color: #a1a1aa;
-        }
-
-        .legend-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-        }
-
-        /* Approval Ratio */
-        .approval-gauge {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .approval-score-row {
-            display: flex;
-            align-items: baseline;
-            justify-content: space-between;
-        }
-
-        .approval-percentage {
-            font-size: 36px;
-            font-weight: 700;
-            line-height: 1;
-        }
-
-        .approval-subtitle {
-            font-size: 12px;
-            color: #71717a;
-        }
-
-        .approval-badge {
-            font-size: 11px;
-            font-weight: 600;
-            padding: 4px 10px;
-            border-radius: 12px;
-        }
-
-        .approval-badge-green {
-            background: rgba(34, 197, 94, 0.15);
-            border: 1px solid rgba(34, 197, 94, 0.3);
-            color: #4ade80;
-        }
-
-        .approval-badge-amber {
-            background: rgba(245, 158, 11, 0.15);
-            border: 1px solid rgba(245, 158, 11, 0.3);
-            color: #fbbf24;
-        }
-
-        .approval-badge-red {
-            background: rgba(239, 68, 68, 0.15);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            color: #f87171;
-        }
-
-        .approval-bar-track {
-            width: 100%;
-            height: 8px;
-            border-radius: 4px;
-            background: rgba(255, 255, 255, 0.08);
-            overflow: hidden;
-        }
-
-        .approval-bar-fill {
-            height: 100%;
-            border-radius: 4px;
-            transition: width 0.4s ease;
-        }
-
-        .approval-metrics {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            padding-top: 12px;
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
-        }
-
-        .approval-metric {
-            text-align: center;
-        }
-
-        .approval-metric-label {
-            display: block;
-            font-size: 10px;
-            color: #71717a;
-            margin-bottom: 4px;
-        }
-
-        .approval-metric-value {
-            display: block;
-            font-size: 16px;
-            font-weight: 700;
-            color: #f1f5f9;
-        }
-
-        /* Concentration Risk - Compact */
-        .risk-compact {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .risk-top-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .risk-score-compact {
-            display: flex;
-            align-items: baseline;
-            gap: 2px;
-        }
-
-        .risk-number {
-            font-size: 36px;
-            font-weight: 700;
-            color: #ffffff;
-            line-height: 1;
-        }
-
-        .risk-max {
-            font-size: 14px;
-            color: #71717a;
-            font-weight: 500;
-        }
-
-        .risk-badge {
-            font-size: 11px;
-            font-weight: 600;
-            padding: 4px 10px;
-            border-radius: 12px;
-        }
-
-        .risk-badge.high {
-            background: rgba(239, 68, 68, 0.15);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            color: #f87171;
-        }
-
-        .risk-bar-track {
-            width: 100%;
-            height: 6px;
-            border-radius: 3px;
-            background: linear-gradient(90deg, #22c55e 0%, #f59e0b 50%, #ef4444 100%);
-            position: relative;
-        }
-
-        .risk-bar-indicator {
-            position: absolute;
-            top: -5px;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: #ffffff;
-            border: 3px solid #ef4444;
-            transform: translateX(-50%);
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-        }
-
-        .risk-scale {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            font-size: 10px;
-            color: #71717a;
-        }
-
-        .risk-metrics {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            padding-top: 12px;
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
-        }
-
-        .risk-metric {
-            text-align: center;
-        }
-
-        .risk-metric-label {
-            display: block;
-            font-size: 10px;
-            color: #71717a;
-            margin-bottom: 4px;
-        }
-
-        .risk-metric-value {
-            display: block;
-            font-size: 16px;
-            font-weight: 700;
-            color: #f1f5f9;
-        }
-
-        /* Info Banner */
-        .info-banner {
-            background: rgba(99, 102, 241, 0.08);
-            border: 1px solid rgba(99, 102, 241, 0.2);
-            border-radius: 8px;
-            padding: 10px 16px;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 12px;
-            color: #a5b4fc;
-        }
-
-        .info-banner svg {
-            width: 16px;
-            height: 16px;
-            flex-shrink: 0;
-        }
-
-        /* Footer */
-        .footer {
-            padding: 16px 0;
-            width: 75%;
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-top: 1px solid #1e1f2e;
-        }
-
-        .footer-links {
-            display: flex;
-            gap: 16px;
-        }
-
-        .footer-links a, .footer p {
-            font-size: 12px;
-            color: #52525b;
-            text-decoration: none;
-        }
-
-        .footer-links a:hover {
-            color: #6366f1;
-            text-decoration: underline;
-        }
-
-        /* Responsive */
-        @media (max-width: 1024px) {
-            .chart-grid {
-                grid-template-columns: 1fr;
-            }
-            .module-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .header, .nav-bar, .content-wrapper, .footer {
-                width: 90%;
-            }
-            .recap-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+        .bg-page { min-height: 100vh; display: flex; flex-direction: column; }
+        .header { background-color: transparent; border-bottom: 1px solid #1e1f2e; padding: 14px 0; width: 75%; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
+        .header-logo { display: flex; align-items: center; gap: 10px; }
+        .header-logo img { height: 40px; }
+        .header-right { display: flex; align-items: center; gap: 12px; }
+        .user-name { font-size: 13px; color: #d4d4d8; font-weight: 500; }
+        .user-avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #8b5cf6); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: #fff; }
+        .nav-bar { width: 75%; margin: 0 auto; display: flex; align-items: center; gap: 8px; padding: 12px 0; }
+        .nav-tab { padding: 8px 14px; font-size: 13px; font-weight: 500; color: #a1a1aa; cursor: pointer; transition: all 0.2s; text-decoration: none; display: flex; align-items: center; gap: 6px; border-bottom: 2px solid transparent; }
+        .nav-tab:hover { color: #e4e4e7; }
+        .nav-tab.active { color: #ffffff; border-bottom: 2px solid #ffffff; }
+        .nav-icon { width: 16px; height: 16px; opacity: 0.7; }
+        .nav-tab.active .nav-icon { opacity: 1; }
+        .main-content { flex: 1; padding: 28px 0; }
+        .content-wrapper { width: 75%; margin: 0 auto; }
+</style>
 </head>
 <body>
-
 <div class="bg-page">
+<!-- Continued styles in a second style block -->
+<style>
+        .card { background: rgba(45, 48, 74, 0.5); border: 0.5px solid #373A56; border-radius: 12px; padding: 20px; transition: border-color 0.2s, box-shadow 0.2s; }
+        .card:hover { border-color: rgba(99, 102, 241, 0.4); box-shadow: 0 0 12px rgba(99, 102, 241, 0.08); }
+        .credit-card { margin-bottom: 24px; }
+        .credit-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+        .credit-label { font-size: 13px; color: #a1a1aa; font-weight: 500; }
+        .ref-badge { font-size: 11px; color: #a1a1aa; background: rgba(255, 255, 255, 0.05); border: 1px solid #373A56; border-radius: 12px; padding: 3px 10px; }
+        .credit-amount { font-size: 32px; font-weight: 700; color: #ffffff; margin-bottom: 16px; }
+        .progress-bar-container { width: 100%; height: 8px; background: rgba(255, 255, 255, 0.08); border-radius: 4px; margin-bottom: 10px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; width: 6%; background: linear-gradient(90deg, #f97316, #ef4444); border-radius: 4px; }
+        .credit-footer { display: flex; align-items: center; justify-content: space-between; }
+        .credit-utilised { font-size: 12px; color: #f97316; }
+        .credit-percent { font-size: 12px; color: #f97316; font-weight: 600; }
+        .section-title { font-size: 16px; font-weight: 600; color: #ffffff; margin-bottom: 12px; }
+        .recap-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
+        .stat-card-inner { display: flex; align-items: flex-start; justify-content: space-between; }
+        .stat-text { display: flex; flex-direction: column; }
+        .stat-label { font-size: 12px; color: #a1a1aa; margin-bottom: 6px; }
+        .stat-value { font-size: 26px; font-weight: 700; color: #ffffff; }
+        .stat-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .stat-icon.orange { background: rgba(249, 115, 22, 0.15); border: 1px solid rgba(249, 115, 22, 0.3); }
+        .stat-icon.green { background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.3); }
+        .stat-icon.blue { background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); }
+        .stat-icon svg { width: 16px; height: 16px; }
+</style>
+<style>
+        .module-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 24px; }
+        .module-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
+        .module-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .module-icon.green { background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.25); }
+        .module-icon.orange { background: rgba(249, 115, 22, 0.15); border: 1px solid rgba(249, 115, 22, 0.25); }
+        .module-icon svg { width: 18px; height: 18px; }
+        .module-title-group { flex: 1; }
+        .module-title { font-size: 15px; font-weight: 600; color: #ffffff; }
+        .module-desc { font-size: 12px; color: #71717a; margin-top: 2px; }
+        .module-action-btn { font-size: 12px; padding: 6px 14px; border-radius: 18px; background: #ffffff; border: none; color: #0f1019; cursor: pointer; font-weight: 600; white-space: nowrap; transition: opacity 0.15s; }
+        .module-action-btn:hover { opacity: 0.85; }
+        .module-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px; }
+        .module-stat { text-align: center; background: rgba(255, 255, 255, 0.06); border-radius: 10px; padding: 14px 8px; }
+        .module-stat-value { font-size: 22px; font-weight: 700; color: #ffffff; margin-bottom: 2px; }
+        .module-stat-value.green { color: #22c55e; }
+        .module-stat-value.orange { color: #f97316; }
+        .module-stat-label { font-size: 11px; color: #71717a; }
+        .chart-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 12px; }
+        .chart-card { min-height: 300px; display: flex; flex-direction: column; }
+        .chart-card.compact { min-height: auto; }
+        .chart-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+        .chart-title { font-size: 14px; font-weight: 600; color: #ffffff; }
+        .time-selector { display: flex; gap: 2px; background: rgba(255, 255, 255, 0.05); border-radius: 6px; padding: 2px; }
+        .time-btn { font-size: 11px; padding: 4px 8px; border: none; border-radius: 4px; background: transparent; color: #a1a1aa; cursor: pointer; font-weight: 500; transition: all 0.15s; }
+        .time-btn.active { background: rgba(99, 102, 241, 0.2); color: #ffffff; }
+        .time-btn:hover:not(.active):not(.disabled) { color: #e4e4e7; }
+        .time-btn.disabled { color: #52525b; cursor: not-allowed; opacity: 0.5; }
+        .chart-container { flex: 1; position: relative; min-height: 200px; }
+        .donut-wrapper { position: relative; display: flex; align-items: center; justify-content: center; flex: 1; }
+        .donut-center { position: absolute; text-align: center; pointer-events: none; }
+        .donut-center-value { font-size: 18px; font-weight: 700; color: #ffffff; }
+        .donut-center-label { font-size: 11px; color: #a1a1aa; }
+        .donut-legend { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 12px; justify-content: center; }
+        .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #a1a1aa; }
+        .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+</style>
+<style>
+        .approval-gauge { display: flex; flex-direction: column; gap: 12px; flex: 1; justify-content: space-between; }
+        .approval-score-row { display: flex; align-items: baseline; justify-content: space-between; }
+        .approval-percentage { font-size: 36px; font-weight: 700; line-height: 1; }
+        .approval-subtitle { font-size: 12px; color: #71717a; }
+        .approval-badge { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 12px; }
+        .approval-badge-green { background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.3); color: #4ade80; }
+        .approval-badge-amber { background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); color: #fbbf24; }
+        .approval-bar-track { width: 100%; height: 8px; border-radius: 4px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+        .approval-bar-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
+        .approval-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 12px; }
+        .approval-metric { text-align: center; background: rgba(255, 255, 255, 0.06); border-radius: 10px; padding: 14px 8px; }
+        .approval-metric-label { display: block; font-size: 10px; color: #71717a; margin-bottom: 4px; }
+        .approval-metric-value { display: block; font-size: 16px; font-weight: 700; color: #f1f5f9; }
+        .risk-compact { display: flex; flex-direction: column; gap: 12px; flex: 1; justify-content: space-between; }
+        .risk-top-row { display: flex; align-items: center; justify-content: space-between; }
+        .risk-score-compact { display: flex; align-items: baseline; gap: 2px; }
+        .risk-number { font-size: 36px; font-weight: 700; color: #ffffff; line-height: 1; }
+        .risk-max { font-size: 14px; color: #71717a; font-weight: 500; }
+        .risk-badge { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 12px; }
+        .risk-badge.high { background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; }
+        .risk-badge.moderate { background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); color: #fbbf24; }
+        .risk-bar-track { width: 100%; height: 6px; border-radius: 3px; background: linear-gradient(90deg, #22c55e 0%, #f59e0b 50%, #ef4444 100%); position: relative; }
+        .risk-bar-indicator { position: absolute; top: -5px; width: 16px; height: 16px; border-radius: 50%; background: #ffffff; border: 3px solid #ef4444; transform: translateX(-50%); box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
+        .risk-scale { display: flex; justify-content: space-between; width: 100%; font-size: 10px; color: #71717a; }
+        .risk-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 12px; }
+        .risk-metric { text-align: center; background: rgba(255, 255, 255, 0.06); border-radius: 10px; padding: 14px 8px; }
+        .risk-metric-label { display: block; font-size: 10px; color: #71717a; margin-bottom: 4px; }
+        .risk-metric-value { display: block; font-size: 16px; font-weight: 700; color: #f1f5f9; }
+        .info-icon-wrapper { position: relative; display: inline-flex; align-items: center; margin-left: 4px; cursor: help; }
+        .info-icon-img { width: 12px; height: 12px; opacity: 0.5; transition: opacity 0.2s; }
+        .info-icon-wrapper:hover .info-icon-img { opacity: 0.8; }
+        .info-tooltip { display: none; position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); width: 240px; padding: 10px 12px; background: #1e1f2e; border: 1px solid #373A56; border-radius: 8px; font-size: 11px; line-height: 1.5; color: #d4d4d8; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.4); pointer-events: none; }
+        .info-tooltip::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 5px solid transparent; border-top-color: #373A56; }
+        .info-icon-wrapper:hover .info-tooltip { display: block; }
+        .info-banner { background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 8px; padding: 10px 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; font-size: 12px; color: #a5b4fc; }
+        .info-banner svg { width: 16px; height: 16px; flex-shrink: 0; }
+        .footer { padding: 16px 0; width: 75%; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #1e1f2e; }
+        .footer-links { display: flex; gap: 16px; }
+        .footer-links a, .footer p { font-size: 12px; color: #52525b; text-decoration: none; }
+        .footer-links a:hover { color: #6366f1; text-decoration: underline; }
+        @media (max-width: 1024px) { .chart-grid, .module-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) { .header, .nav-bar, .content-wrapper, .footer { width: 90%; } .recap-grid { grid-template-columns: 1fr; } }
+</style>
     <!-- Header -->
     <header class="header">
         <div class="header-logo">
@@ -787,7 +167,7 @@
         </a>
         <a class="nav-tab" href="#">
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-            Payable Invoice
+            Payable Invoices
         </a>
     </nav>
 
@@ -799,7 +179,7 @@
             <div class="card credit-card">
                 <div class="credit-card-header">
                     <span class="credit-label">Available Credit</span>
-                    <span class="ref-badge">Reference - APP-2025-001</span>
+                    <span class="ref-badge">Reference - APP-2026-001</span>
                 </div>
                 <div class="credit-amount">AED 7,500,000</div>
                 <div class="progress-bar-container">
@@ -810,7 +190,6 @@
                     <span class="credit-percent">6% used</span>
                 </div>
             </div>
-
             <!-- Recap Section -->
             <h2 class="section-title">Recap</h2>
             <div class="recap-grid">
@@ -818,7 +197,7 @@
                     <div class="stat-card-inner">
                         <div class="stat-text">
                             <div class="stat-label">Pending Invoices</div>
-                            <div class="stat-value orange">2</div>
+                            <div class="stat-value">2</div>
                         </div>
                         <div class="stat-icon orange">
                             <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -829,7 +208,7 @@
                     <div class="stat-card-inner">
                         <div class="stat-text">
                             <div class="stat-label">Approved Invoices</div>
-                            <div class="stat-value green">3</div>
+                            <div class="stat-value">3</div>
                         </div>
                         <div class="stat-icon green">
                             <svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
@@ -840,7 +219,7 @@
                     <div class="stat-card-inner">
                         <div class="stat-text">
                             <div class="stat-label">Suppliers</div>
-                            <div class="stat-value blue">1</div>
+                            <div class="stat-value">1</div>
                         </div>
                         <div class="stat-icon blue">
                             <svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -869,11 +248,16 @@
                         </div>
                         <div class="module-stat">
                             <div class="module-stat-value green">1</div>
-                            <div class="module-stat-label">Active Relationships</div>
+                            <div class="module-stat-label">Active Relationships
+                                <span class="info-icon-wrapper">
+                                    <img src="../src/assets/info.png" alt="info" class="info-icon-img" />
+                                    <span class="info-tooltip">Active means the merchant has submitted invoices for this supplier within the last 6 months.</span>
+                                </span>
+                            </div>
                         </div>
                         <div class="module-stat">
                             <div class="module-stat-value">0</div>
-                            <div class="module-stat-label">Pending Approvals</div>
+                            <div class="module-stat-label">Inactive</div>
                         </div>
                     </div>
                 </div>
@@ -904,13 +288,12 @@
                     </div>
                 </div>
             </div>
-
             <!-- Insights & Analytics Section -->
             <h2 class="section-title">Insights &amp; Analytics</h2>
 
             <!-- Info Banner -->
             <div class="info-banner">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                <img src="../src/assets/info.png" alt="info" style="width:16px;height:16px;opacity:0.7;" />
                 <span>Your analytics will become more detailed as your financing activity grows.</span>
             </div>
 
@@ -923,6 +306,7 @@
                             <button class="time-btn active" data-period="3">3M</button>
                             <button class="time-btn disabled" data-period="6">6M</button>
                             <button class="time-btn disabled" data-period="12">12M</button>
+                            <button class="time-btn disabled" data-period="24">All</button>
                         </div>
                     </div>
                     <div class="chart-container">
@@ -933,11 +317,12 @@
                 <!-- Invoice Volume Trend -->
                 <div class="card chart-card">
                     <div class="chart-card-header">
-                        <span class="chart-title">Invoice Volume Trend</span>
+                        <span class="chart-title">Invoice Count Trend</span>
                         <div class="time-selector" data-chart="volume">
                             <button class="time-btn active" data-period="3">3M</button>
                             <button class="time-btn disabled" data-period="6">6M</button>
                             <button class="time-btn disabled" data-period="12">12M</button>
+                            <button class="time-btn disabled" data-period="24">All</button>
                         </div>
                     </div>
                     <div class="chart-container">
@@ -949,6 +334,12 @@
                 <div class="card chart-card">
                     <div class="chart-card-header">
                         <span class="chart-title">Payment Terms Distribution</span>
+                        <div class="time-selector" data-chart="terms">
+                            <button class="time-btn active" data-period="3">3M</button>
+                            <button class="time-btn disabled" data-period="6">6M</button>
+                            <button class="time-btn disabled" data-period="12">12M</button>
+                            <button class="time-btn disabled" data-period="24">All</button>
+                        </div>
                     </div>
                     <div class="donut-wrapper">
                         <canvas id="termsChart"></canvas>
@@ -964,19 +355,25 @@
                 <div class="card chart-card">
                     <div class="chart-card-header">
                         <span class="chart-title">Supplier Distribution</span>
+                        <div class="time-selector" data-chart="supplier">
+                            <button class="time-btn active" data-period="3">3M</button>
+                            <button class="time-btn disabled" data-period="6">6M</button>
+                            <button class="time-btn disabled" data-period="12">12M</button>
+                            <button class="time-btn disabled" data-period="24">All</button>
+                        </div>
                     </div>
                     <div class="donut-wrapper">
                         <canvas id="supplierChart"></canvas>
                         <div class="donut-center">
-                            <div class="donut-center-value">AED 500K</div>
+                            <div class="donut-center-value">AED 0.5M</div>
                             <div class="donut-center-label">Total</div>
                         </div>
                     </div>
                     <div class="donut-legend" id="supplierLegend"></div>
                 </div>
-
+                <!-- Row 3: Approval Ratio & Risk side by side -->
                 <!-- Approval Ratio -->
-                <div class="card chart-card" style="min-height:auto;">
+                <div class="card chart-card compact">
                     <div class="chart-card-header">
                         <span class="chart-title">Approval Ratio</span>
                         <span class="approval-badge approval-badge-green">Healthy</span>
@@ -1007,9 +404,10 @@
                 </div>
 
                 <!-- Concentration Risk Score -->
-                <div class="card chart-card" style="min-height:auto;">
+                <div class="card chart-card compact">
                     <div class="chart-card-header">
                         <span class="chart-title">Concentration Risk</span>
+                        <span class="risk-badge high">High</span>
                     </div>
                     <div class="risk-compact">
                         <div class="risk-top-row">
@@ -1017,7 +415,6 @@
                                 <span class="risk-number">100</span>
                                 <span class="risk-max">/100</span>
                             </div>
-                            <span class="risk-badge high">High</span>
                         </div>
                         <div class="risk-bar-track">
                             <div class="risk-bar-indicator" style="left: 100%;"></div>
@@ -1036,7 +433,12 @@
                                 <span class="risk-metric-value">100%</span>
                             </div>
                             <div class="risk-metric">
-                                <span class="risk-metric-label">HHI Index</span>
+                                <span class="risk-metric-label">HHI Index
+                                    <span class="info-icon-wrapper">
+                                        <img src="../src/assets/info.png" alt="info" class="info-icon-img" />
+                                        <span class="info-tooltip">Herfindahl-Hirschman Index — sum of squared market shares. Range 0–10,000. Below 1,500 = low concentration, 1,500–2,500 = moderate, above 2,500 = high concentration risk.</span>
+                                    </span>
+                                </span>
                                 <span class="risk-metric-value">10,000</span>
                             </div>
                         </div>
@@ -1057,26 +459,23 @@
         <p>&copy; 2026 Mal Bank. All rights reserved.</p>
     </footer>
 </div>
-
 <script>
 // ============================================================
-// Low Activity Data
+// Low Activity Data — only 2 months of history
 // ============================================================
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-// Only 2 months of data
 function getTrailingMonths() {
-    return ['Apr 25', 'May 25'];
+    return ['May 26', 'Jun 26'];
 }
 
-// Supplier distribution data - single supplier
+// Single supplier
 const SUPPLIERS = [
     { name: 'Al Futtaim Construction', amount: 500000, color: '#6366f1' }
 ];
 
-
-// Payment Terms Distribution data - only 5 invoices
+// Payment Terms — 5 invoices
 const PAYMENT_TERMS = [
     { term: '60 days', count: 2, color: '#3b82f6' },
     { term: '90 days', count: 3, color: '#6366f1' }
@@ -1094,198 +493,91 @@ Chart.defaults.plugins.legend.display = false;
 const gridColor = 'rgba(255,255,255,0.05)';
 const tickColor = '#a1a1aa';
 
-// ============================================================
-// Chart Instances
-// ============================================================
-
 let volumeChartInstance = null;
 let utilisationChartInstance = null;
 let supplierChartInstance = null;
 let termsChartInstance = null;
 
 // ============================================================
-// 1. Invoice Volume Trend Chart (sparse - 2 data points)
-// ============================================================
-
-function createVolumeChart() {
-    const ctx = document.getElementById('volumeChart').getContext('2d');
-    if (volumeChartInstance) volumeChartInstance.destroy();
-
-    const labels = getTrailingMonths();
-    const data = [2, 3];
-
-    volumeChartInstance = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Invoices',
-                data: data,
-                borderColor: '#06b6d4',
-                backgroundColor: 'rgba(6, 182, 212, 0.1)',
-                fill: true,
-                tension: 0.4,
-                borderWidth: 2,
-                pointRadius: 5,
-                pointBackgroundColor: '#06b6d4',
-                pointHoverRadius: 7
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: { intersect: false, mode: 'index' },
-            scales: {
-                x: {
-                    grid: { color: gridColor },
-                    ticks: { color: tickColor }
-                },
-                y: {
-                    beginAtZero: true,
-                    max: 10,
-                    grid: { color: gridColor },
-                    ticks: { color: tickColor, stepSize: 2 }
-                }
-            },
-            plugins: {
-                tooltip: {
-                    backgroundColor: '#1e1f2e',
-                    titleColor: '#ffffff',
-                    bodyColor: '#a1a1aa',
-                    borderColor: '#373A56',
-                    borderWidth: 1,
-                    padding: 10
-                }
-            }
-        }
-    });
-}
-
-// ============================================================
-// 2. Credit Utilisation Chart (2 months, low values)
+// 1. Credit Utilisation Chart (2 months, low values)
 // ============================================================
 
 function createUtilisationChart() {
     const ctx = document.getElementById('utilisationChart').getContext('2d');
     if (utilisationChartInstance) utilisationChartInstance.destroy();
 
-    const labels = getTrailingMonths();
-
     utilisationChartInstance = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: labels,
+            labels: getTrailingMonths(),
             datasets: [
-                {
-                    label: 'Utilised',
-                    data: [0.2, 0.5],
-                    borderColor: '#22c55e',
-                    backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                    fill: true,
-                    tension: 0.4,
-                    borderWidth: 2,
-                    pointRadius: 5,
-                    pointBackgroundColor: '#22c55e'
-                },
-                {
-                    label: 'Approved Limit',
-                    data: [8, 8],
-                    borderColor: '#ef4444',
-                    borderDash: [6, 4],
-                    borderWidth: 1.5,
-                    pointRadius: 0,
-                    fill: false
-                }
+                { label: 'Used', data: [0.3, 0.5], borderColor: '#f59e0b', backgroundColor: 'rgba(245, 158, 11, 0.1)', fill: true, tension: 0.4, borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#f59e0b' },
+                { label: 'Total Limit', data: [8, 8], borderColor: '#ef4444', borderDash: [6, 4], borderWidth: 1.5, pointRadius: 0, fill: false }
             ]
         },
         options: {
-            responsive: true,
-            maintainAspectRatio: false,
+            responsive: true, maintainAspectRatio: false,
             interaction: { intersect: false, mode: 'index' },
             scales: {
-                x: {
-                    grid: { color: gridColor },
-                    ticks: { color: tickColor }
-                },
-                y: {
-                    beginAtZero: true,
-                    max: 10,
-                    grid: { color: gridColor },
-                    ticks: {
-                        color: tickColor,
-                        callback: function(v) { return 'AED ' + v + 'M'; }
-                    }
-                }
+                x: { grid: { color: gridColor }, ticks: { color: tickColor } },
+                y: { beginAtZero: true, max: 10, grid: { color: gridColor }, ticks: { color: tickColor, callback: function(v) { return 'AED ' + v + 'M'; } } }
             },
             plugins: {
-                tooltip: {
-                    backgroundColor: '#1e1f2e',
-                    titleColor: '#ffffff',
-                    bodyColor: '#a1a1aa',
-                    borderColor: '#373A56',
-                    borderWidth: 1,
-                    padding: 10,
-                    callbacks: {
-                        label: function(ctx) {
-                            if (ctx.dataset.label === 'Approved Limit') return 'Limit: AED 8,000,000';
-                            return ctx.dataset.label + ': AED ' + (ctx.raw * 1000000).toLocaleString();
-                        }
-                    }
-                },
-                legend: { display: true, position: 'bottom', labels: { boxWidth: 10, padding: 12, color: '#a1a1aa' } }
+                tooltip: { backgroundColor: '#1e1f2e', titleColor: '#ffffff', bodyColor: '#a1a1aa', borderColor: '#373A56', borderWidth: 1, padding: 10, callbacks: { label: function(ctx) { if (ctx.dataset.label === 'Total Limit') return 'Limit: AED 8,000,000'; return ctx.dataset.label + ': AED ' + (ctx.raw * 1000000).toLocaleString(); } } },
+                legend: { display: true, position: 'bottom', labels: { usePointStyle: true, pointStyle: 'line', boxWidth: 40, boxHeight: 2, padding: 16, color: '#a1a1aa', font: { size: 11 } } }
             }
+        }
+    });
+}
+</script>
+<script>
+// ============================================================
+// 2. Invoice Volume Trend (2 months)
+// ============================================================
+
+function createVolumeChart() {
+    const ctx = document.getElementById('volumeChart').getContext('2d');
+    if (volumeChartInstance) volumeChartInstance.destroy();
+
+    volumeChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: getTrailingMonths(),
+            datasets: [{ label: 'Invoices', data: [2, 3], borderColor: '#06b6d4', backgroundColor: 'rgba(6, 182, 212, 0.1)', fill: true, tension: 0.4, borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#06b6d4', pointHoverRadius: 5 }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            interaction: { intersect: false, mode: 'index' },
+            scales: {
+                x: { grid: { color: gridColor }, ticks: { color: tickColor } },
+                y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: tickColor, stepSize: 1 } }
+            },
+            plugins: { tooltip: { backgroundColor: '#1e1f2e', titleColor: '#ffffff', bodyColor: '#a1a1aa', borderColor: '#373A56', borderWidth: 1, padding: 10 } }
         }
     });
 }
 
 // ============================================================
-// 3. Supplier Distribution Donut Chart (single supplier = 100%)
+// 3. Supplier Distribution (single supplier)
 // ============================================================
 
 function createSupplierChart() {
     const ctx = document.getElementById('supplierChart').getContext('2d');
     if (supplierChartInstance) supplierChartInstance.destroy();
 
+    const total = SUPPLIERS.reduce((sum, s) => sum + s.amount, 0);
+
     supplierChartInstance = new Chart(ctx, {
         type: 'doughnut',
-        data: {
-            labels: ['Al Futtaim Construction'],
-            datasets: [{
-                data: [500000],
-                backgroundColor: ['#6366f1'],
-                borderWidth: 0,
-                hoverOffset: 6
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            cutout: '65%',
-            plugins: {
-                tooltip: {
-                    backgroundColor: '#1e1f2e',
-                    titleColor: '#ffffff',
-                    bodyColor: '#a1a1aa',
-                    borderColor: '#373A56',
-                    borderWidth: 1,
-                    padding: 10,
-                    callbacks: {
-                        label: function(ctx) {
-                            return ctx.label + ': AED ' + ctx.raw.toLocaleString() + ' (100%)';
-                        }
-                    }
-                }
-            }
-        }
+        data: { labels: SUPPLIERS.map(s => s.name), datasets: [{ data: SUPPLIERS.map(s => s.amount), backgroundColor: SUPPLIERS.map(s => s.color), borderWidth: 0, hoverOffset: 6 }] },
+        options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { tooltip: { backgroundColor: '#1e1f2e', titleColor: '#ffffff', bodyColor: '#a1a1aa', borderColor: '#373A56', borderWidth: 1, padding: 10, callbacks: { label: function(ctx) { return ctx.label + ': AED ' + ctx.raw.toLocaleString() + ' (100%)'; } } } } }
     });
 
-    // Build legend
-    const legendEl = document.getElementById('supplierLegend');
-    legendEl.innerHTML = '<div class="legend-item"><span class="legend-dot" style="background:#6366f1"></span>Al Futtaim Construction (100%)</div>';
+    document.getElementById('supplierLegend').innerHTML = SUPPLIERS.map(s => '<div class="legend-item"><span class="legend-dot" style="background:' + s.color + '"></span>' + s.name + ' (100%)</div>').join('');
 }
 
 // ============================================================
-// 4. Payment Terms Distribution Chart (5 invoices total)
+// 4. Payment Terms Distribution
 // ============================================================
 
 function createTermsChart() {
@@ -1296,68 +588,19 @@ function createTermsChart() {
 
     termsChartInstance = new Chart(ctx, {
         type: 'doughnut',
-        data: {
-            labels: PAYMENT_TERMS.map(t => t.term),
-            datasets: [{
-                data: PAYMENT_TERMS.map(t => t.count),
-                backgroundColor: PAYMENT_TERMS.map(t => t.color),
-                borderWidth: 0,
-                hoverOffset: 6
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            cutout: '65%',
-            plugins: {
-                tooltip: {
-                    backgroundColor: '#1e1f2e',
-                    titleColor: '#ffffff',
-                    bodyColor: '#a1a1aa',
-                    borderColor: '#373A56',
-                    borderWidth: 1,
-                    padding: 10,
-                    callbacks: {
-                        label: function(ctx) {
-                            const pct = ((ctx.raw / total) * 100).toFixed(1);
-                            return ctx.label + ': ' + ctx.raw + ' invoices (' + pct + '%)';
-                        }
-                    }
-                }
-            }
-        }
+        data: { labels: PAYMENT_TERMS.map(t => t.term), datasets: [{ data: PAYMENT_TERMS.map(t => t.count), backgroundColor: PAYMENT_TERMS.map(t => t.color), borderWidth: 0, hoverOffset: 6 }] },
+        options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { tooltip: { backgroundColor: '#1e1f2e', titleColor: '#ffffff', bodyColor: '#a1a1aa', borderColor: '#373A56', borderWidth: 1, padding: 10, callbacks: { label: function(ctx) { const pct = ((ctx.raw / total) * 100).toFixed(1); return ctx.label + ': ' + ctx.raw + ' invoices (' + pct + '%)'; } } } } }
     });
 
-    // Build legend
-    const legendEl = document.getElementById('termsLegend');
-    legendEl.innerHTML = PAYMENT_TERMS.map(t => {
-        const pct = ((t.count / total) * 100).toFixed(1);
-        return '<div class="legend-item"><span class="legend-dot" style="background:' + t.color + '"></span>' + t.term + ' (' + pct + '%)</div>';
-    }).join('');
+    document.getElementById('termsLegend').innerHTML = PAYMENT_TERMS.map(t => { const pct = ((t.count / total) * 100).toFixed(1); return '<div class="legend-item"><span class="legend-dot" style="background:' + t.color + '"></span>' + t.term + ' (' + pct + '%)</div>'; }).join('');
 }
 
-
-
 // ============================================================
-// Time Selector Interactivity (disabled buttons don't fire)
+// Initialize
 // ============================================================
 
-document.querySelectorAll('.time-selector').forEach(selector => {
-    selector.querySelectorAll('.time-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            if (this.classList.contains('disabled')) return;
-            selector.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-        });
-    });
-});
-
-// ============================================================
-// Initialize All Charts
-// ============================================================
-
-createVolumeChart();
 createUtilisationChart();
+createVolumeChart();
 createSupplierChart();
 createTermsChart();
 </script>

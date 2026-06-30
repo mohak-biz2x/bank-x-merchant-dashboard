@@ -133,7 +133,7 @@
 
         /* Cards */
         .card {
-            background: #2D304A;
+            background: rgba(45, 48, 74, 0.5);
             border: 0.5px solid #373A56;
             border-radius: 12px;
             padding: 20px;
@@ -362,12 +362,13 @@
             grid-template-columns: repeat(3, 1fr);
             gap: 12px;
             margin-top: 16px;
-            padding-top: 16px;
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
         }
 
         .module-stat {
             text-align: center;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            padding: 14px 8px;
         }
 
         .module-stat-value {
@@ -397,6 +398,10 @@
             min-height: 300px;
             display: flex;
             flex-direction: column;
+        }
+
+        .chart-card.compact {
+            min-height: auto;
         }
 
         .chart-card.full-width {
@@ -505,6 +510,8 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
+            flex: 1;
+            justify-content: space-between;
         }
 
         .approval-score-row {
@@ -566,13 +573,15 @@
         .approval-metrics {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            padding-top: 12px;
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            gap: 12px;
+            margin-top: 12px;
         }
 
         .approval-metric {
             text-align: center;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            padding: 14px 8px;
         }
 
         .approval-metric-label {
@@ -634,6 +643,12 @@
             color: #22d3ee;
         }
 
+        .risk-badge.moderate {
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: #fbbf24;
+        }
+
         .risk-bar-track {
             width: 100%;
             height: 6px;
@@ -649,7 +664,7 @@
             height: 16px;
             border-radius: 50%;
             background: #ffffff;
-            border: 3px solid #06b6d4;
+            border: 3px solid #f59e0b;
             transform: translateX(-50%);
             box-shadow: 0 2px 6px rgba(0,0,0,0.3);
         }
@@ -665,13 +680,15 @@
         .risk-metrics {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            padding-top: 12px;
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            gap: 12px;
+            margin-top: 12px;
         }
 
         .risk-metric {
             text-align: center;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            padding: 14px 8px;
         }
 
         .risk-metric-label {
@@ -686,6 +703,59 @@
             font-size: 16px;
             font-weight: 700;
             color: #f1f5f9;
+        }
+
+        /* Info tooltip */
+        .info-icon-wrapper {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            margin-left: 4px;
+            cursor: help;
+        }
+
+        .info-icon-img {
+            width: 12px;
+            height: 12px;
+            opacity: 0.5;
+            transition: opacity 0.2s;
+        }
+
+        .info-icon-wrapper:hover .info-icon-img {
+            opacity: 0.8;
+        }
+
+        .info-tooltip {
+            display: none;
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            width: 240px;
+            padding: 10px 12px;
+            background: #1e1f2e;
+            border: 1px solid #373A56;
+            border-radius: 8px;
+            font-size: 11px;
+            line-height: 1.5;
+            color: #d4d4d8;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            pointer-events: none;
+        }
+
+        .info-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: #373A56;
+        }
+
+        .info-icon-wrapper:hover .info-tooltip {
+            display: block;
         }
 
         /* Footer */
@@ -830,7 +900,7 @@
                             <div class="module-title">Receivable Invoices</div>
                             <div class="module-desc">Submit invoices for early financing against your receivables</div>
                         </div>
-                        <button class="module-action-btn">+ Submit Invoice</button>
+                        <button class="module-action-btn">+ Create</button>
                     </div>
                     <div class="module-stats">
                         <div class="module-stat">
@@ -838,8 +908,8 @@
                             <div class="module-stat-label">Total Invoices</div>
                         </div>
                         <div class="module-stat">
-                            <div class="module-stat-value orange">12</div>
-                            <div class="module-stat-label">Pending</div>
+                            <div class="module-stat-value">12</div>
+                            <div class="module-stat-label">Pending Approval</div>
                         </div>
                         <div class="module-stat">
                             <div class="module-stat-value green">38</div>
@@ -861,6 +931,7 @@
                             <button class="time-btn" data-period="3">3M</button>
                             <button class="time-btn active" data-period="6">6M</button>
                             <button class="time-btn" data-period="12">12M</button>
+                            <button class="time-btn" data-period="24">All</button>
                         </div>
                     </div>
                     <div class="chart-container">
@@ -876,6 +947,7 @@
                             <button class="time-btn" data-period="3">3M</button>
                             <button class="time-btn active" data-period="6">6M</button>
                             <button class="time-btn" data-period="12">12M</button>
+                            <button class="time-btn" data-period="24">All</button>
                         </div>
                     </div>
                     <div class="chart-container">
@@ -888,6 +960,12 @@
                 <div class="card chart-card">
                     <div class="chart-card-header">
                         <span class="chart-title">Payment Terms Distribution</span>
+                        <div class="time-selector" data-chart="terms">
+                            <button class="time-btn" data-period="3">3M</button>
+                            <button class="time-btn" data-period="6">6M</button>
+                            <button class="time-btn" data-period="12">12M</button>
+                            <button class="time-btn active" data-period="24">All</button>
+                        </div>
                     </div>
                     <div class="donut-wrapper">
                         <canvas id="termsChart"></canvas>
@@ -903,6 +981,12 @@
                 <div class="card chart-card">
                     <div class="chart-card-header">
                         <span class="chart-title">Buyer Distribution</span>
+                        <div class="time-selector" data-chart="buyer">
+                            <button class="time-btn" data-period="3">3M</button>
+                            <button class="time-btn" data-period="6">6M</button>
+                            <button class="time-btn" data-period="12">12M</button>
+                            <button class="time-btn active" data-period="24">All</button>
+                        </div>
                     </div>
                     <div class="donut-wrapper">
                         <canvas id="buyerChart"></canvas>
@@ -916,7 +1000,7 @@
 
                 <!-- Row 3: Approval Ratio & Risk side by side -->
                 <!-- Approval Ratio -->
-                <div class="card chart-card" style="min-height:auto;">
+                <div class="card chart-card compact">
                     <div class="chart-card-header">
                         <span class="chart-title">Approval Ratio</span>
                         <span class="approval-badge approval-badge-green">Healthy</span>
@@ -947,9 +1031,10 @@
                 </div>
 
                 <!-- Buyer Concentration Risk Score -->
-                <div class="card chart-card" style="min-height:auto;">
+                <div class="card chart-card compact">
                     <div class="chart-card-header">
                         <span class="chart-title">Buyer Concentration Risk</span>
+                        <span class="risk-badge moderate">Low-Moderate</span>
                     </div>
                     <div class="risk-compact">
                         <div class="risk-top-row">
@@ -957,7 +1042,6 @@
                                 <span class="risk-number">48</span>
                                 <span class="risk-max">/100</span>
                             </div>
-                            <span class="risk-badge low-moderate">Low-Moderate</span>
                         </div>
                         <div class="risk-bar-track">
                             <div class="risk-bar-indicator" style="left: 48%;"></div>
@@ -976,7 +1060,12 @@
                                 <span class="risk-metric-value">73.6%</span>
                             </div>
                             <div class="risk-metric">
-                                <span class="risk-metric-label">HHI Index</span>
+                                <span class="risk-metric-label">HHI Index
+                                    <span class="info-icon-wrapper">
+                                        <img src="../src/assets/info.png" alt="info" class="info-icon-img" />
+                                        <span class="info-tooltip">Herfindahl-Hirschman Index — sum of squared market shares. Range 0–10,000. Below 1,500 = low concentration, 1,500–2,500 = moderate, above 2,500 = high concentration risk.</span>
+                                    </span>
+                                </span>
                                 <span class="risk-metric-value">2,180</span>
                             </div>
                         </div>
@@ -1007,7 +1096,7 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 
 // Generate trailing months labels
 function getTrailingMonths(count) {
-    const now = new Date(2025, 5); // June 2025
+    const now = new Date(2026, 5); // June 2026
     const labels = [];
     for (let i = count - 1; i >= 0; i--) {
         const d = new Date(now.getFullYear(), now.getMonth() - i);
@@ -1016,35 +1105,71 @@ function getTrailingMonths(count) {
     return labels;
 }
 
-// Receivable invoice volume data: 30, 35, 38, 42, 45, 50 over 6 months
+// Receivable invoice volume data: grows from ~20 to ~50 over 36 months
 function getVolumeData(months) {
-    const fullData = [30, 32, 33, 34, 35, 36, 37, 38, 40, 42, 45, 50];
-    return fullData.slice(12 - months);
+    const fullData = [];
+    for (let i = 0; i < 36; i++) {
+        const progress = i / 35;
+        fullData.push(Math.round(20 + progress * 30 + (Math.sin(i * 1.2) * 3)));
+    }
+    return fullData.slice(36 - months);
 }
 
-// Credit utilisation data - single receivable line, starts at 2.0M grows to 5.1M
+// Credit utilisation data - single receivable line, grows from 2.0M to 5.1M
 function getUtilisationData(months) {
-    const fullData = [2.0, 2.3, 2.6, 2.9, 3.2, 3.5, 3.8, 4.1, 4.4, 4.7, 4.9, 5.1];
-    return fullData.slice(12 - months);
+    const fullData = [];
+    for (let i = 0; i < 36; i++) {
+        const progress = i / 35;
+        fullData.push(+(2.0 + progress * 3.1).toFixed(2));
+    }
+    return fullData.slice(36 - months);
 }
 
-// Buyer distribution data
-const BUYERS = [
-    { name: 'Dubai Retail Group', amount: 680000, color: '#6366f1' },
-    { name: 'Al Futtaim Group', amount: 520000, color: '#8b5cf6' },
-    { name: 'Emirates Trading LLC', amount: 420000, color: '#a78bfa' },
-    { name: 'Abu Dhabi Logistics', amount: 350000, color: '#c4b5fd' },
-    { name: 'RAK Metals Trading', amount: 230000, color: '#818cf8' }
-];
+// Buyer distribution data — varies by period (longer = higher cumulative)
+function getBuyerData(months) {
+    const scale = months <= 3 ? 0.3 : months <= 6 ? 0.55 : months <= 12 ? 0.8 : 1.0;
+    return [
+        { name: 'Dubai Retail Group', amount: Math.round(680000 * scale), color: '#6366f1' },
+        { name: 'Al Futtaim Group', amount: Math.round(520000 * scale), color: '#8b5cf6' },
+        { name: 'Emirates Trading LLC', amount: Math.round(420000 * scale), color: '#a78bfa' },
+        { name: 'Abu Dhabi Logistics', amount: Math.round(350000 * scale), color: '#c4b5fd' },
+        { name: 'RAK Metals Trading', amount: Math.round(230000 * scale), color: '#818cf8' }
+    ];
+}
 
 
-// Payment Terms Distribution data (50 invoices total)
-const PAYMENT_TERMS = [
-    { term: '30 days', count: 8, color: '#06b6d4' },
-    { term: '60 days', count: 18, color: '#3b82f6' },
-    { term: '90 days', count: 20, color: '#6366f1' },
-    { term: '120 days', count: 4, color: '#8b5cf6' }
-];
+// Payment Terms Distribution data — varies by period (longer = more invoices)
+function getPaymentTermsData(months) {
+    if (months <= 3) {
+        return [
+            { term: '30 days', count: 3, color: '#06b6d4' },
+            { term: '60 days', count: 6, color: '#3b82f6' },
+            { term: '90 days', count: 7, color: '#6366f1' },
+            { term: '120 days', count: 2, color: '#8b5cf6' }
+        ];
+    } else if (months <= 6) {
+        return [
+            { term: '30 days', count: 5, color: '#06b6d4' },
+            { term: '60 days', count: 12, color: '#3b82f6' },
+            { term: '90 days', count: 14, color: '#6366f1' },
+            { term: '120 days', count: 3, color: '#8b5cf6' }
+        ];
+    } else if (months <= 12) {
+        return [
+            { term: '30 days', count: 7, color: '#06b6d4' },
+            { term: '60 days', count: 16, color: '#3b82f6' },
+            { term: '90 days', count: 18, color: '#6366f1' },
+            { term: '120 days', count: 4, color: '#8b5cf6' }
+        ];
+    } else {
+        return [
+            { term: '30 days', count: 8, color: '#06b6d4' },
+            { term: '60 days', count: 18, color: '#3b82f6' },
+            { term: '90 days', count: 20, color: '#6366f1' },
+            { term: '120 days', count: 4, color: '#8b5cf6' }
+        ];
+    }
+}
 
 // ============================================================
 // Chart.js Global Defaults
@@ -1205,19 +1330,20 @@ function createUtilisationChart(months) {
 // 3. Buyer Distribution Donut Chart
 // ============================================================
 
-function createBuyerChart() {
+function createBuyerChart(months) {
     const ctx = document.getElementById('buyerChart').getContext('2d');
     if (buyerChartInstance) buyerChartInstance.destroy();
 
-    const total = BUYERS.reduce((sum, b) => sum + b.amount, 0);
+    const buyers = getBuyerData(months);
+    const total = buyers.reduce((sum, b) => sum + b.amount, 0);
 
     buyerChartInstance = new Chart(ctx, {
         type: 'doughnut',
         data: {
-            labels: BUYERS.map(b => b.name),
+            labels: buyers.map(b => b.name),
             datasets: [{
-                data: BUYERS.map(b => b.amount),
-                backgroundColor: BUYERS.map(b => b.color),
+                data: buyers.map(b => b.amount),
+                backgroundColor: buyers.map(b => b.color),
                 borderWidth: 0,
                 hoverOffset: 6
             }]
@@ -1245,9 +1371,13 @@ function createBuyerChart() {
         }
     });
 
+    // Update center value
+    const centerEl = document.querySelector('#buyerChart').closest('.donut-wrapper').querySelector('.donut-center-value');
+    if (centerEl) centerEl.textContent = 'AED ' + (total / 1000000).toFixed(1) + 'M';
+
     // Build legend
     const legendEl = document.getElementById('buyerLegend');
-    legendEl.innerHTML = BUYERS.map(b => {
+    legendEl.innerHTML = buyers.map(b => {
         const pct = ((b.amount / total) * 100).toFixed(1);
         return '<div class="legend-item"><span class="legend-dot" style="background:' + b.color + '"></span>' + b.name + ' (' + pct + '%)</div>';
     }).join('');
@@ -1257,19 +1387,20 @@ function createBuyerChart() {
 // 4. Payment Terms Distribution Chart
 // ============================================================
 
-function createTermsChart() {
+function createTermsChart(months) {
     const ctx = document.getElementById('termsChart').getContext('2d');
     if (termsChartInstance) termsChartInstance.destroy();
 
-    const total = PAYMENT_TERMS.reduce((sum, t) => sum + t.count, 0);
+    const terms = getPaymentTermsData(months);
+    const total = terms.reduce((sum, t) => sum + t.count, 0);
 
     termsChartInstance = new Chart(ctx, {
         type: 'doughnut',
         data: {
-            labels: PAYMENT_TERMS.map(t => t.term),
+            labels: terms.map(t => t.term),
             datasets: [{
-                data: PAYMENT_TERMS.map(t => t.count),
-                backgroundColor: PAYMENT_TERMS.map(t => t.color),
+                data: terms.map(t => t.count),
+                backgroundColor: terms.map(t => t.color),
                 borderWidth: 0,
                 hoverOffset: 6
             }]
@@ -1297,9 +1428,13 @@ function createTermsChart() {
         }
     });
 
+    // Update center value
+    const centerEl = document.querySelector('#termsChart').closest('.donut-wrapper').querySelector('.donut-center-value');
+    if (centerEl) centerEl.textContent = total;
+
     // Build legend
     const legendEl = document.getElementById('termsLegend');
-    legendEl.innerHTML = PAYMENT_TERMS.map(t => {
+    legendEl.innerHTML = terms.map(t => {
         const pct = ((t.count / total) * 100).toFixed(1);
         return '<div class="legend-item"><span class="legend-dot" style="background:' + t.color + '"></span>' + t.term + ' (' + pct + '%)</div>';
     }).join('');
@@ -1322,6 +1457,8 @@ document.querySelectorAll('.time-selector').forEach(selector => {
             // Recreate chart
             if (chart === 'volume') createVolumeChart(period);
             else if (chart === 'utilisation') createUtilisationChart(period);
+            else if (chart === 'terms') createTermsChart(period);
+            else if (chart === 'buyer') createBuyerChart(period);
         });
     });
 });
@@ -1332,8 +1469,8 @@ document.querySelectorAll('.time-selector').forEach(selector => {
 
 createVolumeChart(6);
 createUtilisationChart(6);
-createBuyerChart();
-createTermsChart();
+createBuyerChart(24);
+createTermsChart(24);
 </script>
 
 </body>

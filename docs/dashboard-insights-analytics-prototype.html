@@ -401,6 +401,10 @@
             flex-direction: column;
         }
 
+        .chart-card.compact {
+            min-height: auto;
+        }
+
         .chart-card.full-width {
             grid-column: 1 / -1;
             min-height: auto;
@@ -698,6 +702,70 @@
             color: #f1f5f9;
         }
 
+        /* Info tooltip */
+        .info-icon-wrapper {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            margin-left: 4px;
+            cursor: help;
+        }
+
+        .info-icon-wrapper svg {
+            width: 12px;
+            height: 12px;
+            color: #71717a;
+            transition: color 0.2s;
+        }
+
+        .info-icon-wrapper:hover svg {
+            color: #a1a1aa;
+        }
+
+        .info-icon-img {
+            width: 12px;
+            height: 12px;
+            opacity: 0.5;
+            transition: opacity 0.2s;
+        }
+
+        .info-icon-wrapper:hover .info-icon-img {
+            opacity: 0.8;
+        }
+
+        .info-tooltip {
+            display: none;
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            width: 240px;
+            padding: 10px 12px;
+            background: #1e1f2e;
+            border: 1px solid #373A56;
+            border-radius: 8px;
+            font-size: 11px;
+            line-height: 1.5;
+            color: #d4d4d8;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            pointer-events: none;
+        }
+
+        .info-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: #373A56;
+        }
+
+        .info-icon-wrapper:hover .info-tooltip {
+            display: block;
+        }
+
         /* Footer */
         .footer {
             padding: 16px 0;
@@ -852,12 +920,13 @@
                             <div class="module-stat-label">Total Suppliers</div>
                         </div>
                         <div class="module-stat">
-                            <div class="module-stat-value green">6</div>
-                            <div class="module-stat-label">Active Relationships</div>
-                        </div>
-                        <div class="module-stat">
-                            <div class="module-stat-value">0</div>
-                            <div class="module-stat-label">Pending Approvals</div>
+                            <div class="module-stat-value green">4</div>
+                            <div class="module-stat-label">Active Relationships
+                                <span class="info-icon-wrapper">
+                                    <img src="../src/assets/info.png" alt="info" class="info-icon-img" />
+                                    <span class="info-tooltip">Active means the merchant has submitted invoices for this supplier within the last 6 months.</span>
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -971,7 +1040,7 @@
 
                 <!-- Row 3: Approval Ratio & Risk side by side -->
                 <!-- Approval Ratio -->
-                <div class="card chart-card">
+                <div class="card chart-card compact">
                     <div class="chart-card-header">
                         <span class="chart-title">Approval Ratio</span>
                         <span class="approval-badge approval-badge-green">Healthy</span>
@@ -1002,7 +1071,7 @@
                 </div>
 
                 <!-- Concentration Risk Score -->
-                <div class="card chart-card">
+                <div class="card chart-card compact">
                     <div class="chart-card-header">
                         <span class="chart-title">Concentration Risk</span>
                         <span class="risk-badge moderate">Moderate</span>
@@ -1031,7 +1100,12 @@
                                 <span class="risk-metric-value">65.3%</span>
                             </div>
                             <div class="risk-metric">
-                                <span class="risk-metric-label">HHI Index</span>
+                                <span class="risk-metric-label">HHI Index
+                                    <span class="info-icon-wrapper">
+                                        <img src="../src/assets/info.png" alt="info" class="info-icon-img" />
+                                        <span class="info-tooltip">Herfindahl-Hirschman Index — sum of squared market shares. Range 0–10,000. Below 1,500 = low concentration, 1,500–2,500 = moderate, above 2,500 = high concentration risk.</span>
+                                    </span>
+                                </span>
                                 <span class="risk-metric-value">1,840</span>
                             </div>
                         </div>
@@ -1069,7 +1143,7 @@ function seededVariance(index, base, variancePct) {
 
 // Generate trailing months labels
 function getTrailingMonths(count) {
-    const now = new Date(2025, 5); // June 2025
+    const now = new Date(2026, 5); // June 2026
     const labels = [];
     for (let i = count - 1; i >= 0; i--) {
         const d = new Date(now.getFullYear(), now.getMonth() - i);
@@ -1081,49 +1155,81 @@ function getTrailingMonths(count) {
 // Invoice volume data
 function getVolumeData(months) {
     const data = [];
-    let base = 20;
-    for (let i = 0; i < 12; i++) {
-        base = Math.round(base * 1.05);
+    let base = 14;
+    for (let i = 0; i < 36; i++) {
+        base = Math.round(base * 1.03);
         data.push(seededVariance(i, base, 15));
     }
-    return data.slice(12 - months);
+    return data.slice(36 - months);
 }
 
 // Credit utilisation data (limit 8M)
 function getUtilisationData(months) {
     const receivable = [];
     const payable = [];
-    const bases = [4.2, 4.5, 4.1, 4.8, 4.6, 5.0, 4.3, 4.9, 4.7, 5.1, 4.4, 5.2]; // millions
-    for (let i = 0; i < 12; i++) {
-        const total = bases[i];
-        receivable.push(+(total * 0.6).toFixed(2));
-        payable.push(+(total * 0.4).toFixed(2));
+    // Generate 36 months of data with gradual growth from ~3.5M to ~5.2M
+    for (let i = 0; i < 36; i++) {
+        const progress = i / 35;
+        const baseTotal = 3.5 + progress * 1.7;
+        const varied = baseTotal * (seededVariance(i, 100, 8) / 100);
+        receivable.push(+(varied * 0.6).toFixed(2));
+        payable.push(+(varied * 0.4).toFixed(2));
     }
     return {
-        receivable: receivable.slice(12 - months),
-        payable: payable.slice(12 - months)
+        receivable: receivable.slice(36 - months),
+        payable: payable.slice(36 - months)
     };
 }
 
-// Supplier distribution data
-const SUPPLIERS = [
-    { name: 'Al Futtaim Construction', amount: 520000, color: '#6366f1' },
-    { name: 'Emirates Steel', amount: 380000, color: '#8b5cf6' },
-    { name: 'Gulf Cement Co.', amount: 340000, color: '#a78bfa' },
-    { name: 'Deyaar MEP', amount: 290000, color: '#c4b5fd' },
-    { name: 'RAK Ceramics', amount: 210000, color: '#818cf8' },
-    { name: 'Dubai Cable Co.', amount: 160000, color: '#ddd6fe' }
-];
+// Supplier distribution data — varies by period
+function getSupplierData(months) {
+    // Longer periods = higher cumulative amounts
+    const scale = months <= 3 ? 0.3 : months <= 6 ? 0.55 : months <= 12 ? 0.8 : 1.0;
+    return [
+        { name: 'Al Futtaim Construction', amount: Math.round(520000 * scale), color: '#6366f1' },
+        { name: 'Emirates Steel', amount: Math.round(380000 * scale), color: '#8b5cf6' },
+        { name: 'Gulf Cement Co.', amount: Math.round(340000 * scale), color: '#a78bfa' },
+        { name: 'Deyaar MEP', amount: Math.round(290000 * scale), color: '#c4b5fd' },
+        { name: 'RAK Ceramics', amount: Math.round(210000 * scale), color: '#818cf8' },
+        { name: 'Dubai Cable Co.', amount: Math.round(160000 * scale), color: '#ddd6fe' }
+    ];
+}
 
 
 
-// Payment Terms Distribution data
-const PAYMENT_TERMS = [
-    { term: '30 days', count: 12, color: '#06b6d4' },
-    { term: '60 days', count: 28, color: '#3b82f6' },
-    { term: '90 days', count: 30, color: '#6366f1' },
-    { term: '120 days', count: 12, color: '#8b5cf6' }
-];
+// Payment Terms Distribution data — varies by period
+// Longer periods = more invoices (cumulative)
+function getPaymentTermsData(months) {
+    if (months <= 3) {
+        return [
+            { term: '30 days', count: 4, color: '#06b6d4' },
+            { term: '60 days', count: 8, color: '#3b82f6' },
+            { term: '90 days', count: 10, color: '#6366f1' },
+            { term: '120 days', count: 3, color: '#8b5cf6' }
+        ];
+    } else if (months <= 6) {
+        return [
+            { term: '30 days', count: 8, color: '#06b6d4' },
+            { term: '60 days', count: 18, color: '#3b82f6' },
+            { term: '90 days', count: 22, color: '#6366f1' },
+            { term: '120 days', count: 7, color: '#8b5cf6' }
+        ];
+    } else if (months <= 12) {
+        return [
+            { term: '30 days', count: 14, color: '#06b6d4' },
+            { term: '60 days', count: 28, color: '#3b82f6' },
+            { term: '90 days', count: 30, color: '#6366f1' },
+            { term: '120 days', count: 10, color: '#8b5cf6' }
+        ];
+    } else {
+        return [
+            { term: '30 days', count: 22, color: '#06b6d4' },
+            { term: '60 days', count: 42, color: '#3b82f6' },
+            { term: '90 days', count: 48, color: '#6366f1' },
+            { term: '120 days', count: 16, color: '#8b5cf6' }
+        ];
+    }
+}
 
 // ============================================================
 // Chart.js Global Defaults
@@ -1284,19 +1390,20 @@ function createUtilisationChart(months) {
 // 3. Supplier Distribution Donut Chart
 // ============================================================
 
-function createSupplierChart() {
+function createSupplierChart(months) {
     const ctx = document.getElementById('supplierChart').getContext('2d');
     if (supplierChartInstance) supplierChartInstance.destroy();
 
-    const total = SUPPLIERS.reduce((sum, s) => sum + s.amount, 0);
+    const suppliers = getSupplierData(months);
+    const total = suppliers.reduce((sum, s) => sum + s.amount, 0);
 
     supplierChartInstance = new Chart(ctx, {
         type: 'doughnut',
         data: {
-            labels: SUPPLIERS.map(s => s.name),
+            labels: suppliers.map(s => s.name),
             datasets: [{
-                data: SUPPLIERS.map(s => s.amount),
-                backgroundColor: SUPPLIERS.map(s => s.color),
+                data: suppliers.map(s => s.amount),
+                backgroundColor: suppliers.map(s => s.color),
                 borderWidth: 0,
                 hoverOffset: 6
             }]
@@ -1324,9 +1431,13 @@ function createSupplierChart() {
         }
     });
 
+    // Update center value
+    const centerEl = document.querySelector('#supplierChart').closest('.donut-wrapper').querySelector('.donut-center-value');
+    if (centerEl) centerEl.textContent = 'AED ' + (total / 1000000).toFixed(1) + 'M';
+
     // Build legend
     const legendEl = document.getElementById('supplierLegend');
-    legendEl.innerHTML = SUPPLIERS.map(s => {
+    legendEl.innerHTML = suppliers.map(s => {
         const pct = ((s.amount / total) * 100).toFixed(1);
         return '<div class="legend-item"><span class="legend-dot" style="background:' + s.color + '"></span>' + s.name + ' (' + pct + '%)</div>';
     }).join('');
@@ -1336,19 +1447,20 @@ function createSupplierChart() {
 // 6. Payment Terms Distribution Chart
 // ============================================================
 
-function createTermsChart() {
+function createTermsChart(months) {
     const ctx = document.getElementById('termsChart').getContext('2d');
     if (termsChartInstance) termsChartInstance.destroy();
 
-    const total = PAYMENT_TERMS.reduce((sum, t) => sum + t.count, 0);
+    const terms = getPaymentTermsData(months);
+    const total = terms.reduce((sum, t) => sum + t.count, 0);
 
     termsChartInstance = new Chart(ctx, {
         type: 'doughnut',
         data: {
-            labels: PAYMENT_TERMS.map(t => t.term),
+            labels: terms.map(t => t.term),
             datasets: [{
-                data: PAYMENT_TERMS.map(t => t.count),
-                backgroundColor: PAYMENT_TERMS.map(t => t.color),
+                data: terms.map(t => t.count),
+                backgroundColor: terms.map(t => t.color),
                 borderWidth: 0,
                 hoverOffset: 6
             }]
@@ -1376,9 +1488,13 @@ function createTermsChart() {
         }
     });
 
+    // Update center value
+    const centerEl = document.querySelector('#termsChart').closest('.donut-wrapper').querySelector('.donut-center-value');
+    if (centerEl) centerEl.textContent = total;
+
     // Build legend
     const legendEl = document.getElementById('termsLegend');
-    legendEl.innerHTML = PAYMENT_TERMS.map(t => {
+    legendEl.innerHTML = terms.map(t => {
         const pct = ((t.count / total) * 100).toFixed(1);
         return '<div class="legend-item"><span class="legend-dot" style="background:' + t.color + '"></span>' + t.term + ' (' + pct + '%)</div>';
     }).join('');
@@ -1403,8 +1519,8 @@ document.querySelectorAll('.time-selector').forEach(selector => {
             // Recreate chart
             if (chart === 'volume') createVolumeChart(period);
             else if (chart === 'utilisation') createUtilisationChart(period);
-            else if (chart === 'terms') createTermsChart();
-            else if (chart === 'supplier') createSupplierChart();
+            else if (chart === 'terms') createTermsChart(period);
+            else if (chart === 'supplier') createSupplierChart(period);
         });
     });
 });
@@ -1415,8 +1531,8 @@ document.querySelectorAll('.time-selector').forEach(selector => {
 
 createVolumeChart(6);
 createUtilisationChart(6);
-createSupplierChart();
-createTermsChart();
+createSupplierChart(24);
+createTermsChart(24);
 </script>
 
 </body>

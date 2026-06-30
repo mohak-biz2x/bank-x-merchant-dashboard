@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Insights & Analytics (No Activity) - Mal Bank</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -133,7 +132,7 @@
 
         /* Cards */
         .card {
-            background: #2D304A;
+            background: rgba(45, 48, 74, 0.5);
             border: 0.5px solid #373A56;
             border-radius: 12px;
             padding: 20px;
@@ -248,11 +247,8 @@
         .stat-value {
             font-size: 26px;
             font-weight: 700;
+            color: #ffffff;
         }
-
-        .stat-value.orange { color: #ffffff; }
-        .stat-value.green { color: #ffffff; }
-        .stat-value.blue { color: #ffffff; }
 
         .stat-icon {
             width: 32px;
@@ -362,12 +358,13 @@
             grid-template-columns: repeat(3, 1fr);
             gap: 12px;
             margin-top: 16px;
-            padding-top: 16px;
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
         }
 
         .module-stat {
             text-align: center;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            padding: 14px 8px;
         }
 
         .module-stat-value {
@@ -383,6 +380,59 @@
         .module-stat-label {
             font-size: 11px;
             color: #71717a;
+        }
+
+        /* Info icon tooltip */
+        .info-icon-wrapper {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            margin-left: 4px;
+            cursor: help;
+        }
+
+        .info-icon-img {
+            width: 12px;
+            height: 12px;
+            opacity: 0.5;
+            transition: opacity 0.2s;
+        }
+
+        .info-icon-wrapper:hover .info-icon-img {
+            opacity: 0.8;
+        }
+
+        .info-tooltip {
+            display: none;
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            width: 240px;
+            padding: 10px 12px;
+            background: #1e1f2e;
+            border: 1px solid #373A56;
+            border-radius: 8px;
+            font-size: 11px;
+            line-height: 1.5;
+            color: #d4d4d8;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            pointer-events: none;
+        }
+
+        .info-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: #373A56;
+        }
+
+        .info-icon-wrapper:hover .info-tooltip {
+            display: block;
         }
 
         /* Empty State Card */
@@ -423,23 +473,6 @@
             color: #a1a1aa;
             max-width: 400px;
             line-height: 1.5;
-        }
-
-        .empty-state-cta {
-            font-size: 13px;
-            padding: 10px 20px;
-            border-radius: 20px;
-            background: #ffffff;
-            border: none;
-            color: #0f1019;
-            cursor: pointer;
-            font-weight: 600;
-            margin-top: 8px;
-            transition: opacity 0.15s;
-        }
-
-        .empty-state-cta:hover {
-            opacity: 0.85;
         }
 
         /* Footer */
@@ -512,7 +545,7 @@
         </a>
         <a class="nav-tab" href="#">
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-            Payable Invoice
+            Payable Invoices
         </a>
     </nav>
 
@@ -524,7 +557,7 @@
             <div class="card credit-card">
                 <div class="credit-card-header">
                     <span class="credit-label">Available Credit</span>
-                    <span class="ref-badge">Reference - APP-2025-001</span>
+                    <span class="ref-badge">Reference - APP-2026-001</span>
                 </div>
                 <div class="credit-amount">AED 8,000,000</div>
                 <div class="progress-bar-container">
@@ -543,7 +576,7 @@
                     <div class="stat-card-inner">
                         <div class="stat-text">
                             <div class="stat-label">Pending Invoices</div>
-                            <div class="stat-value orange">0</div>
+                            <div class="stat-value">0</div>
                         </div>
                         <div class="stat-icon orange">
                             <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -554,7 +587,7 @@
                     <div class="stat-card-inner">
                         <div class="stat-text">
                             <div class="stat-label">Approved Invoices</div>
-                            <div class="stat-value green">0</div>
+                            <div class="stat-value">0</div>
                         </div>
                         <div class="stat-icon green">
                             <svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
@@ -565,7 +598,7 @@
                     <div class="stat-card-inner">
                         <div class="stat-text">
                             <div class="stat-label">Suppliers</div>
-                            <div class="stat-value blue">0</div>
+                            <div class="stat-value">0</div>
                         </div>
                         <div class="stat-icon blue">
                             <svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -594,11 +627,12 @@
                         </div>
                         <div class="module-stat">
                             <div class="module-stat-value green">0</div>
-                            <div class="module-stat-label">Active Relationships</div>
-                        </div>
-                        <div class="module-stat">
-                            <div class="module-stat-value">0</div>
-                            <div class="module-stat-label">Pending Approvals</div>
+                            <div class="module-stat-label">Active Relationships
+                                <span class="info-icon-wrapper">
+                                    <img src="../src/assets/info.png" alt="info" class="info-icon-img" />
+                                    <span class="info-tooltip">Active means the merchant has submitted invoices for this supplier within the last 6 months.</span>
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -635,14 +669,11 @@
             <div class="card empty-state-card">
                 <div class="empty-state-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                        <!-- Bar chart icon -->
                         <rect x="3" y="12" width="4" height="9" rx="1" fill="rgba(255,255,255,0.2)"/>
                         <rect x="10" y="7" width="4" height="14" rx="1" fill="rgba(255,255,255,0.3)"/>
                         <rect x="17" y="3" width="4" height="18" rx="1" fill="rgba(255,255,255,0.4)"/>
-                        <!-- Sparkle/arrow -->
                         <path d="M4 5l3-3 3 3" stroke="white" stroke-width="1.5" fill="none"/>
                         <line x1="7" y1="2" x2="7" y2="8" stroke="white" stroke-width="1.5"/>
-                        <!-- Small sparkle -->
                         <circle cx="19" cy="2" r="1" fill="white"/>
                     </svg>
                 </div>

@@ -1260,21 +1260,7 @@ function createUtilisationChart(months) {
                         }
                     }
                 },
-                legend: { display: true, position: 'bottom', labels: { boxWidth: 0, boxHeight: 0, usePointStyle: false, padding: 16, color: '#a1a1aa',
-                    generateLabels: function(chart) {
-                        return chart.data.datasets.map(function(ds, i) {
-                            return {
-                                text: ds.label,
-                                fillStyle: 'transparent',
-                                strokeStyle: ds.borderColor,
-                                lineWidth: 2,
-                                lineDash: ds.borderDash || [],
-                                hidden: false,
-                                datasetIndex: i
-                            };
-                        });
-                    }
-                } }
+                legend: { display: true, position: 'bottom', labels: { usePointStyle: true, pointStyle: 'line', boxWidth: 20, boxHeight: 2, padding: 16, color: '#a1a1aa', font: { size: 11 } } }
             }
         }
     });

@@ -901,6 +901,7 @@
                             <button class="time-btn" data-period="3">3M</button>
                             <button class="time-btn active" data-period="6">6M</button>
                             <button class="time-btn" data-period="12">12M</button>
+                            <button class="time-btn" data-period="24">All</button>
                         </div>
                     </div>
                     <div class="chart-container">
@@ -916,6 +917,7 @@
                             <button class="time-btn" data-period="3">3M</button>
                             <button class="time-btn active" data-period="6">6M</button>
                             <button class="time-btn" data-period="12">12M</button>
+                            <button class="time-btn" data-period="24">All</button>
                         </div>
                     </div>
                     <div class="chart-container">
@@ -928,6 +930,12 @@
                 <div class="card chart-card">
                     <div class="chart-card-header">
                         <span class="chart-title">Payment Terms Distribution</span>
+                        <div class="time-selector" data-chart="terms">
+                            <button class="time-btn" data-period="3">3M</button>
+                            <button class="time-btn" data-period="6">6M</button>
+                            <button class="time-btn" data-period="12">12M</button>
+                            <button class="time-btn active" data-period="24">All</button>
+                        </div>
                     </div>
                     <div class="donut-wrapper">
                         <canvas id="termsChart"></canvas>
@@ -944,6 +952,12 @@
                 <div class="card chart-card">
                     <div class="chart-card-header">
                         <span class="chart-title">Supplier Distribution</span>
+                        <div class="time-selector" data-chart="supplier">
+                            <button class="time-btn" data-period="3">3M</button>
+                            <button class="time-btn" data-period="6">6M</button>
+                            <button class="time-btn" data-period="12">12M</button>
+                            <button class="time-btn active" data-period="24">All</button>
+                        </div>
                     </div>
                     <div class="donut-wrapper">
                         <canvas id="supplierChart"></canvas>
@@ -1389,6 +1403,8 @@ document.querySelectorAll('.time-selector').forEach(selector => {
             // Recreate chart
             if (chart === 'volume') createVolumeChart(period);
             else if (chart === 'utilisation') createUtilisationChart(period);
+            else if (chart === 'terms') createTermsChart();
+            else if (chart === 'supplier') createSupplierChart();
         });
     });
 });

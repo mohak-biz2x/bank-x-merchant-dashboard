@@ -1,0 +1,1756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Insights - Mal Bank</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #0a0b14;
+            background-image: url('Background.png');
+            background-size: cover; background-position: center;
+            background-repeat: no-repeat; background-attachment: fixed;
+            color: #e4e4e7; min-height: 100vh;
+        }
+        .bg-page { min-height: 100vh; display: flex; flex-direction: column; }
+        .header {
+            background-color: transparent; border-bottom: 1px solid #1e1f2e;
+            padding: 14px 0; width: 75%; margin: 0 auto;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .header-logo { display: flex; align-items: center; gap: 10px; }
+        .header-logo img { height: 40px; }
+        .header-right { display: flex; align-items: center; gap: 12px; }
+        .user-name { font-size: 13px; color: #d4d4d8; font-weight: 500; }
+        .user-avatar {
+            width: 34px; height: 34px; border-radius: 50%;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 600; color: #fff;
+        }
+        /* Navigation */
+        .nav-bar {
+            width: 75%; margin: 0 auto; display: flex;
+            align-items: center; gap: 8px; padding: 12px 0;
+        }
+        .nav-tab {
+            padding: 8px 14px; font-size: 13px; font-weight: 500;
+            color: #a1a1aa; cursor: pointer; transition: all 0.2s;
+            text-decoration: none; display: flex; align-items: center;
+            gap: 6px; border-bottom: 2px solid transparent;
+        }
+        .nav-tab:hover { color: #e4e4e7; }
+        .nav-tab.active { color: #ffffff; border-bottom: 2px solid #ffffff; }
+        .nav-icon { width: 16px; height: 16px; opacity: 0.7; }
+        .nav-tab.active .nav-icon { opacity: 1; }
+
+        /* Layout */
+        .main-content { flex: 1; padding: 28px 0; }
+        .content-wrapper { width: 75%; margin: 0 auto; }
+
+        /* Card base */
+        .card {
+            background: rgba(45, 48, 74, 0.5); border: 0.5px solid #373A56;
+            border-radius: 12px; padding: 20px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .card:hover {
+            border-color: rgba(99, 102, 241, 0.4);
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.08);
+        }
+        /* Entity Header */
+        .entity-header {
+            margin-bottom: 20px; padding: 20px 24px;
+            display: flex; align-items: center; justify-content: space-between;
+            flex-wrap: wrap; gap: 12px;
+        }
+        .entity-left { display: flex; flex-direction: column; gap: 8px; }
+        .entity-name { font-size: 18px; font-weight: 700; color: #ffffff; }
+        .entity-meta {
+            display: flex; flex-wrap: wrap; gap: 16px;
+            font-size: 11px; color: #a1a1aa;
+        }
+        .entity-meta span { display: flex; align-items: center; gap: 4px; }
+        .entity-meta .label { color: #71717a; text-transform: uppercase; font-weight: 600; }
+        .entity-right { display: flex; align-items: center; gap: 16px; }
+        .sync-btn {
+            padding: 6px 14px; border-radius: 6px; font-size: 12px;
+            font-weight: 600; background: #6366f1; color: #fff;
+            border: none; cursor: pointer; transition: background 0.2s;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .sync-btn:hover { background: #4f46e5; }
+        .sync-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+        .sync-icon { width: 14px; height: 14px; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .sync-icon.spinning { animation: spin 0.8s linear infinite; }
+        .last-synced { font-size: 11px; color: #71717a; }
+
+        /* Alert Banner */
+        .alert-banner {
+            margin-bottom: 20px; padding: 12px 20px;
+            border-radius: 10px; display: flex; align-items: center; gap: 10px;
+            background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        .alert-badge {
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
+            padding: 3px 8px; border-radius: 4px;
+            background: #ef4444; color: #fff;
+        }
+        .alert-text { font-size: 13px; color: #fca5a5; }
+        /* KPI Metrics Row */
+        .kpi-grid {
+            display: grid; grid-template-columns: repeat(7, 1fr);
+            gap: 10px; margin-bottom: 24px;
+        }
+        .kpi-card {
+            background: rgba(45, 48, 74, 0.5); border: 0.5px solid #373A56;
+            border-radius: 10px; padding: 16px 14px;
+            display: flex; flex-direction: column; gap: 6px;
+            border-top: 3px solid transparent;
+        }
+        .kpi-card.green { border-top-color: #22c55e; }
+        .kpi-card.red { border-top-color: #ef4444; }
+        .kpi-card.blue { border-top-color: #3b82f6; }
+        .kpi-card.amber { border-top-color: #f59e0b; }
+        .kpi-card.purple { border-top-color: #8b5cf6; }
+        .kpi-card.indigo { border-top-color: #6366f1; }
+        .kpi-card.teal { border-top-color: #14b8a6; }
+        .kpi-label { font-size: 10px; color: #71717a; text-transform: uppercase; font-weight: 600; }
+        .kpi-value { font-size: 18px; font-weight: 700; color: #ffffff; }
+        .kpi-sub { font-size: 11px; color: #a1a1aa; }
+        .kpi-badge {
+            display: inline-block; font-size: 10px; font-weight: 600;
+            padding: 2px 8px; border-radius: 10px; width: fit-content;
+        }
+        .kpi-badge.green { background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.3); color: #4ade80; }
+        .kpi-badge.amber { background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); color: #fbbf24; }
+        .kpi-badge.red { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: #f87171; }
+        /* Section Title */
+        .section-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        .section-title { font-size: 16px; font-weight: 600; color: #ffffff; }
+        .section-subtitle { font-size: 12px; color: #71717a; margin-top: 2px; }
+
+        /* Product Cards Grid */
+        .product-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr);
+            gap: 16px; margin-bottom: 24px;
+        }
+        .product-card {
+            padding: 24px; border-left: 4px solid #6366f1;
+        }
+        .product-card.receivable { border-left-color: #22c55e; }
+        .product-card-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        .product-name { font-size: 15px; font-weight: 600; color: #ffffff; }
+        .product-apps-badge {
+            font-size: 11px; padding: 4px 10px; border-radius: 12px;
+            background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.3);
+            color: #a5b4fc; font-weight: 500;
+        }
+        .product-details-link {
+            font-size: 11px; color: #a1a1aa; cursor: pointer;
+            text-decoration: none; margin-left: 8px;
+        }
+        .product-details-link:hover { color: #e4e4e7; }
+        /* Product utilization bar */
+        .product-util-bar {
+            width: 100%; height: 4px; border-radius: 2px;
+            background: rgba(255,255,255,0.08); margin-bottom: 16px; overflow: hidden;
+        }
+        .product-util-fill { height: 100%; border-radius: 2px; }
+        .product-util-fill.low { background: #6366f1; }
+        .product-util-fill.medium { background: #f59e0b; }
+        .product-util-fill.high { background: #ef4444; }
+
+        /* Product metrics */
+        .product-metrics {
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: 12px; margin-bottom: 16px;
+        }
+        .product-metric-label { font-size: 11px; color: #71717a; margin-bottom: 4px; }
+        .product-metric-value { font-size: 16px; font-weight: 700; color: #ffffff; }
+        .product-metric-sub { font-size: 11px; color: #a1a1aa; margin-top: 2px; }
+
+        /* Product status pills */
+        .product-status-row { display: flex; flex-wrap: wrap; gap: 6px; }
+        .status-pill {
+            font-size: 10px; padding: 3px 10px; border-radius: 10px;
+            font-weight: 500;
+        }
+        .status-pill.active { background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.3); color: #4ade80; }
+        .status-pill.review { background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); color: #fbbf24; }
+        .status-pill.approved { background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.3); color: #a5b4fc; }
+        .status-pill.pending { background: rgba(161,161,170,0.15); border: 1px solid rgba(161,161,170,0.3); color: #a1a1aa; }
+        /* Exposure Mix Chart */
+        .donut-wrapper {
+            position: relative; display: flex; align-items: center;
+            justify-content: center; height: 200px;
+        }
+        .donut-center {
+            position: absolute; text-align: center; pointer-events: none;
+        }
+        .donut-center-value { font-size: 18px; font-weight: 700; color: #ffffff; }
+        .donut-center-label { font-size: 11px; color: #a1a1aa; }
+        .donut-legend {
+            display: flex; flex-direction: column; gap: 10px;
+            justify-content: center; padding: 20px;
+        }
+        .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #d4d4d8; }
+        .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .legend-pct { margin-left: auto; font-weight: 600; color: #a1a1aa; }
+
+        /* Tabs Menu */
+        .tabs-container {
+            margin-top: 32px; margin-bottom: 24px;
+            border-bottom: 1px solid #373A56;
+        }
+        .tabs-menu {
+            display: flex; gap: 0; flex-wrap: wrap;
+        }
+        .tab-btn {
+            padding: 10px 16px; font-size: 12px; font-weight: 500;
+            color: #a1a1aa; background: transparent; border: none;
+            cursor: pointer; white-space: nowrap; transition: all 0.2s;
+            border-bottom: 2px solid transparent; position: relative;
+        }
+        .tab-btn:hover { color: #e4e4e7; }
+        .tab-btn.active {
+            color: #ffffff; background: rgba(99,102,241,0.12);
+            border-bottom: 2px solid #6366f1; border-radius: 6px 6px 0 0;
+            font-weight: 600;
+        }
+        .tab-content { display: none; padding: 24px 0; }
+        .tab-content.active { display: block; }
+        .tab-placeholder {
+            text-align: center; padding: 40px 20px;
+            color: #71717a; font-size: 13px;
+        }
+
+        /* Repayments Tab Styles */
+        .product-pill {
+            padding: 6px 14px; font-size: 12px; font-weight: 500;
+            border-radius: 16px; border: 1px solid #373A56;
+            background: transparent; color: #a1a1aa; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .product-pill:hover { border-color: #6366f1; color: #e4e4e7; }
+        .product-pill.active {
+            background: #6366f1; color: #ffffff; border-color: #6366f1;
+        }
+        .product-view { }
+
+        .repay-kpi-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px;
+        }
+        .repay-kpi {
+            background: rgba(45,48,74,0.4); border: 1px solid #373A56;
+            border-radius: 10px; padding: 16px;
+        }
+        .repay-kpi-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+        .repay-kpi-label { font-size: 11px; color: #71717a; }
+        .repay-kpi-value { font-size: 24px; font-weight: 700; color: #ffffff; }
+        .repay-kpi-sub { font-size: 11px; color: #a1a1aa; margin-top: 4px; }
+
+        /* Overdue Aging Table */
+        .aging-table { width: 100%; border-collapse: collapse; }
+        .aging-table th {
+            text-align: left; font-size: 10px; color: #71717a; text-transform: uppercase;
+            font-weight: 600; padding: 10px 12px; border-bottom: 1px solid #373A56;
+        }
+        .aging-table td {
+            font-size: 13px; color: #d4d4d8; padding: 10px 12px;
+            border-bottom: 1px solid rgba(55,58,86,0.4);
+        }
+        .aging-table tr:last-child td { border-bottom: none; font-weight: 600; color: #ffffff; }
+        .aging-table .highlight-row td { background: rgba(99,102,241,0.08); color: #a5b4fc; font-weight: 600; }
+
+        /* Product Repayment Section */
+        .product-repay-section { margin-bottom: 24px; }
+        .product-repay-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px 20px; border-bottom: 1px solid #373A56;
+        }
+        .product-repay-title { font-size: 15px; font-weight: 600; color: #ffffff; }
+        .product-repay-meta { font-size: 11px; color: #71717a; }
+        .product-repay-kpis {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 16px 20px;
+            border-bottom: 1px solid rgba(55,58,86,0.4);
+        }
+        .pr-kpi-label { font-size: 10px; color: #71717a; }
+        .pr-kpi-value { font-size: 18px; font-weight: 700; color: #ffffff; }
+
+        /* Application Rows */
+        .app-row {
+            padding: 12px 20px; border-bottom: 1px solid rgba(55,58,86,0.3);
+            display: flex; align-items: center; justify-content: space-between;
+            cursor: pointer; transition: background 0.15s;
+        }
+        .app-row:hover { background: rgba(99,102,241,0.05); }
+        .app-row-left { display: flex; align-items: center; gap: 10px; }
+        .app-row-toggle { font-size: 12px; color: #71717a; transition: transform 0.2s; }
+        .app-row-toggle.open { transform: rotate(90deg); }
+        .app-row-id { font-size: 13px; font-weight: 600; color: #ffffff; }
+        .app-row-status { font-size: 11px; color: #a1a1aa; }
+        .app-row-right { display: flex; align-items: center; gap: 8px; }
+        .app-conduct-pill {
+            font-size: 10px; padding: 3px 10px; border-radius: 10px; font-weight: 500;
+        }
+        .app-conduct-pill.good { background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.3); color: #4ade80; }
+        .app-conduct-pill.missed { background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); color: #fbbf24; }
+
+        /* Expanded Application */
+        .app-expanded { display: none; padding: 16px 20px 20px 40px; background: rgba(30,31,46,0.4); }
+        .app-expanded.open { display: block; }
+        .app-exp-kpis {
+            display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 16px;
+        }
+        .app-exp-kpi {
+            background: rgba(45,48,74,0.5); border: 1px solid #373A56;
+            border-radius: 8px; padding: 10px;
+        }
+        .app-exp-kpi-label { font-size: 9px; color: #71717a; text-transform: uppercase; }
+        .app-exp-kpi-value { font-size: 14px; font-weight: 700; color: #ffffff; margin-top: 2px; }
+
+        /* Schedule Table */
+        .schedule-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .schedule-table th {
+            text-align: left; font-size: 10px; color: #71717a; text-transform: uppercase;
+            font-weight: 600; padding: 8px 10px; border-bottom: 1px solid #373A56;
+        }
+        .schedule-table td {
+            color: #d4d4d8; padding: 8px 10px; border-bottom: 1px solid rgba(55,58,86,0.3);
+        }
+        .sched-status { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 8px; }
+        .sched-status.paid { background: rgba(34,197,94,0.15); color: #4ade80; }
+        .sched-status.overdue { background: rgba(239,68,68,0.15); color: #f87171; }
+        .sched-status.upcoming { background: rgba(99,102,241,0.15); color: #a5b4fc; }
+
+        /* Missed EMIs & Tenure Tables */
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th {
+            text-align: left; font-size: 10px; color: #71717a; text-transform: uppercase;
+            font-weight: 600; padding: 10px 12px; border-bottom: 1px solid #373A56;
+        }
+        .data-table td {
+            font-size: 12px; color: #d4d4d8; padding: 10px 12px;
+            border-bottom: 1px solid rgba(55,58,86,0.3);
+        }
+        .progress-mini { width: 100%; height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; }
+        .progress-mini-fill { height: 100%; background: #22c55e; border-radius: 2px; }
+
+        /* Decision Overview Tab Styles */
+        .do-section { margin-bottom: 28px; }
+        .do-section-header {
+            display: flex; align-items: center; gap: 8px;
+            margin-bottom: 14px; padding-left: 12px;
+            border-left: 3px solid #6366f1;
+        }
+        .do-section-title { font-size: 15px; font-weight: 600; color: #ffffff; }
+        .do-section-subtitle { font-size: 11px; color: #71717a; }
+
+        /* Entity Profile */
+        .entity-profile-grid {
+            display: grid; grid-template-columns: repeat(5, 1fr);
+            gap: 16px 24px; padding: 20px;
+        }
+        .ep-field-label { font-size: 10px; color: #71717a; text-transform: uppercase; font-weight: 600; margin-bottom: 4px; }
+        .ep-field-value { font-size: 13px; color: #ffffff; font-weight: 500; }
+        .ep-full-row { grid-column: 1 / -1; }
+
+        /* Decision Cockpit */
+        .cockpit-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px;
+        }
+        .cockpit-card {
+            border-radius: 10px; padding: 16px;
+            background: rgba(45, 48, 74, 0.4); border: 1px solid #373A56;
+        }
+        .cockpit-card.border-green { border-left: 3px solid #22c55e; }
+        .cockpit-card.border-amber { border-left: 3px solid #f59e0b; }
+        .cockpit-card.border-red { border-left: 3px solid #ef4444; }
+        .cockpit-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+        .cockpit-card-title { font-size: 14px; font-weight: 600; color: #ffffff; }
+        .cockpit-card-desc { font-size: 12px; color: #a1a1aa; margin-bottom: 10px; line-height: 1.4; }
+        .cockpit-card-list { list-style: none; padding: 0; }
+        .cockpit-card-list li { font-size: 11px; color: #d4d4d8; padding: 2px 0; padding-left: 12px; position: relative; }
+        .cockpit-card-list li::before { content: '•'; position: absolute; left: 0; color: #71717a; }
+
+        .status-badge {
+            font-size: 9px; font-weight: 700; text-transform: uppercase;
+            padding: 3px 8px; border-radius: 4px; letter-spacing: 0.5px;
+        }
+        .status-badge.clear { background: rgba(34,197,94,0.15); color: #4ade80; }
+        .status-badge.review { background: rgba(245,158,11,0.15); color: #fbbf24; }
+        .status-badge.alert { background: rgba(239,68,68,0.15); color: #f87171; }
+        .status-badge.critical { background: #ef4444; color: #fff; }
+
+        /* Decision Questions */
+        .decision-questions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .dq-item { display: flex; align-items: flex-start; gap: 10px; padding: 12px; border-radius: 8px; background: rgba(45,48,74,0.3); }
+        .dq-text { flex: 1; }
+        .dq-question { font-size: 12px; font-weight: 600; color: #ffffff; margin-bottom: 4px; }
+        .dq-answer { font-size: 11px; color: #a1a1aa; line-height: 1.4; }
+
+        /* Red Flags */
+        .red-flag-item {
+            padding: 14px 20px; border-bottom: 1px solid rgba(55,58,86,0.5);
+            display: flex; align-items: flex-start; gap: 10px;
+        }
+        .red-flag-item:last-child { border-bottom: none; }
+        .red-flag-title { font-size: 13px; font-weight: 600; color: #fca5a5; }
+        .red-flag-desc { font-size: 12px; color: #a1a1aa; margin-top: 2px; }
+
+        /* Relationship Metrics */
+        .rm-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+        }
+        .rm-card {
+            background: rgba(45,48,74,0.4); border: 1px solid #373A56;
+            border-radius: 10px; padding: 16px;
+        }
+        .rm-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+        .rm-label { font-size: 11px; color: #71717a; }
+        .rm-value { font-size: 22px; font-weight: 700; color: #ffffff; }
+        .rm-sub { font-size: 11px; color: #a1a1aa; margin-top: 4px; }
+
+        /* Footer */
+        .footer {
+            padding: 16px 0; width: 75%; margin: 0 auto;
+            display: flex; align-items: center; justify-content: space-between;
+            border-top: 1px solid #1e1f2e;
+        }
+        .footer-links { display: flex; gap: 16px; }
+        .footer-links a, .footer p { font-size: 12px; color: #52525b; text-decoration: none; }
+        .footer-links a:hover { color: #6366f1; text-decoration: underline; }
+
+        /* Responsive */
+        @media (max-width: 1200px) { .kpi-grid { grid-template-columns: repeat(4, 1fr); } }
+        @media (max-width: 1024px) { .product-grid, .exposure-section { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) {
+            .header, .nav-bar, .content-wrapper, .footer { width: 90%; }
+            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+<div class="bg-page">
+    <!-- Header -->
+    <header class="header">
+        <div class="header-logo">
+            <img src="https://raw.githubusercontent.com/mohak-biz2x/bank-x-merchant-dashboard/main/src/assets/Mal%20logo%20Dark.png" alt="Mal Business">
+        </div>
+        <div class="header-right">
+            <span class="user-name">Fatima Wadih</span>
+            <div class="user-avatar">FW</div>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="nav-bar">
+        <a class="nav-tab" href="#">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            Dashboard
+        </a>
+        <a class="nav-tab" href="#">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            Suppliers
+        </a>
+        <a class="nav-tab" href="#">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            Payable Invoice
+        </a>
+        <a class="nav-tab active" href="insights.html">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 5-5"/></svg>
+            Insights
+        </a>
+    </nav>
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="content-wrapper">
+
+            <!-- Entity Header -->
+            <div class="card entity-header">
+                <div class="entity-left">
+                    <div class="entity-name">AL WADIH TRADING LLC</div>
+                    <div class="entity-meta">
+                        <span><span class="label">User ID:</span> 8f2a4c91-b7d3-4e6f-a012-9c8d7e5f3b1a</span>
+                        <span><span class="label">Trade License:</span> CN-1087452</span>
+                        <span><span class="label">Industry:</span> Construction & Building Materials</span>
+                    </div>
+                </div>
+                <div class="entity-right">
+                    <span class="last-synced" id="last-synced-time">Last Synced: 02-07-2026 03:45 PM</span>
+                    <button class="sync-btn" id="sync-btn" onclick="handleSync()">
+                        <svg class="sync-icon" id="sync-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                        Sync
+                    </button>
+                </div>
+            </div>
+
+            <!-- Alert Banner -->
+            <div class="alert-banner">
+                <span class="alert-badge">Critical</span>
+                <span class="alert-text"><strong>Overdue repayments</strong> — 3 installment(s) overdue totalling AED 287,450.00</span>
+            </div>
+            <!-- KPI Metrics Row -->
+            <div class="kpi-grid">
+                <!-- Total Limit -->
+                <div class="kpi-card blue">
+                    <div class="kpi-label">Total Limit</div>
+                    <div class="kpi-value">AED 8,000,000</div>
+                    <div class="kpi-sub">2 products · 5 applications</div>
+                </div>
+                <!-- Outstanding -->
+                <div class="kpi-card amber">
+                    <div class="kpi-label">Outstanding</div>
+                    <div class="kpi-value">AED 3,420,600</div>
+                    <div class="kpi-sub">42.8% utilized</div>
+                </div>
+                <!-- Available Limit -->
+                <div class="kpi-card green">
+                    <div class="kpi-label">Available Limit</div>
+                    <div class="kpi-value">AED 4,579,400</div>
+                    <div class="kpi-sub">57.2% free</div>
+                </div>
+                <!-- On-Time Repayment -->
+                <div class="kpi-card red">
+                    <div class="kpi-label">On-Time Repayment</div>
+                    <div class="kpi-value">91.2%</div>
+                    <div class="kpi-sub">3 missed · max 12d late</div>
+                </div>
+                <!-- KYC Status -->
+                <div class="kpi-card teal">
+                    <div class="kpi-label">KYC Status</div>
+                    <div class="kpi-value">CLEAR</div>
+                    <div class="kpi-badge green">Verified</div>
+                </div>
+                <!-- Growth vs Stable -->
+                <div class="kpi-card purple">
+                    <div class="kpi-label">Growth vs Stable</div>
+                    <div class="kpi-value">STABLE</div>
+                    <div class="kpi-sub">Margins within expected band</div>
+                </div>
+                <!-- Counterparties -->
+                <div class="kpi-card indigo">
+                    <div class="kpi-label">Counterparties</div>
+                    <div class="kpi-value">14</div>
+                    <div class="kpi-sub">8 suppliers · 6 buyers</div>
+                </div>
+            </div>
+            <!-- All Products At a Glance -->
+            <div class="section-header">
+                <div>
+                    <div class="section-title">All Products · At a Glance</div>
+                    <div class="section-subtitle">Combined view per product across all applications — click Details to drill into each application</div>
+                </div>
+            </div>
+
+            <div class="product-grid">
+                <!-- Payable Invoice Financing -->
+                <div class="card product-card">
+                    <div class="product-card-header">
+                        <span class="product-name">Payable Invoice Financing</span>
+                        <span>
+                            <span class="product-apps-badge">3 applications</span>
+                            <a class="product-details-link" href="#" onclick="goToProducts('payable'); return false;">Details →</a>
+                        </span>
+                    </div>
+                    <div class="product-util-bar">
+                        <div class="product-util-fill low" style="width: 38%"></div>
+                    </div>
+                    <div class="product-metrics">
+                        <div>
+                            <div class="product-metric-label">Combined Sanctioned</div>
+                            <div class="product-metric-value">AED 5,000,000</div>
+                        </div>
+                        <div>
+                            <div class="product-metric-label">Combined Utilized</div>
+                            <div class="product-metric-value">AED 1,920,600</div>
+                        </div>
+                        <div>
+                            <div class="product-metric-label">Available</div>
+                            <div class="product-metric-value">AED 3,079,400</div>
+                        </div>
+                    </div>
+                    <div class="product-metrics" style="margin-bottom:12px">
+                        <div>
+                            <div class="product-metric-label">Utilization</div>
+                            <div class="product-metric-value">38.4%</div>
+                        </div>
+                        <div>
+                            <div class="product-metric-label">Counterparties</div>
+                            <div class="product-metric-value">8</div>
+                        </div>
+                    </div>
+                    <div class="product-status-row">
+                        <span class="status-pill active">2 Active</span>
+                        <span class="status-pill review">1 Under Review</span>
+                    </div>
+                </div>
+                <!-- Receivable Invoice Financing -->
+                <div class="card product-card receivable">
+                    <div class="product-card-header">
+                        <span class="product-name">Receivable Invoice Financing</span>
+                        <span>
+                            <span class="product-apps-badge">2 applications</span>
+                            <a class="product-details-link" href="#" onclick="goToProducts('receivable'); return false;">Details →</a>
+                        </span>
+                    </div>
+                    <div class="product-util-bar">
+                        <div class="product-util-fill medium" style="width: 50%"></div>
+                    </div>
+                    <div class="product-metrics">
+                        <div>
+                            <div class="product-metric-label">Combined Sanctioned</div>
+                            <div class="product-metric-value">AED 3,000,000</div>
+                        </div>
+                        <div>
+                            <div class="product-metric-label">Combined Utilized</div>
+                            <div class="product-metric-value">AED 1,500,000</div>
+                        </div>
+                        <div>
+                            <div class="product-metric-label">Available</div>
+                            <div class="product-metric-value">AED 1,500,000</div>
+                        </div>
+                    </div>
+                    <div class="product-metrics" style="margin-bottom:12px">
+                        <div>
+                            <div class="product-metric-label">Utilization</div>
+                            <div class="product-metric-value">50.0%</div>
+                        </div>
+                        <div>
+                            <div class="product-metric-label">Counterparties</div>
+                            <div class="product-metric-value">6</div>
+                        </div>
+                    </div>
+                    <div class="product-status-row">
+                        <span class="status-pill active">1 Active</span>
+                        <span class="status-pill approved">1 Approved</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Product Exposure Mix -->
+            <div class="section-header">
+                <div>
+                    <div class="section-title">Product Exposure Mix</div>
+                    <div class="section-subtitle">Outstanding by product</div>
+                </div>
+            </div>
+
+            <div class="card" style="display:flex; align-items:center; gap: 24px; padding: 24px; width: 50%;">
+                <div style="position:relative; width: 160px; height: 160px; flex-shrink:0;">
+                    <canvas id="exposureChart"></canvas>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:10px;">
+                    <div class="legend-item">
+                        <span class="legend-dot" style="background:#6366f1"></span>
+                        <span>Payable Invoice Financing</span>
+                        <span class="legend-pct">56.1%</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-dot" style="background:#22c55e"></span>
+                        <span>Receivable Invoice Financing</span>
+                        <span class="legend-pct">43.9%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabs Menu -->
+            <div class="tabs-container">
+                <div class="tabs-menu">
+                    <button class="tab-btn active" data-tab="decision-overview">Decision Overview</button>
+                    <button class="tab-btn" data-tab="products">Products</button>
+                    <button class="tab-btn" data-tab="repayments">Repayments &amp; Disbursements</button>
+                    <button class="tab-btn" data-tab="counterparties">Counterparties</button>
+                    <button class="tab-btn" data-tab="conduct">Conduct</button>
+                    <button class="tab-btn" data-tab="transactions">Transactions</button>
+                </div>
+            </div>
+
+            <!-- Tab Contents -->
+            <div class="tab-content active" id="tab-decision-overview">
+
+                <!-- Entity Profile -->
+                <div class="do-section">
+                    <div class="do-section-header">
+                        <div>
+                            <div class="do-section-title">Entity Profile</div>
+                            <div class="do-section-subtitle">Statutory identity &amp; relationship</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="entity-profile-grid">
+                            <div><div class="ep-field-label">Legal Name</div><div class="ep-field-value">AL WADIH TRADING LLC</div></div>
+                            <div><div class="ep-field-label">Entity Type</div><div class="ep-field-value">SME - DOMESTIC</div></div>
+                            <div><div class="ep-field-label">Incorporated</div><div class="ep-field-value">2018-03-15</div></div>
+                            <div><div class="ep-field-label">Trade License Number</div><div class="ep-field-value">CN-1087452</div></div>
+                            <div><div class="ep-field-label">Industry</div><div class="ep-field-value">CONSTRUCTION &amp; BUILDING MATERIALS</div></div>
+                            <div><div class="ep-field-label">Years in Industry</div><div class="ep-field-value">8 yrs</div></div>
+                            <div><div class="ep-field-label">Emirate</div><div class="ep-field-value">DUBAI</div></div>
+                            <div class="ep-full-row"><div class="ep-field-label">Registered Address</div><div class="ep-field-value">Office 412, Al Quoz Industrial Area 3, Dubai, UAE, PO Box 28134</div></div>
+                            <div><div class="ep-field-label">Relationship Tenure</div><div class="ep-field-value">14 months</div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Decision Cockpit -->
+                <div class="do-section">
+                    <div class="do-section-header">
+                        <div>
+                            <div class="do-section-title">Decision Cockpit</div>
+                            <div class="do-section-subtitle">Six-lens framework · monitoring</div>
+                        </div>
+                    </div>
+
+                    <!-- Overall Readiness -->
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
+                        <span style="font-size:14px; font-weight:600; color:#ffffff;">Overall readiness</span>
+                        <span class="status-badge alert">ALERT</span>
+                    </div>
+
+                    <!-- Six Lens Cards -->
+                    <div class="cockpit-grid">
+                        <div class="cockpit-card border-amber">
+                            <div class="cockpit-card-header">
+                                <span class="cockpit-card-title">Need</span>
+                                <span class="status-badge review">REVIEW</span>
+                            </div>
+                            <div class="cockpit-card-desc">Low 42.8% utilisation against sanctioned limits — facility may be oversized.</div>
+                            <ul class="cockpit-card-list">
+                                <li>Sanctioned AED 8,000,000</li>
+                                <li>Outstanding AED 3,420,600</li>
+                                <li>5 application(s) across 2 product line(s)</li>
+                            </ul>
+                        </div>
+                        <div class="cockpit-card border-amber">
+                            <div class="cockpit-card-header">
+                                <span class="cockpit-card-title">Capacity</span>
+                                <span class="status-badge review">REVIEW</span>
+                            </div>
+                            <div class="cockpit-card-desc">Turnover AED 12,000,000 reported; ratios incomplete — corroborate DSCR before increase.</div>
+                            <ul class="cockpit-card-list">
+                                <li>Turnover AED 12,000,000</li>
+                                <li>EBITDA margin 3.2%</li>
+                                <li>Net worth AED 4,500,000</li>
+                            </ul>
+                        </div>
+                        <div class="cockpit-card border-green">
+                            <div class="cockpit-card-header">
+                                <span class="cockpit-card-title">Control</span>
+                                <span class="status-badge clear">CLEAR</span>
+                            </div>
+                            <div class="cockpit-card-desc">Documentation complete; disbursements routed at facility level.</div>
+                            <ul class="cockpit-card-list">
+                                <li>Docs 100% complete</li>
+                            </ul>
+                        </div>
+                        <div class="cockpit-card border-red">
+                            <div class="cockpit-card-header">
+                                <span class="cockpit-card-title">Conduct</span>
+                                <span class="status-badge alert">ALERT</span>
+                            </div>
+                            <div class="cockpit-card-desc">3 overdue installment(s); AED 287,450 outstanding.</div>
+                            <ul class="cockpit-card-list">
+                                <li>33 on-time / 36 due</li>
+                                <li>3 late, max 12d overdue</li>
+                                <li>Timely repayment 91.2%</li>
+                            </ul>
+                        </div>
+                        <div class="cockpit-card border-green">
+                            <div class="cockpit-card-header">
+                                <span class="cockpit-card-title">Concentration</span>
+                                <span class="status-badge clear">CLEAR</span>
+                            </div>
+                            <div class="cockpit-card-desc">Exposure spread across 14 counterparties — diversified.</div>
+                            <ul class="cockpit-card-list">
+                                <li>14 counterparties</li>
+                                <li>2 product line(s)</li>
+                            </ul>
+                        </div>
+                        <div class="cockpit-card border-green">
+                            <div class="cockpit-card-header">
+                                <span class="cockpit-card-title">Compliance</span>
+                                <span class="status-badge clear">CLEAR</span>
+                            </div>
+                            <div class="cockpit-card-desc">KYC/AML and sanctions screening clean.</div>
+                            <ul class="cockpit-card-list">
+                                <li>KYC green</li>
+                                <li>AML green</li>
+                                <li>No PEP flag</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Decision Questions -->
+                    <div class="decision-questions">
+                        <div class="dq-item">
+                            <span class="status-badge review">REVIEW</span>
+                            <div class="dq-text">
+                                <div class="dq-question">Is there a genuine, sized business need for the facility?</div>
+                                <div class="dq-answer">Low 42.8% utilisation against sanctioned limits — facility may be oversized.</div>
+                            </div>
+                        </div>
+                        <div class="dq-item">
+                            <span class="status-badge review">REVIEW</span>
+                            <div class="dq-text">
+                                <div class="dq-question">Can the borrower service the obligation from cash flows?</div>
+                                <div class="dq-answer">Turnover AED 12,000,000 reported; ratios incomplete — corroborate DSCR before increase.</div>
+                            </div>
+                        </div>
+                        <div class="dq-item">
+                            <span class="status-badge clear">CLEAR</span>
+                            <div class="dq-text">
+                                <div class="dq-question">Are disbursements controlled and documentation complete?</div>
+                                <div class="dq-answer">Documentation complete; disbursements routed at facility level.</div>
+                            </div>
+                        </div>
+                        <div class="dq-item">
+                            <span class="status-badge alert">ALERT</span>
+                            <div class="dq-text">
+                                <div class="dq-question">Has repayment and account conduct been satisfactory?</div>
+                                <div class="dq-answer">3 overdue installment(s); AED 287,450 outstanding.</div>
+                            </div>
+                        </div>
+                        <div class="dq-item">
+                            <span class="status-badge clear">CLEAR</span>
+                            <div class="dq-text">
+                                <div class="dq-question">Is exposure concentration within appetite?</div>
+                                <div class="dq-answer">Exposure spread across 14 counterparties — diversified.</div>
+                            </div>
+                        </div>
+                        <div class="dq-item">
+                            <span class="status-badge clear">CLEAR</span>
+                            <div class="dq-text">
+                                <div class="dq-question">Is KYC/AML and regulatory compliance clean?</div>
+                                <div class="dq-answer">KYC/AML and sanctions screening clean.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Red Flags -->
+                <div class="do-section">
+                    <div class="do-section-header">
+                        <div>
+                            <div class="do-section-title">Red Flags</div>
+                        </div>
+                    </div>
+                    <div class="card" style="padding:0;">
+                        <div class="red-flag-item">
+                            <span class="status-badge critical">CRITICAL</span>
+                            <div>
+                                <div class="red-flag-title">Overdue repayments</div>
+                                <div class="red-flag-desc">3 installment(s) overdue totalling AED 287,450.00</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Relationship Metrics -->
+                <div class="do-section">
+                    <div class="do-section-header">
+                        <div>
+                            <div class="do-section-title">Relationship Metrics</div>
+                            <div class="do-section-subtitle">Portfolio analytics derived from the loan management system</div>
+                        </div>
+                    </div>
+                    <div class="rm-grid">
+                        <div class="rm-card">
+                            <div class="rm-label">Program Utilization</div>
+                            <div class="rm-value">42.8%</div>
+                            <div style="margin-top:8px; width:100%; height:4px; background:rgba(255,255,255,0.08); border-radius:2px; overflow:hidden;">
+                                <div style="width:42.8%; height:100%; background:#6366f1; border-radius:2px;"></div>
+                            </div>
+                        </div>
+                        <div class="rm-card">
+                            <div class="rm-card-header">
+                                <span class="rm-label">Collection Rate</span>
+                                <span class="status-badge alert">ALERT</span>
+                            </div>
+                            <div class="rm-value">88.9%</div>
+                        </div>
+                        <div class="rm-card">
+                            <div class="rm-card-header">
+                                <span class="rm-label">Avg Processing Time</span>
+                            </div>
+                            <div class="rm-value">2 days</div>
+                        </div>
+                        <div class="rm-card">
+                            <div class="rm-label">Avg Tenor</div>
+                            <div class="rm-value">4.5 mo</div>
+                        </div>
+                        <div class="rm-card">
+                            <div class="rm-label">Financed This Month</div>
+                            <div class="rm-value">AED 320,000</div>
+                            <div class="rm-sub">4 invoice(s)</div>
+                        </div>
+                        <div class="rm-card">
+                            <div class="rm-card-header">
+                                <span class="rm-label">Top-5 Concentration</span>
+                                <span class="status-badge alert">ALERT</span>
+                            </div>
+                            <div class="rm-value">78.3%</div>
+                            <div class="rm-sub">5 counterparties</div>
+                        </div>
+                        <div class="rm-card">
+                            <div class="rm-card-header">
+                                <span class="rm-label">Overdue Instalments</span>
+                                <span class="status-badge alert">ALERT</span>
+                            </div>
+                            <div class="rm-value">3</div>
+                            <div class="rm-sub">AED 287,450 overdue</div>
+                        </div>
+                        <div class="rm-card">
+                            <div class="rm-label">Invoices Processed</div>
+                            <div class="rm-value">82</div>
+                            <div class="rm-sub">AED 4,120,000 total value</div>
+                        </div>
+                        <div class="rm-card">
+                            <div class="rm-label">Eligible Invoices Financed</div>
+                            <div class="rm-value">67.1%</div>
+                            <div class="rm-sub">55 of 82 financed</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="tab-content" id="tab-products">
+
+                <!-- Product Sub-tabs -->
+                <div style="display:flex; gap:8px; margin-bottom:20px;">
+                    <button class="product-pill active" data-product="payable" onclick="switchProduct('payable')">Payable Invoice Financing · 3</button>
+                    <button class="product-pill" data-product="receivable" onclick="switchProduct('receivable')">Receivable Invoice Financing · 2</button>
+                </div>
+
+                <!-- Payable Invoice Financing - Combined -->
+                <div class="product-view" id="product-payable">
+                    <div class="do-section">
+                        <div class="do-section-header">
+                            <div>
+                                <div class="do-section-title">Payable Invoice Financing · Combined</div>
+                                <div class="do-section-subtitle">3 applications · direct-borrower</div>
+                            </div>
+                        </div>
+                        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:20px;">
+                            <div class="repay-kpi"><div class="repay-kpi-label">Combined Sanctioned</div><div class="repay-kpi-value">AED 5,000,000</div></div>
+                            <div class="repay-kpi"><div class="repay-kpi-label">Combined Utilized</div><div class="repay-kpi-value">AED 1,920,600</div></div>
+                            <div class="repay-kpi"><div class="repay-kpi-label">Available</div><div class="repay-kpi-value">AED 3,079,400</div></div>
+                        </div>
+                    </div>
+
+                    <!-- Applications Table -->
+                    <div class="do-section">
+                        <div class="do-section-header">
+                            <div>
+                                <div class="do-section-title">Applications</div>
+                                <div class="do-section-subtitle">Select an application to see its utilization and pipeline</div>
+                            </div>
+                        </div>
+                        <div class="card" style="padding:0; overflow:hidden;">
+                            <table class="data-table">
+                                <thead><tr><th>Application ID</th><th>Status</th><th>Applied</th><th>Sanctioned</th><th>Utilized</th><th>Util %</th><th>Links</th></tr></thead>
+                                <tbody>
+                                    <tr style="cursor:pointer" onclick="toggleApp('prod-pif-1')"><td>APP-2025-001</td><td><span class="status-badge alert" style="font-size:9px">ACTIVE</span></td><td>2025-04-12</td><td>AED 2,500,000</td><td>AED 1,420,600</td><td>56.8%</td><td><span style="color:#6366f1;font-size:11px;cursor:pointer">View</span></td></tr>
+                                    <tr style="cursor:pointer" onclick="toggleApp('prod-pif-2')"><td>APP-2025-004</td><td><span class="status-badge" style="font-size:9px;background:rgba(34,197,94,0.15);color:#4ade80">ACTIVE</span></td><td>2025-06-20</td><td>AED 1,500,000</td><td>AED 500,000</td><td>33.3%</td><td><span style="color:#6366f1;font-size:11px;cursor:pointer">View</span></td></tr>
+                                    <tr style="cursor:pointer" onclick="toggleApp('prod-pif-3')"><td>APP-2025-007</td><td><span class="status-badge" style="font-size:9px;background:rgba(99,102,241,0.15);color:#a5b4fc">APPROVED</span></td><td>2026-01-15</td><td>AED 1,000,000</td><td>AED 0</td><td>0.0%</td><td><span style="color:#6366f1;font-size:11px;cursor:pointer">View</span></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Expanded Application Detail (APP-2025-001) -->
+                    <div class="app-expanded" id="prod-pif-1">
+                        <div class="do-section">
+                            <div class="do-section-header">
+                                <div>
+                                    <div class="do-section-title">Application APP-2025-001</div>
+                                    <div class="do-section-subtitle">Payable Invoice Financing · Active</div>
+                                </div>
+                            </div>
+                            <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:20px;">
+                                <div class="repay-kpi"><div class="repay-kpi-label">Sanctioned</div><div class="repay-kpi-value">AED 2,500,000</div></div>
+                                <div class="repay-kpi"><div class="repay-kpi-label">Utilized</div><div class="repay-kpi-value">AED 1,420,600</div></div>
+                                <div class="repay-kpi"><div class="repay-kpi-label">Available</div><div class="repay-kpi-value">AED 1,079,400</div></div>
+                            </div>
+                        </div>
+
+                        <!-- Deviations -->
+                        <div class="do-section">
+                            <div class="do-section-header"><div><div class="do-section-title">Deviations from CAM</div></div></div>
+                            <div class="card">
+                                <ul class="cockpit-card-list">
+                                    <li>2 overdue installment(s)</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Charges & Dues -->
+                        <div class="do-section">
+                            <div class="do-section-header"><div><div class="do-section-title">Charges &amp; Dues</div><div class="do-section-subtitle">Outstanding fees and charges raised on this application</div></div></div>
+                            <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:12px;">
+                                <div class="repay-kpi"><div class="repay-kpi-label">Total Charged</div><div class="repay-kpi-value">AED 156,200</div></div>
+                                <div class="repay-kpi"><div class="repay-kpi-header"><span class="repay-kpi-label">Total Outstanding</span><span class="status-badge review">REVIEW</span></div><div class="repay-kpi-value">AED 12,450</div></div>
+                                <div class="repay-kpi"><div class="repay-kpi-label">Charge Count</div><div class="repay-kpi-value">24</div></div>
+                            </div>
+                        </div>
+
+                        <!-- Linked Counterparties -->
+                        <div class="do-section">
+                            <div class="do-section-header"><div><div class="do-section-title">Linked Counterparties</div><div class="do-section-subtitle">Suppliers financed under this application</div></div></div>
+                            <div class="card" style="padding:0; overflow:hidden;">
+                                <table class="data-table">
+                                    <thead><tr><th>Name</th><th>Role</th><th>Trade License</th><th>Exposure</th><th>Invoice Vol</th><th>Invoices</th><th>Overdue</th></tr></thead>
+                                    <tbody>
+                                        <tr><td>AL HABTOOR CONSTRUCTION LLC</td><td>Supplier</td><td>DXB-4421087</td><td>AED 340,000</td><td>AED 1,050,000</td><td>12</td><td>0.0%</td></tr>
+                                        <tr><td>EMIRATES STEEL INDUSTRIES PJSC</td><td>Supplier</td><td>AUH-7789321</td><td>AED 280,000</td><td>AED 820,000</td><td>9</td><td>0.0%</td></tr>
+                                        <tr><td>DUBAI STEEL FABRICATORS</td><td>Supplier</td><td>DXB-9912345</td><td>AED 195,000</td><td>AED 580,000</td><td>7</td><td>0.0%</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Invoice Pipeline -->
+                        <div class="do-section">
+                            <div class="do-section-header"><div><div class="do-section-title">Invoice Pipeline</div></div></div>
+                            <div class="card" style="padding:0; overflow:hidden;">
+                                <table class="data-table">
+                                    <thead><tr><th>Invoice</th><th>Supplier</th><th>Amount</th><th>Invoice Date</th><th>Due Date</th><th>Status</th></tr></thead>
+                                    <tbody>
+                                        <tr><td>DST-INV-2026-001</td><td>Dubai Steel Trading LLC</td><td>AED 185,000</td><td>2026-05-25</td><td>2026-08-25</td><td><span class="sched-status paid">APPROVED</span></td></tr>
+                                        <tr><td>EES-INV-2026-012</td><td>Emirates Equipment Supplies</td><td>AED 142,500</td><td>2026-06-01</td><td>2026-09-01</td><td><span class="sched-status upcoming">PENDING</span></td></tr>
+                                        <tr><td>SIP-INV-2026-008</td><td>Sharjah Industrial Parts</td><td>AED 97,800</td><td>2026-06-10</td><td>2026-09-10</td><td><span class="sched-status upcoming">PENDING</span></td></tr>
+                                        <tr><td>AH-INV-2026-003</td><td>Al Habtoor Construction LLC</td><td>AED 210,000</td><td>2026-06-12</td><td>2026-09-12</td><td><span class="sched-status paid">APPROVED</span></td></tr>
+                                        <tr><td>NC-INV-2026-005</td><td>National Cement Company LLC</td><td>AED 78,500</td><td>2026-06-18</td><td>2026-09-18</td><td><span class="sched-status upcoming">PENDING</span></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Repayment & Disbursement Schedule -->
+                        <div class="do-section">
+                            <div class="do-section-header"><div><div class="do-section-title">Repayment &amp; Disbursement Schedule</div></div></div>
+                            <div class="app-exp-kpis" style="margin-bottom:16px;">
+                                <div class="app-exp-kpi"><div class="app-exp-kpi-label">On-time</div><div class="app-exp-kpi-value">84.6%</div></div>
+                                <div class="app-exp-kpi"><div class="app-exp-kpi-label">Missed</div><div class="app-exp-kpi-value">2</div></div>
+                                <div class="app-exp-kpi"><div class="app-exp-kpi-label">Overdue</div><div class="app-exp-kpi-value">2</div></div>
+                                <div class="app-exp-kpi"><div class="app-exp-kpi-label">Max Delay</div><div class="app-exp-kpi-value">8d</div></div>
+                                <div class="app-exp-kpi"><div class="app-exp-kpi-label">Overdue Amt</div><div class="app-exp-kpi-value">AED 192,300</div></div>
+                                <div class="app-exp-kpi"><div class="app-exp-kpi-label">Next Due</div><div class="app-exp-kpi-value">2026-07-15</div></div>
+                            </div>
+                            <div class="card" style="padding:0; overflow:hidden;">
+                                <table class="data-table">
+                                    <thead><tr><th>#</th><th>Due Date</th><th>Amount</th><th>Opening</th><th>Balance</th><th>Paid On</th><th>Status</th><th>Days Late</th></tr></thead>
+                                    <tbody>
+                                        <tr><td>1</td><td>2026-01-15</td><td>AED 96,150</td><td>AED 2,500,000</td><td>AED 2,403,850</td><td>2026-01-15</td><td><span class="sched-status paid">PAID</span></td><td>—</td></tr>
+                                        <tr><td>2</td><td>2026-02-15</td><td>AED 96,150</td><td>AED 2,403,850</td><td>AED 2,307,700</td><td>2026-02-15</td><td><span class="sched-status paid">PAID</span></td><td>—</td></tr>
+                                        <tr><td>3</td><td>2026-03-15</td><td>AED 96,150</td><td>AED 2,307,700</td><td>AED 2,211,550</td><td>2026-03-15</td><td><span class="sched-status paid">PAID</span></td><td>—</td></tr>
+                                        <tr><td>4</td><td>2026-04-15</td><td>AED 96,150</td><td>AED 2,211,550</td><td>AED 2,115,400</td><td>2026-04-23</td><td><span class="sched-status paid">PAID</span></td><td>8</td></tr>
+                                        <tr><td>5</td><td>2026-05-15</td><td>AED 96,150</td><td>AED 2,115,400</td><td>AED 2,019,250</td><td>—</td><td><span class="sched-status overdue">OVERDUE</span></td><td>48</td></tr>
+                                        <tr><td>6</td><td>2026-06-15</td><td>AED 96,150</td><td>AED 2,019,250</td><td>AED 1,923,100</td><td>—</td><td><span class="sched-status overdue">OVERDUE</span></td><td>17</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Disbursement Schedule -->
+                        <div class="do-section">
+                            <div class="do-section-header"><div><div class="do-section-title">Disbursement Schedule</div></div></div>
+                            <div class="card" style="padding:0; overflow:hidden;">
+                                <table class="data-table">
+                                    <thead><tr><th>Reference</th><th>Scheduled</th><th>Value Date</th><th>Disbursed</th><th>Planned</th><th>Remaining</th><th>Counterparty</th><th>Mode</th><th>Status</th></tr></thead>
+                                    <tbody>
+                                        <tr><td>Tranche 1</td><td>2025-04-15</td><td>2025-04-15</td><td>AED 850,000</td><td>AED 2,500,000</td><td>AED 1,650,000</td><td>AL HABTOOR CONSTRUCTION</td><td>Wire Transfer</td><td><span class="sched-status paid">DISBURSED</span></td></tr>
+                                        <tr><td>Tranche 2</td><td>2025-07-15</td><td>2025-07-15</td><td>AED 570,600</td><td>AED 2,500,000</td><td>AED 1,079,400</td><td>EMIRATES STEEL INDUSTRIES</td><td>Wire Transfer</td><td><span class="sched-status paid">DISBURSED</span></td></tr>
+                                        <tr><td>Tranche 3</td><td>2025-10-15</td><td>—</td><td>—</td><td>AED 2,500,000</td><td>AED 1,079,400</td><td>—</td><td>Wire Transfer</td><td><span class="sched-status upcoming">PENDING</span></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Collapsed app details -->
+                    <div class="app-expanded" id="prod-pif-2"></div>
+                    <div class="app-expanded" id="prod-pif-3"></div>
+                </div>
+
+                <!-- Receivable Invoice Financing -->
+                <div class="product-view" id="product-receivable" style="display:none;">
+                    <div class="do-section">
+                        <div class="do-section-header">
+                            <div>
+                                <div class="do-section-title">Receivable Invoice Financing · Combined</div>
+                                <div class="do-section-subtitle">2 applications · direct-borrower</div>
+                            </div>
+                        </div>
+                        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:20px;">
+                            <div class="repay-kpi"><div class="repay-kpi-label">Combined Sanctioned</div><div class="repay-kpi-value">AED 3,000,000</div></div>
+                            <div class="repay-kpi"><div class="repay-kpi-label">Combined Utilized</div><div class="repay-kpi-value">AED 1,500,000</div></div>
+                            <div class="repay-kpi"><div class="repay-kpi-label">Available</div><div class="repay-kpi-value">AED 1,500,000</div></div>
+                        </div>
+                    </div>
+
+                    <!-- Applications Table -->
+                    <div class="do-section">
+                        <div class="do-section-header">
+                            <div>
+                                <div class="do-section-title">Applications</div>
+                                <div class="do-section-subtitle">Select an application to see its utilization and pipeline</div>
+                            </div>
+                        </div>
+                        <div class="card" style="padding:0; overflow:hidden;">
+                            <table class="data-table">
+                                <thead><tr><th>Application ID</th><th>Status</th><th>Applied</th><th>Sanctioned</th><th>Utilized</th><th>Util %</th><th>Links</th></tr></thead>
+                                <tbody>
+                                    <tr style="cursor:pointer" onclick="toggleApp('prod-rif-1')"><td>APP-2025-002</td><td><span class="status-badge" style="font-size:9px;background:rgba(34,197,94,0.15);color:#4ade80">ACTIVE</span></td><td>2025-05-08</td><td>AED 2,000,000</td><td>AED 1,500,000</td><td>75.0%</td><td><span style="color:#6366f1;font-size:11px;cursor:pointer">View</span></td></tr>
+                                    <tr style="cursor:pointer" onclick="toggleApp('prod-rif-2')"><td>APP-2025-005</td><td><span class="status-badge" style="font-size:9px;background:rgba(99,102,241,0.15);color:#a5b4fc">APPROVED</span></td><td>2025-09-22</td><td>AED 1,000,000</td><td>AED 0</td><td>0.0%</td><td><span style="color:#6366f1;font-size:11px;cursor:pointer">View</span></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Expanded Application Detail (APP-2025-002) -->
+                    <div class="app-expanded" id="prod-rif-1">
+                        <div class="do-section">
+                            <div class="do-section-header">
+                                <div>
+                                    <div class="do-section-title">Application APP-2025-002</div>
+                                    <div class="do-section-subtitle">Receivable Invoice Financing · Active</div>
+                                </div>
+                            </div>
+                            <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:20px;">
+                                <div class="repay-kpi"><div class="repay-kpi-label">Sanctioned</div><div class="repay-kpi-value">AED 2,000,000</div></div>
+                                <div class="repay-kpi"><div class="repay-kpi-label">Utilized</div><div class="repay-kpi-value">AED 1,500,000</div></div>
+                                <div class="repay-kpi"><div class="repay-kpi-label">Available</div><div class="repay-kpi-value">AED 500,000</div></div>
+                            </div>
+                        </div>
+
+                        <!-- Charges & Dues -->
+                        <div class="do-section">
+                            <div class="do-section-header"><div><div class="do-section-title">Charges &amp; Dues</div><div class="do-section-subtitle">Outstanding fees and charges raised on this application</div></div></div>
+                            <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:12px;">
+                                <div class="repay-kpi"><div class="repay-kpi-label">Total Charged</div><div class="repay-kpi-value">AED 98,400</div></div>
+                                <div class="repay-kpi"><div class="repay-kpi-label">Total Outstanding</div><div class="repay-kpi-value">AED 4,200</div></div>
+                                <div class="repay-kpi"><div class="repay-kpi-label">Charge Count</div><div class="repay-kpi-value">16</div></div>
+                            </div>
+                        </div>
+
+                        <!-- Linked Counterparties -->
+                        <div class="do-section">
+                            <div class="do-section-header"><div><div class="do-section-title">Linked Counterparties</div><div class="do-section-subtitle">Buyers financed under this application</div></div></div>
+                            <div class="card" style="padding:0; overflow:hidden;">
+                                <table class="data-table">
+                                    <thead><tr><th>Name</th><th>Role</th><th>Trade License</th><th>Exposure</th><th>Invoice Vol</th><th>Invoices</th><th>Overdue</th></tr></thead>
+                                    <tbody>
+                                        <tr><td>DUBAI STEEL FABRICATORS</td><td>Buyer</td><td>DXB-9912345</td><td>AED 480,000</td><td>AED 1,400,000</td><td>8</td><td>2.1%</td></tr>
+                                        <tr><td>AL HABTOOR CONSTRUCTION LLC</td><td>Buyer</td><td>DXB-4421087</td><td>AED 340,000</td><td>AED 1,050,000</td><td>6</td><td>0.0%</td></tr>
+                                        <tr><td>SHARJAH BUILDING CONTRACTING</td><td>Buyer</td><td>SHJ-8876543</td><td>AED 220,000</td><td>AED 650,000</td><td>5</td><td>0.0%</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Invoice Pipeline -->
+                        <div class="do-section">
+                            <div class="do-section-header"><div><div class="do-section-title">Invoice Pipeline</div></div></div>
+                            <div class="card" style="padding:0; overflow:hidden;">
+                                <table class="data-table">
+                                    <thead><tr><th>Invoice</th><th>Buyer</th><th>Amount</th><th>Invoice Date</th><th>Due Date</th><th>Status</th></tr></thead>
+                                    <tbody>
+                                        <tr><td>RIF-INV-2026-101</td><td>Dubai Steel Fabricators</td><td>AED 142,500</td><td>2026-06-01</td><td>2026-09-01</td><td><span class="sched-status paid">APPROVED</span></td></tr>
+                                        <tr><td>RIF-INV-2026-102</td><td>Al Habtoor Construction LLC</td><td>AED 98,750</td><td>2026-06-05</td><td>2026-09-05</td><td><span class="sched-status paid">APPROVED</span></td></tr>
+                                        <tr><td>RIF-INV-2026-103</td><td>Sharjah Building Contracting</td><td>AED 115,000</td><td>2026-06-12</td><td>2026-09-12</td><td><span class="sched-status upcoming">PENDING</span></td></tr>
+                                        <tr><td>RIF-INV-2026-104</td><td>Dubai Steel Fabricators</td><td>AED 88,200</td><td>2026-06-18</td><td>2026-09-18</td><td><span class="sched-status upcoming">PENDING</span></td></tr>
+                                        <tr><td>RIF-INV-2026-105</td><td>Al Habtoor Construction LLC</td><td>AED 165,000</td><td>2026-06-22</td><td>2026-09-22</td><td><span class="sched-status upcoming">PENDING</span></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="app-expanded" id="prod-rif-2"></div>
+                </div>
+
+            </div>
+            <div class="tab-content" id="tab-repayments">
+
+                <!-- Repayment Track Record - Client -->
+                <div class="do-section">
+                    <div class="do-section-header">
+                        <div>
+                            <div class="do-section-title">Repayment Track Record · Client</div>
+                            <div class="do-section-subtitle">Aggregated across every application and product</div>
+                        </div>
+                    </div>
+                    <div class="repay-kpi-grid">
+                        <div class="repay-kpi">
+                            <div class="repay-kpi-header"><span class="repay-kpi-label">On-time Repayment</span><span class="status-badge alert">ALERT</span></div>
+                            <div class="repay-kpi-value">91.2%</div>
+                            <div class="repay-kpi-sub">33 of 36 matured dues</div>
+                        </div>
+                        <div class="repay-kpi">
+                            <div class="repay-kpi-header"><span class="repay-kpi-label">Missed Dates</span><span class="status-badge review">REVIEW</span></div>
+                            <div class="repay-kpi-value">3</div>
+                            <div class="repay-kpi-sub">0 late · 3 overdue</div>
+                        </div>
+                        <div class="repay-kpi">
+                            <div class="repay-kpi-header"><span class="repay-kpi-label">Max Delay</span><span class="status-badge clear">CLEAR</span></div>
+                            <div class="repay-kpi-value">12 days</div>
+                            <div class="repay-kpi-sub">Avg 4d</div>
+                        </div>
+                        <div class="repay-kpi">
+                            <div class="repay-kpi-header"><span class="repay-kpi-label">Overdue Amount</span><span class="status-badge alert">ALERT</span></div>
+                            <div class="repay-kpi-value">AED 287,450</div>
+                            <div class="repay-kpi-sub">Next due 2026-07-15</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Overdue Aging (DPD) -->
+                <div class="do-section">
+                    <div class="do-section-header">
+                        <div>
+                            <div class="do-section-title">Overdue Aging (DPD)</div>
+                            <div class="do-section-subtitle">Overdue installments bucketed by days past due</div>
+                        </div>
+                    </div>
+                    <div class="card" style="padding:0; overflow:hidden;">
+                        <table class="aging-table">
+                            <thead><tr><th>Bucket (Days)</th><th>Installments</th><th>Amount</th></tr></thead>
+                            <tbody>
+                                <tr><td>0–30</td><td>2</td><td>AED 192,300</td></tr>
+                                <tr class="highlight-row"><td>31–60</td><td>1</td><td>AED 95,150</td></tr>
+                                <tr><td>61–90</td><td>0</td><td>AED 0</td></tr>
+                                <tr><td>90+</td><td>0</td><td>AED 0</td></tr>
+                                <tr><td>Total</td><td>3</td><td>AED 287,450</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Payable Invoice Financing · Repayment -->
+                <div class="do-section">
+                    <div class="do-section-header">
+                        <div>
+                            <div class="do-section-title">Payable Invoice Financing · Repayment</div>
+                            <div class="do-section-subtitle">3 applications · 2 missed dates</div>
+                        </div>
+                    </div>
+                    <div class="card" style="padding:0; overflow:hidden;">
+                        <div class="product-repay-kpis">
+                            <div><div class="pr-kpi-label">On-time</div><div class="pr-kpi-value">92.3%</div></div>
+                            <div><div class="pr-kpi-label">Missed Dates</div><div class="pr-kpi-value">2</div></div>
+                            <div><div class="pr-kpi-label">Max Delay</div><div class="pr-kpi-value">8d</div></div>
+                            <div><div class="pr-kpi-label">Overdue Amount</div><div class="pr-kpi-value">AED 192,300</div></div>
+                        </div>
+                        <!-- Application Rows -->
+                        <div class="app-row" onclick="toggleApp('pif-app-1')">
+                            <div class="app-row-left">
+                                <span class="app-row-toggle" id="toggle-pif-app-1">▶</span>
+                                <span class="app-row-id">APP-2025-001</span>
+                                <span class="app-row-status">· Active · Sanctioned AED 2,500,000</span>
+                            </div>
+                            <div class="app-row-right"><span class="app-conduct-pill missed">2 missed</span></div>
+                        </div>
+                        <div class="app-expanded" id="pif-app-1">
+                            <div class="app-exp-kpis">
+                                <div class="app-exp-kpi"><div class="app-exp-kpi-label">On-time</div><div class="app-exp-kpi-value">84.6%</div></div>
+                                <div class="app-exp-kpi"><div class="app-exp-kpi-label">Missed</div><div class="app-exp-kpi-value">2</div></div>
+                                <div class="app-exp-kpi"><div class="app-exp-kpi-label">Overdue</div><div class="app-exp-kpi-value">2</div></div>
+                                <div class="app-exp-kpi"><div class="app-exp-kpi-label">Max Delay</div><div class="app-exp-kpi-value">8d</div></div>
+                                <div class="app-exp-kpi"><div class="app-exp-kpi-label">Overdue Amt</div><div class="app-exp-kpi-value">AED 192,300</div></div>
+                                <div class="app-exp-kpi"><div class="app-exp-kpi-label">Next Due</div><div class="app-exp-kpi-value">2026-07-15</div></div>
+                            </div>
+                            <table class="schedule-table">
+                                <thead><tr><th>#</th><th>Due Date</th><th>Amount</th><th>Principal</th><th>Interest</th><th>Balance</th><th>Paid On</th><th>Status</th></tr></thead>
+                                <tbody>
+                                    <tr><td>1</td><td>2026-01-15</td><td>AED 96,150</td><td>AED 91,200</td><td>AED 4,950</td><td>AED 2,408,800</td><td>2026-01-15</td><td><span class="sched-status paid">PAID</span></td></tr>
+                                    <tr><td>2</td><td>2026-02-15</td><td>AED 96,150</td><td>AED 91,600</td><td>AED 4,550</td><td>AED 2,317,200</td><td>2026-02-15</td><td><span class="sched-status paid">PAID</span></td></tr>
+                                    <tr><td>3</td><td>2026-03-15</td><td>AED 96,150</td><td>AED 92,000</td><td>AED 4,150</td><td>AED 2,225,200</td><td>2026-03-15</td><td><span class="sched-status paid">PAID</span></td></tr>
+                                    <tr><td>4</td><td>2026-04-15</td><td>AED 96,150</td><td>AED 92,400</td><td>AED 3,750</td><td>AED 2,132,800</td><td>2026-04-23</td><td><span class="sched-status paid">PAID</span></td></tr>
+                                    <tr><td>5</td><td>2026-05-15</td><td>AED 96,150</td><td>AED 92,800</td><td>AED 3,350</td><td>AED 2,040,000</td><td>—</td><td><span class="sched-status overdue">OVERDUE</span></td></tr>
+                                    <tr><td>6</td><td>2026-06-15</td><td>AED 96,150</td><td>AED 93,200</td><td>AED 2,950</td><td>AED 1,946,800</td><td>—</td><td><span class="sched-status overdue">OVERDUE</span></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="app-row" onclick="toggleApp('pif-app-2')">
+                            <div class="app-row-left">
+                                <span class="app-row-toggle" id="toggle-pif-app-2">▶</span>
+                                <span class="app-row-id">APP-2025-004</span>
+                                <span class="app-row-status">· Active · Sanctioned AED 1,500,000</span>
+                            </div>
+                            <div class="app-row-right"><span class="app-conduct-pill good">All on time</span></div>
+                        </div>
+                        <div class="app-expanded" id="pif-app-2">
+                            <div class="app-exp-kpis">
+                                <div class="app-exp-kpi"><div class="app-exp-kpi-label">On-time</div><div class="app-exp-kpi-value">100%</div></div>
+                                <div class="app-exp-kpi"><div class="app-exp-kpi-label">Missed</div><div class="app-exp-kpi-value">0</div></div>
+                                <div class="app-exp-kpi"><div class="app-exp-kpi-label">Overdue</div><div class="app-exp-kpi-value">0</div></div>
+                                <div class="app-exp-kpi"><div class="app-exp-kpi-label">Max Delay</div><div class="app-exp-kpi-value">0d</div></div>
+                                <div class="app-exp-kpi"><div class="app-exp-kpi-label">Overdue Amt</div><div class="app-exp-kpi-value">AED 0</div></div>
+                                <div class="app-exp-kpi"><div class="app-exp-kpi-label">Next Due</div><div class="app-exp-kpi-value">2026-07-20</div></div>
+                            </div>
+                        </div>
+                        <div class="app-row" onclick="toggleApp('pif-app-3')">
+                            <div class="app-row-left">
+                                <span class="app-row-toggle" id="toggle-pif-app-3">▶</span>
+                                <span class="app-row-id">APP-2025-007</span>
+                                <span class="app-row-status">· Approved · Sanctioned AED 1,000,000</span>
+                            </div>
+                            <div class="app-row-right"><span class="app-conduct-pill good">All on time</span></div>
+                        </div>
+                        <div class="app-expanded" id="pif-app-3">
+                            <div class="app-exp-kpis">
+                                <div class="app-exp-kpi"><div class="app-exp-kpi-label">On-time</div><div class="app-exp-kpi-value">100%</div></div>
+                                <div class="app-exp-kpi"><div class="app-exp-kpi-label">Missed</div><div class="app-exp-kpi-value">0</div></div>
+                                <div class="app-exp-kpi"><div class="app-exp-kpi-label">Overdue</div><div class="app-exp-kpi-value">0</div></div>
+                                <div class="app-exp-kpi"><div class="app-exp-kpi-label">Max Delay</div><div class="app-exp-kpi-value">0d</div></div>
+                                <div class="app-exp-kpi"><div class="app-exp-kpi-label">Overdue Amt</div><div class="app-exp-kpi-value">AED 0</div></div>
+                                <div class="app-exp-kpi"><div class="app-exp-kpi-label">Next Due</div><div class="app-exp-kpi-value">2026-08-01</div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Receivable Invoice Financing · Repayment -->
+                <div class="do-section">
+                    <div class="do-section-header">
+                        <div>
+                            <div class="do-section-title">Receivable Invoice Financing · Repayment</div>
+                            <div class="do-section-subtitle">2 applications · 1 missed date</div>
+                        </div>
+                    </div>
+                    <div class="card" style="padding:0; overflow:hidden;">
+                        <div class="product-repay-kpis">
+                            <div><div class="pr-kpi-label">On-time</div><div class="pr-kpi-value">90.0%</div></div>
+                            <div><div class="pr-kpi-label">Missed Dates</div><div class="pr-kpi-value">1</div></div>
+                            <div><div class="pr-kpi-label">Max Delay</div><div class="pr-kpi-value">12d</div></div>
+                            <div><div class="pr-kpi-label">Overdue Amount</div><div class="pr-kpi-value">AED 95,150</div></div>
+                        </div>
+                        <div class="app-row" onclick="toggleApp('rif-app-1')">
+                            <div class="app-row-left">
+                                <span class="app-row-toggle" id="toggle-rif-app-1">▶</span>
+                                <span class="app-row-id">APP-2025-002</span>
+                                <span class="app-row-status">· Active · Sanctioned AED 2,000,000</span>
+                            </div>
+                            <div class="app-row-right"><span class="app-conduct-pill missed">1 missed</span></div>
+                        </div>
+                        <div class="app-expanded" id="rif-app-1">
+                            <div class="app-exp-kpis">
+                                <div class="app-exp-kpi"><div class="app-exp-kpi-label">On-time</div><div class="app-exp-kpi-value">88.9%</div></div>
+                                <div class="app-exp-kpi"><div class="app-exp-kpi-label">Missed</div><div class="app-exp-kpi-value">1</div></div>
+                                <div class="app-exp-kpi"><div class="app-exp-kpi-label">Overdue</div><div class="app-exp-kpi-value">1</div></div>
+                                <div class="app-exp-kpi"><div class="app-exp-kpi-label">Max Delay</div><div class="app-exp-kpi-value">12d</div></div>
+                                <div class="app-exp-kpi"><div class="app-exp-kpi-label">Overdue Amt</div><div class="app-exp-kpi-value">AED 95,150</div></div>
+                                <div class="app-exp-kpi"><div class="app-exp-kpi-label">Next Due</div><div class="app-exp-kpi-value">2026-07-10</div></div>
+                            </div>
+                            <table class="schedule-table">
+                                <thead><tr><th>#</th><th>Due Date</th><th>Amount</th><th>Principal</th><th>Interest</th><th>Balance</th><th>Paid On</th><th>Status</th></tr></thead>
+                                <tbody>
+                                    <tr><td>1</td><td>2026-02-10</td><td>AED 95,150</td><td>AED 90,800</td><td>AED 4,350</td><td>AED 1,909,200</td><td>2026-02-10</td><td><span class="sched-status paid">PAID</span></td></tr>
+                                    <tr><td>2</td><td>2026-03-10</td><td>AED 95,150</td><td>AED 91,200</td><td>AED 3,950</td><td>AED 1,818,000</td><td>2026-03-10</td><td><span class="sched-status paid">PAID</span></td></tr>
+                                    <tr><td>3</td><td>2026-04-10</td><td>AED 95,150</td><td>AED 91,600</td><td>AED 3,550</td><td>AED 1,726,400</td><td>2026-04-10</td><td><span class="sched-status paid">PAID</span></td></tr>
+                                    <tr><td>4</td><td>2026-05-10</td><td>AED 95,150</td><td>AED 92,000</td><td>AED 3,150</td><td>AED 1,634,400</td><td>2026-05-22</td><td><span class="sched-status paid">PAID</span></td></tr>
+                                    <tr><td>5</td><td>2026-06-10</td><td>AED 95,150</td><td>AED 92,400</td><td>AED 2,750</td><td>AED 1,542,000</td><td>—</td><td><span class="sched-status overdue">OVERDUE</span></td></tr>
+                                    <tr><td>6</td><td>2026-07-10</td><td>AED 95,150</td><td>AED 92,800</td><td>AED 2,350</td><td>AED 1,449,200</td><td>—</td><td><span class="sched-status upcoming">UPCOMING</span></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="app-row" onclick="toggleApp('rif-app-2')">
+                            <div class="app-row-left">
+                                <span class="app-row-toggle" id="toggle-rif-app-2">▶</span>
+                                <span class="app-row-id">APP-2025-005</span>
+                                <span class="app-row-status">· Approved · Sanctioned AED 1,000,000</span>
+                            </div>
+                            <div class="app-row-right"><span class="app-conduct-pill good">All on time</span></div>
+                        </div>
+                        <div class="app-expanded" id="rif-app-2">
+                            <div class="app-exp-kpis">
+                                <div class="app-exp-kpi"><div class="app-exp-kpi-label">On-time</div><div class="app-exp-kpi-value">100%</div></div>
+                                <div class="app-exp-kpi"><div class="app-exp-kpi-label">Missed</div><div class="app-exp-kpi-value">0</div></div>
+                                <div class="app-exp-kpi"><div class="app-exp-kpi-label">Overdue</div><div class="app-exp-kpi-value">0</div></div>
+                                <div class="app-exp-kpi"><div class="app-exp-kpi-label">Max Delay</div><div class="app-exp-kpi-value">0d</div></div>
+                                <div class="app-exp-kpi"><div class="app-exp-kpi-label">Overdue Amt</div><div class="app-exp-kpi-value">AED 0</div></div>
+                                <div class="app-exp-kpi"><div class="app-exp-kpi-label">Next Due</div><div class="app-exp-kpi-value">2026-08-05</div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Missed EMIs -->
+                <div class="do-section">
+                    <div class="do-section-header">
+                        <div>
+                            <div class="do-section-title">Missed EMIs</div>
+                            <div class="do-section-subtitle">3 missed installment(s) across all schedules</div>
+                        </div>
+                    </div>
+                    <div class="card" style="padding:0; overflow:hidden;">
+                        <table class="data-table">
+                            <thead><tr><th>#</th><th>Due Date</th><th>Amount</th><th>Principal</th><th>Interest</th><th>Days Overdue</th><th>Schedule</th></tr></thead>
+                            <tbody>
+                                <tr><td>1</td><td>2026-05-15</td><td>AED 96,150</td><td>AED 92,800</td><td>AED 3,350</td><td>48</td><td>APP-2025-001</td></tr>
+                                <tr><td>2</td><td>2026-06-15</td><td>AED 96,150</td><td>AED 93,200</td><td>AED 2,950</td><td>17</td><td>APP-2025-001</td></tr>
+                                <tr><td>3</td><td>2026-06-10</td><td>AED 95,150</td><td>AED 92,400</td><td>AED 2,750</td><td>22</td><td>APP-2025-002</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tenure Remaining -->
+                <div class="do-section">
+                    <div class="do-section-header">
+                        <div>
+                            <div class="do-section-title">Tenure Remaining</div>
+                            <div class="do-section-subtitle">Installments completed vs remaining, per schedule</div>
+                        </div>
+                    </div>
+                    <div class="card" style="padding:0; overflow:hidden;">
+                        <table class="data-table">
+                            <thead><tr><th>Schedule ID</th><th>Total Tenure</th><th>Paid</th><th>Remaining</th><th>Progress</th></tr></thead>
+                            <tbody>
+                                <tr><td>APP-2025-001</td><td>24</td><td>4</td><td>20</td><td><div class="progress-mini"><div class="progress-mini-fill" style="width:16.7%"></div></div></td></tr>
+                                <tr><td>APP-2025-002</td><td>18</td><td>4</td><td>14</td><td><div class="progress-mini"><div class="progress-mini-fill" style="width:22.2%"></div></div></td></tr>
+                                <tr><td>APP-2025-004</td><td>12</td><td>6</td><td>6</td><td><div class="progress-mini"><div class="progress-mini-fill" style="width:50%"></div></div></td></tr>
+                                <tr><td>APP-2025-005</td><td>12</td><td>3</td><td>9</td><td><div class="progress-mini"><div class="progress-mini-fill" style="width:25%"></div></div></td></tr>
+                                <tr><td>APP-2025-007</td><td>6</td><td>1</td><td>5</td><td><div class="progress-mini"><div class="progress-mini-fill" style="width:16.7%"></div></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+            <div class="tab-content" id="tab-counterparties">
+
+                <!-- KPI Stats -->
+                <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:12px; margin-bottom:24px; width:50%;">
+                    <div class="repay-kpi">
+                        <div class="repay-kpi-label">Total Counterparties</div>
+                        <div class="repay-kpi-value">14</div>
+                    </div>
+                    <div class="repay-kpi">
+                        <div class="repay-kpi-label">Active</div>
+                        <div class="repay-kpi-value">11</div>
+                    </div>
+                </div>
+
+                <!-- Trade Integrity Alerts -->
+                <div class="do-section">
+                    <div class="do-section-header">
+                        <div>
+                            <div class="do-section-title">Trade Integrity Alerts</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div style="margin-bottom:10px;">
+                            <span class="status-badge clear" style="font-size:10px;">No circular-trade suspicion</span>
+                        </div>
+                        <ul class="cockpit-card-list">
+                            <li>2 counterparty(ies) with overdue/failed invoices: AL HABTOOR CONSTRUCTION LLC, DUBAI STEEL FABRICATORS</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Top Counterparties -->
+                <div class="do-section">
+                    <div class="do-section-header">
+                        <div>
+                            <div class="do-section-title">Top Counterparties</div>
+                            <div class="do-section-subtitle">Largest exposures across the ecosystem</div>
+                        </div>
+                    </div>
+                    <div class="card" style="padding:0; overflow:hidden;">
+                        <table class="data-table">
+                            <thead><tr><th>Counterparty</th><th>Exposure</th><th>% of Total</th></tr></thead>
+                            <tbody>
+                                <tr><td>AL HABTOOR CONSTRUCTION LLC</td><td>AED 680,000</td><td>19.9%</td></tr>
+                                <tr><td>EMIRATES STEEL INDUSTRIES PJSC</td><td>AED 520,000</td><td>15.2%</td></tr>
+                                <tr><td>DUBAI STEEL FABRICATORS</td><td>AED 480,000</td><td>14.0%</td></tr>
+                                <tr><td>ARABIAN CONCRETE PRODUCTS LLC</td><td>AED 410,000</td><td>12.0%</td></tr>
+                                <tr><td>GULF BUILDING MATERIALS TRADING</td><td>AED 350,000</td><td>10.2%</td></tr>
+                                <tr><td>NATIONAL CEMENT COMPANY LLC</td><td>AED 280,000</td><td>8.2%</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Concentration Heatmap -->
+                <div class="do-section">
+                    <div class="do-section-header">
+                        <div>
+                            <div class="do-section-title">Concentration Heatmap</div>
+                        </div>
+                    </div>
+                    <div class="card" style="padding:0; overflow:hidden;">
+                        <table class="data-table">
+                            <thead><tr><th>Counterparty</th><th>Exposure</th><th>Invoice Vol</th><th>Risk</th></tr></thead>
+                            <tbody>
+                                <tr><td>AL HABTOOR CONSTRUCTION LLC</td><td>AED 680,000</td><td>AED 2,100,000</td><td><span class="status-badge clear">CLEAR</span></td></tr>
+                                <tr><td>EMIRATES STEEL INDUSTRIES PJSC</td><td>AED 520,000</td><td>AED 1,600,000</td><td><span class="status-badge clear">CLEAR</span></td></tr>
+                                <tr><td>DUBAI STEEL FABRICATORS</td><td>AED 480,000</td><td>AED 1,400,000</td><td><span class="status-badge clear">CLEAR</span></td></tr>
+                                <tr><td>ARABIAN CONCRETE PRODUCTS LLC</td><td>AED 410,000</td><td>AED 1,200,000</td><td><span class="status-badge clear">CLEAR</span></td></tr>
+                                <tr><td>GULF BUILDING MATERIALS TRADING</td><td>AED 350,000</td><td>AED 980,000</td><td><span class="status-badge clear">CLEAR</span></td></tr>
+                                <tr><td>NATIONAL CEMENT COMPANY LLC</td><td>AED 280,000</td><td>AED 750,000</td><td><span class="status-badge clear">CLEAR</span></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Top-5 Financing Concentration -->
+                <div class="do-section">
+                    <div class="do-section-header">
+                        <div>
+                            <div class="do-section-title">Top-5 Financing Concentration</div>
+                            <div class="do-section-subtitle">Largest financings account for 78.3% of outstanding</div>
+                        </div>
+                    </div>
+                    <div class="card" style="padding:0; overflow:hidden;">
+                        <table class="data-table">
+                            <thead><tr><th>Application ID</th><th>Outstanding</th><th>% of Outstanding</th></tr></thead>
+                            <tbody>
+                                <tr style="background:rgba(239,68,68,0.04);"><td>APP-2025-001</td><td>AED 1,920,600</td><td>56.1%</td></tr>
+                                <tr><td>APP-2025-002</td><td>AED 1,500,000</td><td>43.9%</td></tr>
+                                <tr><td>APP-2025-004</td><td>AED 0</td><td>0.0%</td></tr>
+                                <tr><td>APP-2025-005</td><td>AED 0</td><td>0.0%</td></tr>
+                                <tr><td>APP-2025-007</td><td>AED 0</td><td>0.0%</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Payable Invoice Financing Counterparties -->
+                <div class="do-section">
+                    <div class="do-section-header">
+                        <div>
+                            <div class="do-section-title">Payable Invoice Financing Counterparties</div>
+                            <div class="do-section-subtitle">8 links across 3 applications</div>
+                        </div>
+                    </div>
+                    <div class="card" style="padding:0; overflow:hidden;">
+                        <table class="data-table">
+                            <thead><tr><th>Name</th><th>Role</th><th>Trade License</th><th>Application</th><th>Exposure</th><th>Invoice Vol</th><th>Overdue</th></tr></thead>
+                            <tbody>
+                                <tr><td>AL HABTOOR CONSTRUCTION LLC</td><td>Supplier</td><td>DXB-4421087</td><td>APP-2025-001</td><td>AED 340,000</td><td>AED 1,050,000</td><td>0.0%</td></tr>
+                                <tr><td>EMIRATES STEEL INDUSTRIES PJSC</td><td>Supplier</td><td>AUH-7789321</td><td>APP-2025-001</td><td>AED 280,000</td><td>AED 820,000</td><td>0.0%</td></tr>
+                                <tr><td>ARABIAN CONCRETE PRODUCTS LLC</td><td>Supplier</td><td>SHJ-1123456</td><td>APP-2025-004</td><td>AED 210,000</td><td>AED 600,000</td><td>0.0%</td></tr>
+                                <tr><td>GULF BUILDING MATERIALS TRADING</td><td>Supplier</td><td>DXB-6654321</td><td>APP-2025-004</td><td>AED 175,000</td><td>AED 490,000</td><td>0.0%</td></tr>
+                                <tr><td>NATIONAL CEMENT COMPANY LLC</td><td>Supplier</td><td>RAK-3345678</td><td>APP-2025-007</td><td>AED 140,000</td><td>AED 375,000</td><td>0.0%</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Receivable Invoice Financing Counterparties -->
+                <div class="do-section">
+                    <div class="do-section-header">
+                        <div>
+                            <div class="do-section-title">Receivable Invoice Financing Counterparties</div>
+                            <div class="do-section-subtitle">6 links across 2 applications</div>
+                        </div>
+                    </div>
+                    <div class="card" style="padding:0; overflow:hidden;">
+                        <table class="data-table">
+                            <thead><tr><th>Name</th><th>Role</th><th>Trade License</th><th>Application</th><th>Exposure</th><th>Invoice Vol</th><th>Overdue</th></tr></thead>
+                            <tbody>
+                                <tr><td>DUBAI STEEL FABRICATORS</td><td>Buyer</td><td>DXB-9912345</td><td>APP-2025-002</td><td>AED 480,000</td><td>AED 1,400,000</td><td>2.1%</td></tr>
+                                <tr><td>AL HABTOOR CONSTRUCTION LLC</td><td>Buyer</td><td>DXB-4421087</td><td>APP-2025-002</td><td>AED 340,000</td><td>AED 1,050,000</td><td>0.0%</td></tr>
+                                <tr><td>SHARJAH BUILDING CONTRACTING</td><td>Buyer</td><td>SHJ-8876543</td><td>APP-2025-002</td><td>AED 220,000</td><td>AED 650,000</td><td>0.0%</td></tr>
+                                <tr><td>ABU DHABI INFRA PROJECTS LLC</td><td>Buyer</td><td>AUH-5543210</td><td>APP-2025-005</td><td>AED 195,000</td><td>AED 520,000</td><td>0.0%</td></tr>
+                                <tr><td>RAS AL KHAIMAH DEVELOPERS</td><td>Buyer</td><td>RAK-2210987</td><td>APP-2025-005</td><td>AED 165,000</td><td>AED 430,000</td><td>0.0%</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+            <div class="tab-content" id="tab-conduct">
+
+                <!-- Conduct KPI Cards -->
+                <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:12px; margin-bottom:12px;">
+                    <div class="repay-kpi">
+                        <div class="repay-kpi-header"><span class="repay-kpi-label">Timely Repayment</span><span class="status-badge review">REVIEW</span></div>
+                        <div class="repay-kpi-value">91.2%</div>
+                    </div>
+                    <div class="repay-kpi">
+                        <div class="repay-kpi-label">Avg DPD</div>
+                        <div class="repay-kpi-value">4</div>
+                    </div>
+                    <div class="repay-kpi">
+                        <div class="repay-kpi-label">Overdue Events</div>
+                        <div class="repay-kpi-value">3</div>
+                    </div>
+                    <div class="repay-kpi">
+                        <div class="repay-kpi-label">Ad-hoc Arrangements</div>
+                        <div class="repay-kpi-value">0</div>
+                    </div>
+                </div>
+                <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:12px;">
+                    <div class="repay-kpi">
+                        <div class="repay-kpi-header"><span class="repay-kpi-label">Rollovers</span><span class="status-badge clear">CLEAR</span></div>
+                        <div class="repay-kpi-value">0</div>
+                    </div>
+                    <div class="repay-kpi">
+                        <div class="repay-kpi-header"><span class="repay-kpi-label">Restructurings</span><span class="status-badge clear">CLEAR</span></div>
+                        <div class="repay-kpi-value">0</div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="tab-content" id="tab-transactions">
+
+                <!-- Recent Transactions -->
+                <div class="do-section">
+                    <div class="do-section-header">
+                        <div>
+                            <div class="do-section-title">Recent Transactions</div>
+                        </div>
+                    </div>
+                    <div class="card" style="padding:0; overflow:hidden;">
+                        <table class="data-table">
+                            <thead><tr><th>Date</th><th>Type</th><th>Product</th><th>Amount</th><th>Ref</th></tr></thead>
+                            <tbody>
+                                <tr><td>2026-06-29</td><td>repayment</td><td>Payable Invoice Financing</td><td>AED 96,150</td><td>APP-2025-001</td></tr>
+                                <tr><td>2026-06-29</td><td>repayment</td><td>Payable Invoice Financing</td><td>AED 96,150</td><td>APP-2025-001</td></tr>
+                                <tr><td>2026-06-25</td><td>repayment</td><td>Receivable Invoice Financing</td><td>AED 95,150</td><td>APP-2025-002</td></tr>
+                                <tr><td>2026-06-18</td><td>drawdown</td><td>Payable Invoice Financing</td><td>AED 185,000</td><td>APP-2025-004</td></tr>
+                                <tr><td>2026-06-15</td><td>drawdown</td><td>Receivable Invoice Financing</td><td>AED 142,500</td><td>APP-2025-002</td></tr>
+                                <tr><td>2026-06-12</td><td>drawdown</td><td>Payable Invoice Financing</td><td>AED 210,000</td><td>APP-2025-001</td></tr>
+                                <tr><td>2026-06-10</td><td>drawdown</td><td>Receivable Invoice Financing</td><td>AED 98,750</td><td>APP-2025-005</td></tr>
+                                <tr><td>2026-06-05</td><td>repayment</td><td>Payable Invoice Financing</td><td>AED 96,150</td><td>APP-2025-004</td></tr>
+                                <tr><td>2026-06-02</td><td>drawdown</td><td>Payable Invoice Financing</td><td>AED 175,000</td><td>APP-2025-007</td></tr>
+                                <tr><td>2026-05-28</td><td>repayment</td><td>Receivable Invoice Financing</td><td>AED 95,150</td><td>APP-2025-002</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="#">Terms of Service</a>
+            <a href="#">Privacy Policy</a>
+            <a href="#">Help & Support</a>
+        </div>
+        <p>&copy; 2025 Mal Bank. All rights reserved.</p>
+    </footer>
+</div>
+<script>
+// Product Exposure Mix Donut Chart
+const ctx = document.getElementById('exposureChart').getContext('2d');
+new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Payable Invoice Financing', 'Receivable Invoice Financing'],
+        datasets: [{
+            data: [1920600, 1500000],
+            backgroundColor: ['#6366f1', '#22c55e'],
+            borderColor: ['rgba(99,102,241,0.3)', 'rgba(34,197,94,0.3)'],
+            borderWidth: 2,
+            hoverOffset: 6
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '70%',
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                backgroundColor: '#1e1f2e',
+                borderColor: '#373A56',
+                borderWidth: 1,
+                titleColor: '#ffffff',
+                bodyColor: '#d4d4d8',
+                padding: 10,
+                callbacks: {
+                    label: function(context) {
+                        const val = context.parsed;
+                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                        const pct = ((val / total) * 100).toFixed(1);
+                        return `AED ${(val/1000000).toFixed(2)}M (${pct}%)`;
+                    }
+                }
+            }
+        }
+    }
+});
+// Tab switching logic
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    });
+});
+
+// Application row toggle
+function toggleApp(id) {
+    const el = document.getElementById(id);
+    const toggle = document.getElementById('toggle-' + id);
+    if (el.classList.contains('open')) {
+        el.classList.remove('open');
+        if (toggle) toggle.classList.remove('open');
+    } else {
+        el.classList.add('open');
+        if (toggle) toggle.classList.add('open');
+    }
+}
+
+// Navigate to Products tab and scroll to applications
+function goToProducts(product) {
+    // Activate Products tab
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.querySelector('.tab-btn[data-tab="products"]').classList.add('active');
+    document.getElementById('tab-products').classList.add('active');
+    // Switch to correct product sub-tab
+    switchProduct(product);
+    // Scroll to products tab area
+    document.getElementById('tab-products').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// Sync button handler
+function handleSync() {
+    const btn = document.getElementById('sync-btn');
+    const icon = document.getElementById('sync-icon');
+    const timeEl = document.getElementById('last-synced-time');
+    btn.disabled = true;
+    icon.classList.add('spinning');
+    setTimeout(() => {
+        icon.classList.remove('spinning');
+        btn.disabled = false;
+        const now = new Date();
+        const dd = String(now.getDate()).padStart(2, '0');
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const yyyy = now.getFullYear();
+        let h = now.getHours(); const ampm = h >= 12 ? 'PM' : 'AM';
+        h = h % 12 || 12;
+        const min = String(now.getMinutes()).padStart(2, '0');
+        timeEl.textContent = `Last Synced: ${dd}-${mm}-${yyyy} ${h}:${min} ${ampm}`;
+    }, 2000);
+}
+
+// Product sub-tab switching
+function switchProduct(product) {
+    document.querySelectorAll('.product-pill').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.product-view').forEach(v => v.style.display = 'none');
+    document.querySelector(`.product-pill[data-product="${product}"]`).classList.add('active');
+    document.getElementById('product-' + product).style.display = 'block';
+}
+</script>
+</body>
+</html>

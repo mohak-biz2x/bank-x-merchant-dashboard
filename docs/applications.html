@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Applications - Mal Bank</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #0a0b14;
+            background-image: url('../src/assets/Background.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            color: #e4e4e7;
+            min-height: 100vh;
+        }
+
+        .bg-page {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            background-color: transparent;
+            border-bottom: 1px solid #1e1f2e;
+            padding: 14px 0;
+            width: 75%;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-logo img {
+            height: 40px;
+        }
+
+        /* Layout */
+        .layout {
+            flex: 1;
+            display: flex;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 40px 0;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 28px;
+            width: 75%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Application Table */
+        .app-table {
+            width: 75%;
+            margin: 0 auto;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: #2D304A;
+            border-radius: 12px;
+            border: 0.5px solid #373A56;
+        }
+
+        .app-table thead th {
+            text-align: left;
+            font-size: 11px;
+            font-weight: 600;
+            color: #a1a1aa;
+            text-transform: none;
+            letter-spacing: 0.5px;
+            padding: 14px 16px;
+            background-color: #36394F;
+            border-bottom: 0.5px solid #373A56;
+        }
+
+        .app-table thead th:first-child {
+            border-top-left-radius: 12px;
+        }
+
+        .app-table thead th:last-child {
+            border-top-right-radius: 12px;
+        }
+
+        .app-table tbody tr:last-child td:first-child {
+            border-bottom-left-radius: 12px;
+        }
+
+        .app-table tbody tr:last-child td:last-child {
+            border-bottom-right-radius: 12px;
+        }
+
+        .app-table tbody td {
+            padding: 14px 16px;
+            font-size: 13px;
+            color: #d4d4d8;
+            border-bottom: 1px solid rgba(40, 42, 65, 0.5);
+        }
+
+        .app-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .app-table tbody tr:hover {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border-radius: 16px;
+            padding: 4px 12px;
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .status-badge.blue {
+            background-color: rgba(59, 130, 246, 0.12);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #60a5fa;
+        }
+
+        .status-badge.amber {
+            background-color: rgba(245, 158, 11, 0.12);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: #fbbf24;
+        }
+
+        .status-badge.green {
+            background-color: rgba(34, 197, 94, 0.12);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            color: #4ade80;
+        }
+
+        .status-badge.red {
+            background-color: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #f87171;
+        }
+
+        .status-badge.gray {
+            background-color: rgba(113, 113, 122, 0.12);
+            border: 1px solid rgba(113, 113, 122, 0.3);
+            color: #a1a1aa;
+        }
+
+        .refresh-btn {
+            background: none;
+            border: none;
+            color: #71717a;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .refresh-btn:hover {
+            color: #6366f1;
+            background-color: rgba(99, 102, 241, 0.1);
+        }
+
+        .refresh-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .refresh-btn.spinning svg {
+            animation: spinOnce 0.6s ease;
+        }
+
+        @keyframes spinOnce {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .doc-link {
+            color: #a1a1aa;
+            text-decoration: none;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .doc-link:hover {
+            color: #6366f1;
+        }
+
+        .dashboard-btn {
+            background-color: #ffffff;
+            border: none;
+            color: #0f1019;
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.15s;
+            white-space: nowrap;
+        }
+
+        .dashboard-btn:hover {
+            opacity: 0.9;
+        }
+
+        .action-cell {
+            text-align: center;
+            font-size: 18px;
+            color: #71717a;
+            cursor: pointer;
+        }
+
+        /* Table Footer */
+        .table-footer {
+            width: 75%;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 16px;
+            padding: 14px 0;
+            font-size: 12px;
+            color: #71717a;
+        }
+
+        .pagination {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .entries-select {
+            background-color: #1e1f2e;
+            border: 1px solid #2a2b3a;
+            color: #d4d4d8;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .page-controls {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .page-btn {
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: 1px solid #2a2b3a;
+            border-radius: 4px;
+            color: #71717a;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .page-btn.active-page {
+            background-color: #6366f1;
+            border-color: #6366f1;
+            color: #ffffff;
+        }
+
+        /* Footer */
+        .footer {
+            padding: 16px 0;
+            width: 75%;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 1px solid #1e1f2e;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 16px;
+        }
+
+        .footer-links a, .footer p {
+            font-size: 12px;
+            color: #52525b;
+            text-decoration: none;
+        }
+
+        .footer-links a:hover {
+            color: #6366f1;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-page">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-logo">
+                <img src="https://raw.githubusercontent.com/mohak-biz2x/bank-x-merchant-dashboard/main/src/assets/Mal%20logo%20Dark.png" alt="Mal Business">
+            </div>
+        </header>
+
+        <div class="layout">
+            <main class="main-content">
+                <h1 class="page-title">Your Loan Applications</h1>
+
+                <table class="app-table">
+                    <thead>
+                        <tr>
+                            <th>Application Id</th>
+                            <th>Product</th>
+                            <th>Business Name</th>
+                            <th>Status</th>
+                            <th>Approved Limit</th>
+                            <th>Limit Expiry</th>
+                            <th>Documents</th>
+                            <th>Dashboard</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="applicationBody">
+                        <!-- Populated by JS on load -->
+                    </tbody>
+                </table>
+
+                <div class="table-footer">
+                    <span>Showing 1 to 1 of 1 entries</span>
+                    <div class="pagination">
+                        <span>Show</span>
+                        <select class="entries-select">
+                            <option>10</option>
+                        </select>
+                        <span>entries</span>
+                        <div class="page-controls">
+                            <button class="page-btn">⏮</button>
+                            <button class="page-btn">‹</button>
+                            <button class="page-btn active-page">1</button>
+                            <button class="page-btn">›</button>
+                            <button class="page-btn">⏭</button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-links">
+                <a href="#">Privacy policy</a>
+                <a href="#">Disclaimer</a>
+                <a href="#">Terms & conditions</a>
+            </div>
+            <p>&copy; 2026 Mal Bank. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Status definitions with colors and conditional data
+        var statuses = [
+            { label: 'In Progress', color: 'amber', approvedLimit: '-', limitExpiry: '-' },
+            { label: 'Application Submitted', color: 'blue', approvedLimit: '-', limitExpiry: '-' },
+            { label: 'In Review', color: 'blue', approvedLimit: '-', limitExpiry: '-' },
+            { label: 'In Manual Review', color: 'blue', approvedLimit: '-', limitExpiry: '-' },
+            { label: 'Pending Agreements Signing', color: 'amber', approvedLimit: 'AED 500,000', limitExpiry: '15 Sep 2026' },
+            { label: 'Pending Security Cheque', color: 'amber', approvedLimit: 'AED 500,000', limitExpiry: '15 Sep 2026' },
+            { label: 'Drawdown Enabled', color: 'green', approvedLimit: 'AED 500,000', limitExpiry: '15 Sep 2026' },
+            { label: 'Application Declined', color: 'red', approvedLimit: '-', limitExpiry: '-' },
+            { label: 'Offer Declined', color: 'red', approvedLimit: 'AED 500,000', limitExpiry: '15 Sep 2026' },
+            { label: 'Application Withdrawn', color: 'gray', approvedLimit: '-', limitExpiry: '-' }
+        ];
+
+        function getRandomStatus() {
+            return statuses[Math.floor(Math.random() * statuses.length)];
+        }
+
+        function renderRow() {
+            var status = getRandomStatus();
+            var tbody = document.getElementById('applicationBody');
+            tbody.innerHTML = '<tr>' +
+                '<td>15739073966</td>' +
+                '<td>Payable Invoice Financing</td>' +
+                '<td>ENCORE CLACK</td>' +
+                '<td>' +
+                    '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;">' +
+                        '<span class="status-badge ' + status.color + '">' + status.label + '</span>' +
+                        '<button class="refresh-btn" onclick="refreshStatus()" aria-label="Refresh status">' +
+                            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+                                '<polyline points="23 4 23 10 17 10"/>' +
+                                '<polyline points="1 20 1 14 7 14"/>' +
+                                '<path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>' +
+                            '</svg>' +
+                        '</button>' +
+                    '</div>' +
+                '</td>' +
+                '<td>' + status.approvedLimit + '</td>' +
+                '<td>' + status.limitExpiry + '</td>' +
+                '<td><a href="#" class="doc-link">Documents ▾</a></td>' +
+                '<td><button class="dashboard-btn">Go To Dashboard</button></td>' +
+                '<td class="action-cell">⋮</td>' +
+            '</tr>';
+        }
+
+        function refreshStatus() {
+            var btn = document.querySelector('.refresh-btn');
+            btn.classList.add('spinning');
+            setTimeout(function() {
+                btn.classList.remove('spinning');
+                renderRow();
+            }, 600);
+        }
+
+        // Render on page load with a random status
+        renderRow();
+    </script>
+
+</body>
+</html>

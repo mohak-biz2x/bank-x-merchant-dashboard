@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agreement Signing - Mal Bank</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #0a0b14;
+            background-image: url('../src/assets/Background.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            color: #e4e4e7;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(5, 5, 15, 0.95);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .agreements-card {
+            background: #0f1019;
+            border: 1px solid #1e1f2e;
+            border-radius: 16px;
+            padding: 36px 40px;
+            max-width: 680px;
+            width: 100%;
+            position: relative;
+        }
+
+        .agreements-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 32px;
+        }
+
+        .agreements-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: #a1a1aa;
+            cursor: pointer;
+            font-size: 22px;
+            transition: color 0.2s;
+        }
+
+        .agreements-close:hover {
+            color: #ffffff;
+        }
+
+        /* Stepper */
+        .stepper {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 32px;
+            padding: 0 10px;
+        }
+
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            position: relative;
+        }
+
+        .step-circle {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+            background-color: #2a2b3a;
+            color: #71717a;
+            position: relative;
+            z-index: 2;
+        }
+
+        .step.active .step-circle {
+            background-color: #3b82f6;
+            color: #ffffff;
+        }
+
+        .step-label {
+            font-size: 11px;
+            color: #71717a;
+            text-align: center;
+            line-height: 1.3;
+            max-width: 100px;
+        }
+
+        .step.active .step-label {
+            color: #ffffff;
+        }
+
+        .step-connector {
+            position: absolute;
+            top: 18px;
+            left: calc(50% + 22px);
+            right: calc(-50% + 22px);
+            height: 2px;
+            background-color: #2a2b3a;
+            z-index: 1;
+        }
+
+        .step:last-child .step-connector {
+            display: none;
+        }
+
+        /* Agreement Content */
+        .agreement-content {
+            background-color: #1a1b23;
+            border: 1px solid #2a2b3a;
+            border-radius: 12px;
+            padding: 24px;
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .agreement-doc-icon {
+            width: 40px;
+            height: 40px;
+            background-color: #2a2b3a;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .agreement-doc-icon svg {
+            width: 20px;
+            height: 20px;
+            color: #a1a1aa;
+        }
+
+        .agreement-info {
+            flex: 1;
+        }
+
+        .agreement-info h3 {
+            font-size: 15px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 6px;
+        }
+
+        .agreement-info p {
+            font-size: 13px;
+            color: #8a8a9a;
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+
+        .sign-btn {
+            background-color: #ffffff;
+            border: none;
+            color: #0f1019;
+            padding: 8px 24px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .sign-btn:hover {
+            opacity: 0.9;
+        }
+
+        /* Application reference */
+        .app-reference {
+            font-size: 11px;
+            color: #52525b;
+            margin-top: 20px;
+        }
+
+        .app-reference span {
+            color: #71717a;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="modal-overlay">
+        <div class="agreements-card">
+            <button class="agreements-close" aria-label="Close">✕</button>
+
+            <h2 class="agreements-title">Agreement Signing</h2>
+
+            <!-- Stepper -->
+            <div class="stepper">
+                <div class="step active">
+                    <div class="step-circle">1</div>
+                    <span class="step-connector"></span>
+                    <span class="step-label">On-sale Agreement</span>
+                </div>
+                <div class="step">
+                    <div class="step-circle">2</div>
+                    <span class="step-connector"></span>
+                    <span class="step-label">Master Purchase Agreement</span>
+                </div>
+                <div class="step">
+                    <div class="step-circle">3</div>
+                    <span class="step-connector"></span>
+                    <span class="step-label">DDS Agreement</span>
+                </div>
+                <div class="step">
+                    <div class="step-circle">4</div>
+                    <span class="step-label">Bank Account & Security Cheque</span>
+                </div>
+            </div>
+
+            <!-- Agreement Content -->
+            <div class="agreement-content">
+                <div class="agreement-doc-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                        <line x1="16" y1="13" x2="8" y2="13"/>
+                        <line x1="16" y1="17" x2="8" y2="17"/>
+                        <polyline points="10 9 9 9 8 9"/>
+                    </svg>
+                </div>
+                <div class="agreement-info">
+                    <h3>On-sale Agreement</h3>
+                    <p>Review and sign the On-sale Agreement between your entity and Mal Finance LLC. This agreement governs the sale and assignment of invoices.</p>
+                    <button class="sign-btn">Sign</button>
+                </div>
+            </div>
+
+            <p class="app-reference">Reference: <span>APP-2026-00847</span></p>
+        </div>
+    </div>
+
+</body>
+</html>

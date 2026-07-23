@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { ApplicationsModule } from "./ApplicationsModule";
 import { PremiumBuyerSupplierDashboard } from "./PremiumBuyerSupplierDashboard";
 import { Spotlight } from "./Spotlight";
+import { DashboardAnalytics } from "./DashboardAnalytics";
 
 export type MerchantRole = "both" | "receivable" | "payable" | "supplier-only" | "premium-buyer" | "premium-buyer-supplier";
 
@@ -865,6 +866,9 @@ export function MerchantDashboard() {
             </div>
           ))}
         </div>
+
+        {/* Insights & Analytics */}
+        <DashboardAnalytics role={role} />
 
         {/* Module Cards */}
         <div className={`grid grid-cols-1 ${filteredModules.length === 1 ? "md:grid-cols-1 max-w-lg" : filteredModules.length === 2 ? "md:grid-cols-2 max-w-3xl" : "md:grid-cols-2 lg:grid-cols-3"} gap-6 mb-6`}>

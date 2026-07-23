@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { getMerchantRole, getUnderwritingStatus } from "./MerchantDashboard";
 import type { MerchantRole } from "./MerchantDashboard";
 import { showToast } from "./Toast";
+import { HelpWidget } from "./HelpWidget";
 
 import { MalLogo } from "./MalLogo";
 import biz2xLogo from "@/assets/biz2X-m-logo.svg";
@@ -166,9 +167,9 @@ export function Layout() {
         </div>
       </footer>
 
-      <div className="fixed bottom-5 right-5 z-50" ref={demoPanelRef}>
+      <div className="fixed bottom-5 left-5 z-50" ref={demoPanelRef}>
         {showDemoPanel && (
-          <div className="absolute bottom-14 right-0 w-72 bg-white rounded-lg shadow-xl border border-gray-200 p-4 mb-2">
+          <div className="absolute bottom-14 left-0 w-72 bg-white rounded-lg shadow-xl border border-gray-200 p-4 mb-2">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-1.5">
                 <FlaskConical className="w-3.5 h-3.5 text-amber-600" />
@@ -290,6 +291,13 @@ export function Layout() {
         )}
         <button onClick={() => setShowDemoPanel(!showDemoPanel)} className="w-10 h-10 bg-amber-500 hover:bg-amber-600 text-white rounded-full shadow-lg flex items-center justify-center transition-colors" title="Demo: Switch merchant role"><FlaskConical className="w-5 h-5" /></button>
       </div>
+
+      {/* Help Widget */}
+      <HelpWidget currentContext={(() => {
+        const path = location.pathname;
+        if (path === "/") return "dashboard";
+        return path.replace(/^\//, "");
+      })()} />
     </div>
   );
 }

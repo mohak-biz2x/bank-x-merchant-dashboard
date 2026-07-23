@@ -320,6 +320,47 @@ export function BuyerInvoicesModule() {
   const totalAmount = lineItems.reduce((sum, item) => sum + (Number(item.invoiceAmount) || 0), 0);
   const selectedSupplierData = approvedSuppliers.find(s => s.id === selectedSupplier);
 
+  // ── Invoice Dedupe Detection ──
+  const KNOWN_CROSS_DUPLICATE_NUMBERS = ["12345"]; // Simulated cross-request duplicates
+
+  const getDuplicateFlags = (): { withinBatch: Set<number>; crossRequest: Set<number> } => {
+    const withinBatch = new Set<number>();
+    const crossRequest = new Set<number>();
+    const numberOccurrences: Record<string, number[]> = {};
+
+    lineItems.forEach((item, idx) => {
+      const num = item.invoiceNumber.trim();
+      if (!num) return;
+      if (!numberOccurrences[num]) numberOccurrences[num] = [];
+      numberOccurrences[num].push(idx);
+      // Cross-request check: known duplicate invoice numbers
+      if (KNOWN_CROSS_DUPLICATE_NUMBERS.includes(num)) {
+        crossRequest.add(idx);
+      }
+    });
+
+    // Within-batch: mark all indices where the same invoice number appears more than once
+    Object.values(numberOccurrences).forEach(indices => {
+      if (indices.length > 1) {
+        indices.forEach(idx => withinBatch.add(idx));
+      }
+    });
+
+    return { withinBatch, crossRequest };
+  };
+
+  const duplicateFlags = getDuplicateFlags();
+  const hasDuplicates = duplicateFlags.withinBatch.size > 0 || duplicateFlags.crossRequest.size > 0;
+  const isDuplicate = (idx: number) => duplicateFlags.withinBatch.has(idx) || duplicateFlags.crossRequest.has(idx);
+  const getDuplicateReason = (idx: number): string | null => {
+    if (duplicateFlags.withinBatch.has(idx) && duplicateFlags.crossRequest.has(idx)) {
+      return "Duplicate invoice number within this request & exists in prior submissions";
+    }
+    if (duplicateFlags.withinBatch.has(idx)) return "Duplicate invoice number within this request";
+    if (duplicateFlags.crossRequest.has(idx)) return "Invoice number already exists in prior submissions";
+    return null;
+  };
+
   const getInvoiceStatuses = (count: number): InvoiceStatus[] => {
     const outcome = localStorage.getItem("demo_invoice_outcome") || "all_approved";
     if (outcome === "all_approved") return Array(count).fill("approved");
@@ -336,6 +377,11 @@ export function BuyerInvoicesModule() {
   };
 
   const handleSubmit = () => {
+    // Block submission if duplicates exist
+    if (hasDuplicates) {
+      showToast("error", "Cannot submit: Duplicate invoices detected. Please remove or fix duplicate invoice numbers before submitting.");
+      return;
+    }
     setAddPhase("validating");
     setSubmitting(true);
     const validItems = lineItems.filter(item => item.invoiceNumber.trim());
@@ -711,22 +757,30 @@ export function BuyerInvoicesModule() {
             <span>{failedCount} invoice{failedCount !== 1 ? "s" : ""} could not be parsed. The document{failedCount !== 1 ? "s have" : " has"} been uploaded but details need to be entered manually.</span>
           </div>
         )}
+        {hasDuplicates && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+            <span>Duplicate invoices detected. {duplicateFlags.withinBatch.size > 0 ? "Some invoices share the same invoice number within this request. " : ""}{duplicateFlags.crossRequest.size > 0 ? "Some invoice numbers already exist in prior submissions. " : ""}Please remove or fix duplicates before submitting.</span>
+          </div>
+        )}
         <div className="space-y-3">
           {lineItems.map((item, index) => (
-            <div key={index} className={`border rounded-lg ${item.parsingFailed ? "border-amber-300 bg-amber-50/30" : "border-gray-200"}`}>
+            <div key={index} className={`border rounded-lg ${isDuplicate(index) ? "border-red-300 bg-red-50/30" : item.parsingFailed ? "border-amber-300 bg-amber-50/30" : "border-gray-200"}`}>
               <div className="flex items-center justify-between px-5 py-3 cursor-pointer" onClick={() => toggleExpand(index)}>
                 <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${item.parsingFailed ? "bg-amber-100 text-amber-700" : item.invoiceNumber ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
-                    {item.parsingFailed ? "!" : index + 1}
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${isDuplicate(index) ? "bg-red-100 text-red-700" : item.parsingFailed ? "bg-amber-100 text-amber-700" : item.invoiceNumber ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+                    {isDuplicate(index) ? "!" : item.parsingFailed ? "!" : index + 1}
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-900">{item.invoiceNumber || `Invoice ${index + 1}`}{item.parsingFailed ? " — Parse Failed" : ""}</p>
+                    <p className="text-sm font-medium text-gray-900">{item.invoiceNumber || `Invoice ${index + 1}`}{item.parsingFailed ? " — Parse Failed" : ""}{isDuplicate(index) ? " — Duplicate" : ""}</p>
                     <p className="text-xs text-gray-500">{item.invoiceCopy?.name || "No file"}{item.invoiceAmount ? ` · AED ${Number(item.invoiceAmount).toLocaleString()}` : ""}</p>
+                    {isDuplicate(index) && <p className="text-xs text-red-600 font-medium mt-0.5">{getDuplicateReason(index)}</p>}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  {item.parsingFailed && <span className="text-xs text-amber-600 font-medium">Manual entry required</span>}
-                  {!item.parsingFailed && item.invoiceNumber && <CheckCircle className="w-4 h-4 text-green-500" />}
+                  {isDuplicate(index) && <span className="text-xs text-red-600 font-medium">Duplicate</span>}
+                  {!isDuplicate(index) && item.parsingFailed && <span className="text-xs text-amber-600 font-medium">Manual entry required</span>}
+                  {!isDuplicate(index) && !item.parsingFailed && item.invoiceNumber && <CheckCircle className="w-4 h-4 text-green-500" />}
                   {lineItems.length > 1 && <button onClick={(e) => { e.stopPropagation(); handleRemoveLineItem(index); }} className="text-red-400 hover:text-red-600 p-1"><X className="w-3.5 h-3.5" /></button>}
                   <svg className={`w-4 h-4 text-gray-400 transition-transform ${item.expanded ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                 </div>

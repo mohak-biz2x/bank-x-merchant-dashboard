@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { Building2, X, FileText, Upload, CheckCircle, ArrowLeft, Check, Info, Plus, UserCheck, ReceiptText, Mail, Phone, Loader2, LogOut, ShieldCheck, Landmark } from "lucide-react";
 import { MalLogo } from "./MalLogo";
+import { HelpWidget } from "./HelpWidget";
 
 
 
@@ -98,6 +99,21 @@ export function CustomerJourneyPage() {
     { id: 7, name: "Bank Account Details" },
     { id: 8, name: "Review & Submit" },
   ];
+
+  // Map current step index to help widget context
+  const getJourneyContext = (step: number): string => {
+    switch (step) {
+      case 1: return "profile-creation";
+      case 2: return "kyb-verification";
+      case 3: return "aecb-credit-consent";
+      case 4: return "product-selection";
+      case 5: return "loan-product";
+      case 6: return "business-documents";
+      case 7: return "bank-account-details";
+      case 8: return "review-submit";
+      default: return "profile-creation";
+    }
+  };
 
   const visibleSteps = steps.filter(s => !s.hidden && !(currentStep >= 5 && s.id <= 4) && !(currentStep <= 4 && s.id >= 5));
 
@@ -943,6 +959,9 @@ export function CustomerJourneyPage() {
           </div>
         </div>
       </div>
+
+      {/* Help Widget - only shown on customer-facing steps (5-8), not MAL internal steps (1-4) */}
+      {currentStep >= 5 && <HelpWidget currentContext={getJourneyContext(currentStep)} />}
 
       {/* OTP Verification Modal */}
       {showOtpModal && (

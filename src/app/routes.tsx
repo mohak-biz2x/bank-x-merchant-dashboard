@@ -15,6 +15,7 @@ import { PremiumBuyerJourney } from "./components/PremiumBuyerJourney";
 import { StpFlowPage } from "./components/StpFlowPage";
 import { SigningCompletePage } from "./components/SigningCompletePage";
 import { AdditionalDocRequestPage } from "./components/AdditionalDocRequestPage";
+import { AgreementsPage } from "./components/AgreementsPage";
 import { PremiumBuyerLayout } from "./components/PremiumBuyerLayout";
 import { PremiumBuyerDashboard } from "./components/PremiumBuyerDashboard";
 import { PremiumBuyerSuppliers } from "./components/PremiumBuyerSuppliers";
@@ -73,6 +74,10 @@ export const router = createHashRouter([
   {
     path: "/additional_doc_req",
     Component: AdditionalDocRequestPage,
+  },
+  {
+    path: "/agreements",
+    Component: AgreementsPage,
   },
   {
     path: "/",

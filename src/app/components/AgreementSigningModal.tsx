@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Check, X, FileText, Upload, Copy, ExternalLink, RefreshCw, Clock, CheckCircle2 } from "lucide-react";
 import { DocuSignModal } from "./DocuSignModal";
 import { showToast } from "./Toast";
+import orbIcon from "@/assets/Group 2147260758.svg";
 
 export interface AgreementSigningModalProps {
   isOpen: boolean;
@@ -157,6 +158,114 @@ function DdsStep({ uaePassUrl, handleCopyUrl, handleOpenInNewTab, onComplete }: 
   );
 }
 
+/**
+ * MB-1208: Security Cheque Submission Confirmation Modal
+ * Shown after the security cheque is uploaded in the non-STP flow.
+ */
+function SecurityChequeConfirmationModal({
+  isOpen,
+  onClose,
+  approvedLimit,
+  applicationId,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  approvedLimit: number;
+  applicationId: string;
+}) {
+  if (!isOpen) return null;
+
+  const chequeAmount = (approvedLimit * 1.1).toLocaleString();
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ background: "rgba(5, 5, 15, 0.8)", backdropFilter: "blur(6px)" }}>
+      <div
+        className="relative w-full max-w-[580px] text-center rounded-2xl p-10 border"
+        style={{ background: "rgba(30, 31, 48, 0.9)", backdropFilter: "blur(16px)", borderColor: "rgba(255, 255, 255, 0.08)" }}
+      >
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="absolute top-3.5 right-3.5 w-8 h-8 rounded-full flex items-center justify-center transition-all"
+          style={{ background: "rgba(255, 255, 255, 0.05)", border: "1px solid rgba(255, 255, 255, 0.15)" }}
+          aria-label="Close"
+          data-testid="cheque-confirmation-close"
+        >
+          <X className="w-3.5 h-3.5 text-[#a1a1aa] hover:text-white" />
+        </button>
+
+        {/* Loader icon with slow drop animation */}
+        <div className="flex justify-center mb-6">
+          <img
+            src={orbIcon}
+            alt="Processing"
+            className="w-20 h-20 animate-[slowDrop_2.5s_ease-in-out_infinite]"
+          />
+        </div>
+
+        {/* Title */}
+        <h1 className="text-xl font-semibold text-white mb-5 tracking-tight">
+          Security Cheque Submission
+        </h1>
+
+        {/* Info Content */}
+        <div className="text-left mb-6 space-y-3">
+          <p className="text-sm text-[#8a8a9a] leading-relaxed">
+            To activate your drawdown facility, you are required to physically send a security cheque of{" "}
+            <strong className="text-[#d4d4d8]">AED {chequeAmount}</strong> (approved limit + 10%) to Mal Bank.
+            Your financing facility will remain on hold until the cheque is received and verified by our operations team.
+          </p>
+          <p className="text-sm text-[#8a8a9a] leading-relaxed">
+            Once Mal Bank confirms receipt of your security cheque, your{" "}
+            <strong className="text-[#d4d4d8]">drawdown facility will be enabled</strong> and you will be notified via email and within the portal.
+          </p>
+          <p className="text-sm text-[#8a8a9a] leading-relaxed">
+            Processing may take 2–3 business days after receipt.
+          </p>
+        </div>
+
+        {/* Mailing Address Card */}
+        <div
+          className="text-left rounded-xl p-5 mb-6 border"
+          style={{ background: "rgba(255, 255, 255, 0.03)", borderColor: "rgba(255, 255, 255, 0.08)" }}
+        >
+          <div className="text-[11px] font-semibold uppercase tracking-wide text-[#71717a] mb-2">
+            Send cheque to
+          </div>
+          <p className="text-[13px] text-[#d4d4d8] leading-relaxed">
+            Mal HQ<br />
+            21st floor, Sky Tower<br />
+            Al Reem Island<br />
+            Abu Dhabi, UAE
+          </p>
+        </div>
+
+        {/* Understood Button */}
+        <button
+          onClick={onClose}
+          className="bg-white text-[#0f1019] px-8 py-2.5 rounded-full text-sm font-semibold hover:opacity-90 transition-opacity mb-4"
+          data-testid="cheque-confirmation-understood"
+        >
+          Understood
+        </button>
+
+        {/* App Reference */}
+        <p className="text-[11px] text-[#52525b]">
+          Reference: <span className="text-[#71717a] font-mono">{applicationId}</span>
+        </p>
+      </div>
+
+      {/* Keyframe animation injected via style tag */}
+      <style>{`
+        @keyframes slowDrop {
+          0%, 100% { transform: translateY(-8px); opacity: 0.9; }
+          50% { transform: translateY(8px); opacity: 1; }
+        }
+      `}</style>
+    </div>
+  );
+}
+
 export function AgreementSigningModal({
   isOpen,
   onClose,
@@ -172,6 +281,7 @@ export function AgreementSigningModal({
     MOCK_ACCOUNTS.length === 1 ? MOCK_ACCOUNTS[0].id : null
   );
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [showChequeConfirmation, setShowChequeConfirmation] = useState(false);
 
   // Restore progress from localStorage on open
   useEffect(() => {
@@ -479,8 +589,8 @@ export function AgreementSigningModal({
                     showToast("info", "Email sent to Sarah Al Maktoum for verification");
                     // 6. Clear agreement_signing_progress from localStorage
                     localStorage.removeItem(STORAGE_KEY);
-                    // 7. Close modal via onComplete() callback
-                    onComplete();
+                    // 7. Show cheque confirmation modal (MB-1208)
+                    setShowChequeConfirmation(true);
                   }}
                   className={`w-full py-2.5 rounded-lg text-sm font-medium transition-colors ${
                     selectedAccount && uploadedFile
@@ -510,6 +620,17 @@ export function AgreementSigningModal({
           />
         )}
       </div>
+
+      {/* MB-1208: Security Cheque Submission Confirmation Modal */}
+      <SecurityChequeConfirmationModal
+        isOpen={showChequeConfirmation}
+        onClose={() => {
+          setShowChequeConfirmation(false);
+          onComplete();
+        }}
+        approvedLimit={approvedLimit}
+        applicationId={applicationId}
+      />
     </div>
   );
 }

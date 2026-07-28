@@ -111,6 +111,16 @@
             padding: 12px 0; border-top: 1px solid #2a2d3e;
         }
         .fee-label { font-size: 12px; color: #a1a1aa; }
+        .fee-label .info-icon {
+            cursor: help; position: relative; display: inline-block;
+        }
+        .fee-label .info-icon .tooltip {
+            display: none; position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
+            background: #1a1d2e; border: 1px solid #2a2d3e; border-radius: 8px;
+            padding: 10px 14px; font-size: 12px; color: #e4e4e7; width: 240px;
+            line-height: 1.5; box-shadow: 0 8px 24px rgba(0,0,0,0.4); z-index: 10;
+        }
+        .fee-label .info-icon:hover .tooltip { display: block; }
         .fee-value { font-size: 16px; font-weight: 600; color: #fff; }
 
         /* Upload Area */
@@ -385,7 +395,7 @@
                     </div>
 
                     <div class="fee-display">
-                        <div class="fee-label">Processing fee ⓘ</div>
+                        <div class="fee-label">Processing fee <span class="info-icon">ⓘ<span class="tooltip">This fee is based on your selected repayment type and tenor. You can go back to adjust these options if needed.</span></span></div>
                         <div class="fee-value">4.00%</div>
                     </div>
                 </div>

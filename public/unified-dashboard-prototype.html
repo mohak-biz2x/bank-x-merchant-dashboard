@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unified Dashboard - Mal Finance</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #0a0b14; color: #e4e4e7; min-height: 100vh;
+            background-image: url('./Background.png'), url('../src/assets/Background.png'), url('../docs/Background.png');
+            background-size: cover; background-position: center; background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+        .app { display: flex; min-height: 100vh; }
+
+        /* Sidebar */
+        .sidebar {
+            width: 230px; background: transparent; border-right: none;
+            display: flex; flex-direction: column; position: fixed; top: 0; left: 0;
+            height: 100vh; z-index: 50; padding: 20px 14px;
+        }
+        .sidebar-logo { display: flex; align-items: center; gap: 8px; padding: 8px 12px; margin-bottom: 32px; }
+        .sidebar-logo img { height: 28px; }
+        .sidebar-logo-text { font-size: 14px; font-weight: 600; color: #fff; }
+        .sidebar-toggle { width: 28px; height: 28px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #a1a1aa; cursor: pointer; font-size: 11px; margin-left: auto; }
+        .nav-items { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+        .nav-item {
+            display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px;
+            color: #a1a1aa; font-size: 14px; cursor: pointer; transition: all 0.15s;
+        }
+        .nav-item:hover { background: rgba(255,255,255,0.05); color: #e4e4e7; }
+        .nav-item.active { background: rgba(255,255,255,0.08); color: #fff; border: 1px solid rgba(255,255,255,0.1); }
+        .nav-item-icon { width: 20px; text-align: center; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+        .sidebar-bottom { margin-top: auto; display: flex; flex-direction: column; gap: 8px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.06); }
+        .sidebar-bottom .nav-item { font-size: 13px; }
+        .user-profile { display: flex; align-items: center; gap: 10px; padding: 10px 12px; }
+        .user-avatar { width: 28px; height: 28px; background: #166534; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #4ade80; font-weight: 600; }
+        .user-name { font-size: 12px; color: #d4d4d8; }
+
+        /* Main Content */
+        .main { margin-left: 230px; flex: 1; padding: 28px 36px; }
+        .page-header { font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 24px; }
+
+        /* Limit Cards */
+        .limit-cards { display: flex; gap: 16px; margin-bottom: 28px; }
+        .limit-card {
+            flex: 1; background: linear-gradient(135deg, #0f1a1a 0%, #121f1a 40%, #0f1a1a 100%);
+            border: 1px solid #1a2e2a; border-radius: 14px; padding: 20px 24px;
+        }
+        .limit-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+        .limit-card-label { font-size: 13px; color: #a1a1aa; }
+        .limit-card-badge { background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.25); color: #a5b4fc; padding: 3px 10px; border-radius: 6px; font-size: 10px; font-weight: 600; }
+        .limit-amount { font-size: 32px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+        .limit-total { font-size: 12px; color: #71717a; margin-bottom: 12px; }
+        .limit-bar { display: flex; gap: 3px; margin-bottom: 10px; }
+        .limit-segment { height: 8px; border-radius: 3px; flex: 1; }
+        .limit-footer { display: flex; justify-content: space-between; font-size: 12px; }
+        .limit-utilised { color: #d4d4d8; }
+        .limit-pct { color: #4ade80; }
+
+        /* Payment Tracker */
+        .section-title { font-size: 17px; font-weight: 600; color: #fff; margin-bottom: 16px; }
+        .payment-tracker {
+            background: linear-gradient(135deg, #0f1a1a 0%, #121f1a 40%, #0f1a1a 100%);
+            border: 1px solid #1a2e2a; border-radius: 14px; padding: 24px;
+            margin-bottom: 28px; display: flex; gap: 24px;
+        }
+        .pt-left { flex: 2; }
+        .pt-right { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-left: 1px solid #1a2e2a; padding-left: 24px; }
+        .pt-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+        .pt-status { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #4ade80; font-weight: 500; }
+        .pt-schedule {
+            display: flex; align-items: center; gap: 6px; font-size: 12px; color: #d4d4d8;
+            cursor: pointer; background: #1a2e2a; border: 1px solid #2a3e3a; padding: 6px 14px;
+            border-radius: 8px;
+        }
+        .pt-schedule:hover { border-color: #4ade80; color: #fff; }
+        .pt-metrics { display: flex; gap: 24px; margin-bottom: 24px; padding-left: 12px; border-left: 3px solid #2a3e3a; }
+        .pt-metric-label { font-size: 11px; color: #71717a; margin-bottom: 4px; }
+        .pt-metric-value { font-size: 18px; font-weight: 700; color: #fff; }
+        .pt-metric-due { font-size: 11px; color: #f87171; margin-top: 2px; }
+        .pt-chart { display: flex; align-items: flex-end; gap: 16px; height: 120px; padding-top: 10px; }
+        .pt-bar-group { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; }
+        .pt-bar { width: 32px; border-radius: 6px; background: linear-gradient(180deg, #4ade80 0%, #166534 100%); min-height: 10px; }
+        .pt-bar-label { font-size: 10px; color: #71717a; }
+        .pt-donut {
+            width: 180px; height: 180px; border-radius: 50%;
+            background: conic-gradient(#4ade80 0%, #22c55e 45%, #166534 82%, #2a3e3a 82%, #1a2e2a 91%, #27272a 91% 100%);
+            display: flex; align-items: center; justify-content: center; flex-direction: column;
+            position: relative; margin-bottom: 20px;
+            box-shadow: 0 0 30px rgba(74,222,128,0.1);
+        }
+        .pt-donut::after {
+            content: ''; position: absolute; width: 148px; height: 148px; border-radius: 50%;
+            background: linear-gradient(135deg, #0f1a1a 0%, #121f1a 50%, #0f1a1a 100%);
+        }
+        .pt-donut-value { font-size: 32px; font-weight: 700; color: #fff; position: relative; z-index: 1; }
+        .pt-donut-label { font-size: 12px; color: #71717a; position: relative; z-index: 1; }
+        .pt-history {
+            font-size: 13px; color: #d4d4d8; background: #2a3d3a;
+            border: none; padding: 14px 32px; border-radius: 12px; cursor: pointer;
+            text-align: center; width: 100%; font-weight: 500;
+        }
+        .pt-history:hover { background: #3a4d4a; color: #fff; }
+
+        /* Invoices & Suppliers Section */
+        .inv-section { margin-bottom: 28px; }
+        .inv-grid { display: grid; gap: 16px; }
+        .inv-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+        .inv-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+        .inv-card { background: linear-gradient(135deg, #0f1a1a 0%, #121f1a 40%, #0f1a1a 100%); border: 1px solid #1a2e2a; border-radius: 14px; padding: 20px; min-width: 0; }
+        .inv-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+        .inv-card-title { font-size: 15px; font-weight: 600; color: #fff; }
+        .inv-card-actions { display: flex; gap: 8px; }
+        .inv-card-btn { padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: 500; cursor: pointer; border: 1px solid #2a2d3e; background: #0f1019; color: #a1a1aa; }
+        .inv-card-btn:hover { border-color: #4ade80; color: #4ade80; }
+        .inv-card-btn.primary { background: #166534; border-color: #22c55e; color: #4ade80; }
+        .inv-card-stats { font-size: 11px; color: #71717a; margin-bottom: 16px; }
+        .inv-list { display: flex; flex-direction: column; gap: 10px; }
+        .inv-item { display: flex; align-items: center; gap: 12px; }
+        .inv-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; color: #fff; flex-shrink: 0; }
+        .inv-item-info { flex: 1; }
+        .inv-item-name { font-size: 12px; color: #e4e4e7; font-weight: 500; }
+        .inv-item-meta { font-size: 10px; color: #71717a; }
+        .inv-item-right { text-align: right; }
+        .inv-item-amount { font-size: 13px; font-weight: 600; color: #fff; }
+        .inv-item-status { font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 4px; }
+        .status-overdue { background: rgba(239,68,68,0.1); color: #f87171; }
+        .status-financed { background: rgba(34,197,94,0.1); color: #4ade80; }
+        .status-pending { background: rgba(245,158,11,0.1); color: #fbbf24; }
+        .status-repaid { background: rgba(99,102,241,0.1); color: #a5b4fc; }
+
+        /* Suppliers Donut */
+        .suppliers-donut-container { display: flex; flex-direction: column; align-items: center; padding: 12px 0; }
+        .suppliers-donut-wrapper { position: relative; width: 200px; height: 110px; margin-bottom: 8px; overflow: hidden; }
+        .suppliers-donut {
+            width: 200px; height: 200px; border-radius: 50%;
+            background: conic-gradient(from 180deg, #3b46a8 0% 14.5%, #60a5fa 14.5% 25%, #4ade80 25% 43%, #22c55e 43% 50%, #f59e0b 50% 66%, #ec4899 66% 80%, transparent 80% 100%);
+            position: absolute; top: 0; left: 0;
+        }
+        .suppliers-donut-inner {
+            position: absolute; top: 15px; left: 15px; width: 170px; height: 170px; border-radius: 50%;
+            background: linear-gradient(135deg, #0f1a1a 0%, #121f1a 40%, #0f1a1a 100%);
+        }
+        .suppliers-donut-text {
+            position: absolute; bottom: 0; left: 0; right: 0; text-align: center;
+        }
+        .suppliers-donut-value { font-size: 20px; font-weight: 700; color: #fff; }
+        .suppliers-donut-label { font-size: 11px; color: #71717a; }
+        .suppliers-legend { width: 100%; }
+        .legend-item { display: flex; align-items: center; justify-content: space-between; padding: 4px 0; font-size: 11px; }
+        .legend-left { display: flex; align-items: center; gap: 8px; color: #d4d4d8; }
+        .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .legend-amount { color: #fff; font-weight: 500; }
+
+        /* Scenario Switcher */
+        .scenario-switcher {
+            position: fixed; top: 12px; right: 20px; z-index: 100;
+            background: #ffffff; border-radius: 12px; padding: 6px 10px;
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .scenario-label { font-size: 9px; color: #dc2626; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; padding-top: 2px; }
+        .scenario-btns { display: flex; gap: 4px; }
+        .scenario-btn {
+            padding: 6px 14px; border-radius: 8px; font-size: 11px; font-weight: 500;
+            background: #f4f4f5; border: 1px solid #e4e4e7; color: #3f3f46; cursor: pointer;
+        }
+        .scenario-btn.active { background: #166534; border-color: #22c55e; color: #fff; }
+        .scenario-btn:hover:not(.active) { background: #e4e4e7; }
+        .hidden { display: none !important; }
+
+        /* Payment Schedule Modal */
+        .ps-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); display: none; align-items: center;
+            justify-content: center; z-index: 200;
+        }
+        .ps-overlay.show { display: flex; }
+        .ps-modal {
+            background: linear-gradient(135deg, #0f1a1a 0%, #121f1a 40%, #0f1a1a 100%);
+            border: 1px solid #1a2e2a; border-radius: 16px; padding: 28px 32px;
+            width: 680px; max-height: 80vh; overflow-y: auto;
+        }
+        .ps-modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+        .ps-modal-title { font-size: 18px; font-weight: 700; color: #fff; }
+        .ps-modal-close {
+            background: none; border: none; color: #71717a; font-size: 20px;
+            cursor: pointer; width: 32px; height: 32px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .ps-modal-close:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        .ps-section-title { font-size: 14px; font-weight: 600; color: #4ade80; margin-bottom: 12px; margin-top: 20px; }
+        .ps-section-title:first-of-type { margin-top: 0; }
+        .ps-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+        .ps-table th {
+            text-align: left; font-size: 11px; font-weight: 600; color: #71717a;
+            padding: 10px 12px; border-bottom: 1px solid #1a2e2a;
+        }
+        .ps-table td {
+            padding: 12px; font-size: 13px; color: #d4d4d8; border-bottom: 1px solid rgba(26,46,42,0.5);
+        }
+        .ps-table tr:last-child td { border-bottom: none; }
+        .ps-status { padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 500; }
+        .ps-status.upcoming { background: rgba(59,130,246,0.1); color: #60a5fa; }
+        .ps-status.overdue { background: rgba(239,68,68,0.1); color: #f87171; }
+        .ps-pagination { display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding-top: 8px; }
+
+        /* Tabs for Both view */
+        .ps-tabs { display: flex; gap: 0; margin-bottom: 20px; background: #0f1a1a; border-radius: 10px; padding: 4px; border: 1px solid #1a2e2a; }
+        .ps-tab {
+            flex: 1; padding: 10px 16px; text-align: center; font-size: 13px; font-weight: 500;
+            color: #71717a; border-radius: 8px; cursor: pointer; transition: all 0.15s;
+        }
+        .ps-tab.active { background: rgba(255,255,255,0.08); color: #fff; }
+        .ps-tab:hover:not(.active) { color: #a1a1aa; }
+        .ps-page-btn {
+            width: 28px; height: 28px; border-radius: 6px; border: 1px solid #1a2e2a;
+            background: transparent; color: #71717a; font-size: 11px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .ps-page-btn.active { background: #166534; border-color: #22c55e; color: #4ade80; }
+        .ps-page-btn:hover:not(.active) { border-color: #2a3e3a; color: #d4d4d8; }
+    </style>
+</head>
+<body>
+
+    <!-- Repayments History Modal -->
+    <div class="ps-overlay" id="rhModal">
+        <div class="ps-modal">
+            <div class="ps-modal-header">
+                <div class="ps-modal-title">Repayments History</div>
+                <button class="ps-modal-close" onclick="closeRhModal()">✕</button>
+            </div>
+
+            <!-- Single product -->
+            <div id="rhSingle">
+                <table class="ps-table">
+                    <thead><tr><th>Payment Date</th><th>Amount</th><th>Invoice Group</th><th>Due Date</th><th>Status</th></tr></thead>
+                    <tbody>
+                        <tr><td>15 Jul 2026</td><td style="color:#fff; font-weight:600;">AED 32,450.00</td><td><div style="font-size:10px; color:#71717a;">GRP-P001</div><div style="color:#e4e4e7; font-weight:500;">Emirates Steel</div></td><td>15 Jul 2026</td><td><span class="ps-status upcoming">On-time</span></td></tr>
+                        <tr><td>02 Jul 2026</td><td style="color:#fff; font-weight:600;">AED 18,900.00</td><td><div style="font-size:10px; color:#71717a;">GRP-P002</div><div style="color:#e4e4e7; font-weight:500;">Gulf Cement Co.</div></td><td>28 Jun 2026</td><td><span class="ps-status overdue">Delayed · 4 DPD</span></td></tr>
+                        <tr><td>15 Jun 2026</td><td style="color:#fff; font-weight:600;">AED 45,200.00</td><td><div style="font-size:10px; color:#71717a;">GRP-P004</div><div style="color:#e4e4e7; font-weight:500;">Al Futtaim Construction</div></td><td>15 Jun 2026</td><td><span class="ps-status upcoming">On-time</span></td></tr>
+                        <tr><td>01 Jun 2026</td><td style="color:#fff; font-weight:600;">AED 22,680.00</td><td><div style="font-size:10px; color:#71717a;">GRP-P006</div><div style="color:#e4e4e7; font-weight:500;">Deyaar MEP</div></td><td>01 Jun 2026</td><td><span class="ps-status upcoming">On-time</span></td></tr>
+                        <tr><td>18 May 2026</td><td style="color:#fff; font-weight:600;">AED 56,340.00</td><td><div style="font-size:10px; color:#71717a;">GRP-P008</div><div style="color:#e4e4e7; font-weight:500;">RAK Ceramics</div></td><td>15 May 2026</td><td><span class="ps-status overdue">Delayed · 3 DPD</span></td></tr>
+                    </tbody>
+                </table>
+                <div class="ps-pagination">
+                    <button class="ps-page-btn">‹</button>
+                    <button class="ps-page-btn active">1</button>
+                    <button class="ps-page-btn">2</button>
+                    <button class="ps-page-btn">3</button>
+                    <button class="ps-page-btn">›</button>
+                </div>
+            </div>
+
+            <!-- Both products with tabs -->
+            <div id="rhBoth" class="hidden">
+                <div class="ps-tabs">
+                    <div class="ps-tab active" onclick="switchRhTab('payable')">Pay My Invoice</div>
+                    <div class="ps-tab" onclick="switchRhTab('receivable')">Cash My Invoice</div>
+                </div>
+
+                <div id="rhTabPayable">
+                    <table class="ps-table">
+                        <thead><tr><th>Payment Date</th><th>Amount</th><th>Invoice Group</th><th>Due Date</th><th>Status</th></tr></thead>
+                        <tbody>
+                            <tr><td>15 Jul 2026</td><td style="color:#fff; font-weight:600;">AED 32,450.00</td><td><div style="font-size:10px; color:#71717a;">GRP-P001</div><div style="color:#e4e4e7; font-weight:500;">Emirates Steel</div></td><td>15 Jul 2026</td><td><span class="ps-status upcoming">On-time</span></td></tr>
+                            <tr><td>02 Jul 2026</td><td style="color:#fff; font-weight:600;">AED 18,900.00</td><td><div style="font-size:10px; color:#71717a;">GRP-P002</div><div style="color:#e4e4e7; font-weight:500;">Gulf Cement Co.</div></td><td>28 Jun 2026</td><td><span class="ps-status overdue">Delayed · 4 DPD</span></td></tr>
+                            <tr><td>15 Jun 2026</td><td style="color:#fff; font-weight:600;">AED 45,200.00</td><td><div style="font-size:10px; color:#71717a;">GRP-P004</div><div style="color:#e4e4e7; font-weight:500;">Al Futtaim Construction</div></td><td>15 Jun 2026</td><td><span class="ps-status upcoming">On-time</span></td></tr>
+                        </tbody>
+                    </table>
+                    <div class="ps-pagination">
+                        <button class="ps-page-btn">‹</button>
+                        <button class="ps-page-btn active">1</button>
+                        <button class="ps-page-btn">2</button>
+                        <button class="ps-page-btn">›</button>
+                    </div>
+                </div>
+
+                <div id="rhTabReceivable" class="hidden">
+                    <table class="ps-table">
+                        <thead><tr><th>Payment Date</th><th>Amount</th><th>Invoice Group</th><th>Due Date</th><th>Status</th></tr></thead>
+                        <tbody>
+                            <tr><td>10 Jul 2026</td><td style="color:#fff; font-weight:600;">AED 14,200.00</td><td><div style="font-size:10px; color:#71717a;">GRP-R001</div><div style="color:#e4e4e7; font-weight:500;">Apex Technologies</div></td><td>10 Jul 2026</td><td><span class="ps-status upcoming">On-time</span></td></tr>
+                            <tr><td>28 Jun 2026</td><td style="color:#fff; font-weight:600;">AED 8,750.00</td><td><div style="font-size:10px; color:#71717a;">GRP-R003</div><div style="color:#e4e4e7; font-weight:500;">National Corp.</div></td><td>25 Jun 2026</td><td><span class="ps-status overdue">Delayed · 3 DPD</span></td></tr>
+                            <tr><td>12 Jun 2026</td><td style="color:#fff; font-weight:600;">AED 19,500.00</td><td><div style="font-size:10px; color:#71717a;">GRP-R005</div><div style="color:#e4e4e7; font-weight:500;">Desert Holdings</div></td><td>12 Jun 2026</td><td><span class="ps-status upcoming">On-time</span></td></tr>
+                        </tbody>
+                    </table>
+                    <div class="ps-pagination">
+                        <button class="ps-page-btn">‹</button>
+                        <button class="ps-page-btn active">1</button>
+                        <button class="ps-page-btn">2</button>
+                        <button class="ps-page-btn">›</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Schedule Modal -->
+    <div class="ps-overlay" id="psModal">
+        <div class="ps-modal">
+            <div class="ps-modal-header">
+                <div class="ps-modal-title">Payment Schedule</div>
+                <button class="ps-modal-close" onclick="closePsModal()">✕</button>
+            </div>
+
+            <!-- Single product section -->
+            <div id="psSingle">
+                <table class="ps-table">
+                    <thead><tr><th>Due Date</th><th>Amount</th><th>Invoice Group</th><th>Status</th></tr></thead>
+                    <tbody>
+                        <tr><td>21 Jul 2026</td><td style="color:#fff; font-weight:600;">AED 26,574.63</td><td><div style="font-size:10px; color:#71717a;">GRP-P003</div><div style="color:#e4e4e7; font-weight:500;">Emirates Steel</div></td><td><span class="ps-status upcoming">Upcoming</span></td></tr>
+                        <tr><td>05 Aug 2026</td><td style="color:#fff; font-weight:600;">AED 18,230.00</td><td><div style="font-size:10px; color:#71717a;">GRP-P005</div><div style="color:#e4e4e7; font-weight:500;">Al Futtaim Construction</div></td><td><span class="ps-status upcoming">Upcoming</span></td></tr>
+                        <tr><td>12 Aug 2026</td><td style="color:#fff; font-weight:600;">AED 42,100.50</td><td><div style="font-size:10px; color:#71717a;">GRP-P007</div><div style="color:#e4e4e7; font-weight:500;">Gulf Cement Co.</div></td><td><span class="ps-status upcoming">Upcoming</span></td></tr>
+                        <tr><td>28 Aug 2026</td><td style="color:#fff; font-weight:600;">AED 15,890.00</td><td><div style="font-size:10px; color:#71717a;">GRP-P009</div><div style="color:#e4e4e7; font-weight:500;">Deyaar MEP</div></td><td><span class="ps-status upcoming">Upcoming</span></td></tr>
+                        <tr><td>10 Sep 2026</td><td style="color:#fff; font-weight:600;">AED 31,450.25</td><td><div style="font-size:10px; color:#71717a;">GRP-P011</div><div style="color:#e4e4e7; font-weight:500;">RAK Ceramics</div></td><td><span class="ps-status upcoming">Upcoming</span></td></tr>
+                    </tbody>
+                </table>
+                <div class="ps-pagination">
+                    <button class="ps-page-btn">‹</button>
+                    <button class="ps-page-btn active">1</button>
+                    <button class="ps-page-btn">2</button>
+                    <button class="ps-page-btn">3</button>
+                    <button class="ps-page-btn">›</button>
+                </div>
+            </div>
+
+            <!-- Both products with tabs -->
+            <div id="psBoth" class="hidden">
+                <div class="ps-tabs">
+                    <div class="ps-tab active" onclick="switchPsTab('payable')">Pay My Invoice</div>
+                    <div class="ps-tab" onclick="switchPsTab('receivable')">Cash My Invoice</div>
+                </div>
+
+                <div id="psTabPayable">
+                    <table class="ps-table">
+                        <thead><tr><th>Due Date</th><th>Amount</th><th>Invoice Group</th><th>Status</th></tr></thead>
+                        <tbody>
+                            <tr><td>21 Jul 2026</td><td style="color:#fff; font-weight:600;">AED 26,574.63</td><td><div style="font-size:10px; color:#71717a;">GRP-P003</div><div style="color:#e4e4e7; font-weight:500;">Emirates Steel</div></td><td><span class="ps-status overdue">Overdue</span></td></tr>
+                            <tr><td>05 Aug 2026</td><td style="color:#fff; font-weight:600;">AED 18,230.00</td><td><div style="font-size:10px; color:#71717a;">GRP-P005</div><div style="color:#e4e4e7; font-weight:500;">Al Futtaim Construction</div></td><td><span class="ps-status upcoming">Upcoming</span></td></tr>
+                            <tr><td>12 Aug 2026</td><td style="color:#fff; font-weight:600;">AED 42,100.50</td><td><div style="font-size:10px; color:#71717a;">GRP-P007</div><div style="color:#e4e4e7; font-weight:500;">Gulf Cement Co.</div></td><td><span class="ps-status upcoming">Upcoming</span></td></tr>
+                            <tr><td>28 Aug 2026</td><td style="color:#fff; font-weight:600;">AED 15,890.00</td><td><div style="font-size:10px; color:#71717a;">GRP-P009</div><div style="color:#e4e4e7; font-weight:500;">Deyaar MEP</div></td><td><span class="ps-status upcoming">Upcoming</span></td></tr>
+                        </tbody>
+                    </table>
+                    <div class="ps-pagination">
+                        <button class="ps-page-btn">‹</button>
+                        <button class="ps-page-btn active">1</button>
+                        <button class="ps-page-btn">2</button>
+                        <button class="ps-page-btn">›</button>
+                    </div>
+                </div>
+
+                <div id="psTabReceivable" class="hidden">
+                    <table class="ps-table">
+                        <thead><tr><th>Due Date</th><th>Amount</th><th>Invoice Group</th><th>Status</th></tr></thead>
+                        <tbody>
+                            <tr><td>28 Jul 2026</td><td style="color:#fff; font-weight:600;">AED 14,656.17</td><td><div style="font-size:10px; color:#71717a;">GRP-R002</div><div style="color:#e4e4e7; font-weight:500;">Apex Technologies</div></td><td><span class="ps-status upcoming">Upcoming</span></td></tr>
+                            <tr><td>15 Aug 2026</td><td style="color:#fff; font-weight:600;">AED 22,340.00</td><td><div style="font-size:10px; color:#71717a;">GRP-R004</div><div style="color:#e4e4e7; font-weight:500;">National Corp.</div></td><td><span class="ps-status upcoming">Upcoming</span></td></tr>
+                            <tr><td>02 Sep 2026</td><td style="color:#fff; font-weight:600;">AED 9,870.50</td><td><div style="font-size:10px; color:#71717a;">GRP-R006</div><div style="color:#e4e4e7; font-weight:500;">Desert Holdings</div></td><td><span class="ps-status upcoming">Upcoming</span></td></tr>
+                        </tbody>
+                    </table>
+                    <div class="ps-pagination">
+                        <button class="ps-page-btn">‹</button>
+                        <button class="ps-page-btn active">1</button>
+                        <button class="ps-page-btn">2</button>
+                        <button class="ps-page-btn">›</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scenario Switcher -->
+    <div class="scenario-switcher">
+        <div class="scenario-label">Prototype Navigation</div>
+        <div class="scenario-btns">
+            <button class="scenario-btn active" onclick="setScenario('payable')">Payable Only</button>
+            <button class="scenario-btn" onclick="setScenario('receivable')">Receivable Only</button>
+            <button class="scenario-btn" onclick="setScenario('both')">Both</button>
+        </div>
+    </div>
+
+    <div class="app">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="sidebar-logo">
+                <img src="../src/assets/Mal Logo.png" alt="Mal" style="height:28px;">
+                <span style="font-size:15px; font-weight:600; color:#fff;">Finance</span>
+                <div class="sidebar-toggle">☰</div>
+            </div>
+            <div class="nav-items" id="navItems">
+                <div class="nav-item active"><span class="nav-item-icon">⊞</span> Dashboard</div>
+                <div class="nav-item" id="navPayable"><span class="nav-item-icon"><img src="../src/assets/Invoices Icon.png" style="width:16px; height:16px;"></span> Payable Invoices</div>
+                <div class="nav-item hidden" id="navReceivable"><span class="nav-item-icon"><img src="../src/assets/Invoices Icon.png" style="width:16px; height:16px;"></span> Receivable Invoices</div>
+                <div class="nav-item"><span class="nav-item-icon"><img src="../src/assets/Supplier Icon.png" style="width:16px; height:16px;"></span> Suppliers</div>
+                <div class="nav-item"><span class="nav-item-icon"><img src="../src/assets/Insights icon.png" style="width:16px; height:16px;"></span> Insights</div>
+                <div class="nav-item"><span class="nav-item-icon"><img src="../src/assets/Union.png" style="width:16px; height:16px;"></span> Applications</div>
+            </div>
+            <div class="sidebar-bottom">
+                <div class="nav-item"><span class="nav-item-icon"><img src="../src/assets/question mark circle.png" style="width:16px; height:16px;"></span> Help</div>
+                <div class="user-profile">
+                    <div class="user-avatar">FW</div>
+                    <div class="user-name">Fatima Wadih</div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main">
+            <div class="page-header">Dashboard</div>
+
+            <!-- Limit Cards -->
+            <div class="limit-cards" id="limitCards">
+                <div class="limit-card" id="limitPayable">
+                    <div class="limit-card-header">
+                        <div class="limit-card-label">Available Credit - Pay My Invoice</div>
+                        <div class="limit-card-badge">APP-2026-001</div>
+                    </div>
+                    <div class="limit-amount">AED 240,000</div>
+                    <div class="limit-total">of AED 1,000,000 total</div>
+                    <div class="limit-bar">
+                        <div class="limit-segment" style="background:#22c55e;"></div>
+                        <div class="limit-segment" style="background:#16a34a;"></div>
+                        <div class="limit-segment" style="background:#4ade80;"></div>
+                        <div class="limit-segment" style="background:#86efac;"></div>
+                        <div class="limit-segment" style="background:#fbbf24;"></div>
+                        <div class="limit-segment" style="background:#f59e0b;"></div>
+                        <div class="limit-segment" style="background:#f97316;"></div>
+                        <div class="limit-segment" style="background:#71717a;"></div>
+                        <div class="limit-segment" style="background:#52525b;"></div>
+                        <div class="limit-segment" style="background:#3f3f46;"></div>
+                    </div>
+                    <div class="limit-footer">
+                        <div class="limit-utilised">Utilised: AED 660,000</div>
+                        <div class="limit-pct">64% used</div>
+                    </div>
+                </div>
+                <div class="limit-card hidden" id="limitReceivable">
+                    <div class="limit-card-header">
+                        <div class="limit-card-label">Available Credit - Cash My Invoice</div>
+                        <div class="limit-card-badge">APP-2026-002</div>
+                    </div>
+                    <div class="limit-amount">AED 200,000</div>
+                    <div class="limit-total">of AED 1,000,000 total</div>
+                    <div class="limit-bar">
+                        <div class="limit-segment" style="background:#22c55e;"></div>
+                        <div class="limit-segment" style="background:#16a34a;"></div>
+                        <div class="limit-segment" style="background:#4ade80;"></div>
+                        <div class="limit-segment" style="background:#71717a;"></div>
+                        <div class="limit-segment" style="background:#71717a;"></div>
+                        <div class="limit-segment" style="background:#52525b;"></div>
+                        <div class="limit-segment" style="background:#52525b;"></div>
+                        <div class="limit-segment" style="background:#3f3f46;"></div>
+                        <div class="limit-segment" style="background:#3f3f46;"></div>
+                        <div class="limit-segment" style="background:#3f3f46;"></div>
+                    </div>
+                    <div class="limit-footer">
+                        <div class="limit-utilised">Utilised: AED 660,000</div>
+                        <div class="limit-pct">64% used</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Tracker -->
+            <div class="section-title">Payment tracker</div>
+            <!-- Single product payment tracker -->
+            <div class="payment-tracker" id="ptSingle">
+                <div class="pt-left">
+                    <div class="pt-header">
+                        <div class="pt-status">✓ All payments paid</div>
+                        <div class="pt-schedule"><img src="../src/assets/Calendar MD.png" style="width:14px; height:14px;"> Payment schedule</div>
+                    </div>
+                    <div class="pt-metrics">
+                        <div>
+                            <div class="pt-metric-label">Next repayment</div>
+                            <div class="pt-metric-value">AED  26,574.63</div>
+                            <div class="pt-metric-due">Due 21 Jul · in 4 days</div>
+                        </div>
+                        <div>
+                            <div class="pt-metric-label">Total outstanding</div>
+                            <div class="pt-metric-value">AED  132,873.15</div>
+                        </div>
+                    </div>
+                    <div class="pt-chart">
+                        <div class="pt-bar-group"><div class="pt-bar" style="height:100px;"></div><div class="pt-bar-label">Jan</div></div>
+                        <div class="pt-bar-group"><div class="pt-bar" style="height:70px;"></div><div class="pt-bar-label">Feb</div></div>
+                        <div class="pt-bar-group"><div class="pt-bar" style="height:50px;"></div><div class="pt-bar-label">Mar</div></div>
+                        <div class="pt-bar-group"><div class="pt-bar" style="height:40px;"></div><div class="pt-bar-label">Apr</div></div>
+                        <div class="pt-bar-group"><div class="pt-bar" style="height:60px;"></div><div class="pt-bar-label">May</div></div>
+                        <div class="pt-bar-group"><div class="pt-bar" style="height:55px;"></div><div class="pt-bar-label">June</div></div>
+                    </div>
+                </div>
+                <div class="pt-right">
+                    <div class="pt-donut">
+                        <div class="pt-donut-value">91%</div>
+                        <div class="pt-donut-label">On-Time repayments</div>
+                    </div>
+                    <div class="pt-history">Repayments history</div>
+                </div>
+            </div>
+            <!-- Both products payment tracker (stacked bars with legend) -->
+            <div class="payment-tracker hidden" id="ptBoth">
+                <div class="pt-left">
+                    <div class="pt-header">
+                        <div class="pt-status">✓ All payments paid</div>
+                        <div style="display:flex; align-items:center; gap:16px;">
+                            <div style="display:flex; align-items:center; gap:6px; font-size:11px;"><div style="width:10px; height:10px; border-radius:3px; background:#4ade80;"></div><span style="color:#a1a1aa;">Payable</span></div>
+                            <div style="display:flex; align-items:center; gap:6px; font-size:11px;"><div style="width:10px; height:10px; border-radius:3px; background:#818cf8;"></div><span style="color:#a1a1aa;">Receivable</span></div>
+                            <div class="pt-schedule"><img src="../src/assets/Calendar MD.png" style="width:14px; height:14px;"> Payment schedule</div>
+                        </div>
+                    </div>
+                    <div class="pt-metrics">
+                        <div>
+                            <div class="pt-metric-label">Next repayment (combined)</div>
+                            <div class="pt-metric-value">AED  41,230.80</div>
+                            <div class="pt-metric-due">Due 21 Jul · in 4 days</div>
+                        </div>
+                        <div>
+                            <div class="pt-metric-label">Total outstanding (combined)</div>
+                            <div class="pt-metric-value">AED  248,541.25</div>
+                        </div>
+                    </div>
+                    <div class="pt-chart">
+                        <div class="pt-bar-group"><div style="display:flex; flex-direction:column; gap:2px; align-items:center;"><div class="pt-bar" style="height:40px; background:linear-gradient(180deg, #818cf8 0%, #4f46e5 100%); width:32px; border-radius:6px;"></div><div class="pt-bar" style="height:60px;"></div></div><div class="pt-bar-label">Jan</div></div>
+                        <div class="pt-bar-group"><div style="display:flex; flex-direction:column; gap:2px; align-items:center;"><div class="pt-bar" style="height:30px; background:linear-gradient(180deg, #818cf8 0%, #4f46e5 100%); width:32px; border-radius:6px;"></div><div class="pt-bar" style="height:40px;"></div></div><div class="pt-bar-label">Feb</div></div>
+                        <div class="pt-bar-group"><div style="display:flex; flex-direction:column; gap:2px; align-items:center;"><div class="pt-bar" style="height:25px; background:linear-gradient(180deg, #818cf8 0%, #4f46e5 100%); width:32px; border-radius:6px;"></div><div class="pt-bar" style="height:30px;"></div></div><div class="pt-bar-label">Mar</div></div>
+                        <div class="pt-bar-group"><div style="display:flex; flex-direction:column; gap:2px; align-items:center;"><div class="pt-bar" style="height:20px; background:linear-gradient(180deg, #818cf8 0%, #4f46e5 100%); width:32px; border-radius:6px;"></div><div class="pt-bar" style="height:25px;"></div></div><div class="pt-bar-label">Apr</div></div>
+                        <div class="pt-bar-group"><div style="display:flex; flex-direction:column; gap:2px; align-items:center;"><div class="pt-bar" style="height:35px; background:linear-gradient(180deg, #818cf8 0%, #4f46e5 100%); width:32px; border-radius:6px;"></div><div class="pt-bar" style="height:35px;"></div></div><div class="pt-bar-label">May</div></div>
+                        <div class="pt-bar-group"><div style="display:flex; flex-direction:column; gap:2px; align-items:center;"><div class="pt-bar" style="height:28px; background:linear-gradient(180deg, #818cf8 0%, #4f46e5 100%); width:32px; border-radius:6px;"></div><div class="pt-bar" style="height:30px;"></div></div><div class="pt-bar-label">June</div></div>
+                    </div>
+                </div>
+                <div class="pt-right">
+                    <div class="pt-donut">
+                        <div class="pt-donut-value">88%</div>
+                        <div class="pt-donut-label">On-Time repayments</div>
+                    </div>
+                    <div class="pt-history">Repayments history</div>
+                </div>
+            </div>
+
+            <!-- Invoices & Suppliers -->
+            <div class="section-title">Invoices & Suppliers</div>
+            <div class="inv-section">
+                <div class="inv-grid cols-2" id="invGrid">
+                    <!-- Payable Invoices Card -->
+                    <div class="inv-card" id="invPayable">
+                        <div class="inv-card-header">
+                            <div class="inv-card-title">Payable Invoices</div>
+                            <div class="inv-card-actions">
+                                <button class="inv-card-btn primary">+ Create</button>
+                                <button class="inv-card-btn">View all</button>
+                            </div>
+                        </div>
+                        <div class="inv-card-stats">82 invoices · 18 pending · 64 approved</div>
+                        <div class="inv-list">
+                            <div class="inv-item"><div class="inv-avatar" style="background:#2563eb;">ES</div><div class="inv-item-info"><div class="inv-item-name">Emirates Steel</div><div class="inv-item-meta">INV-2291 · 21 Jun</div></div><div class="inv-item-right"><div class="inv-item-amount">AED 96,150</div><div class="inv-item-status status-overdue">Overdue 3d</div></div></div>
+                            <div class="inv-item"><div class="inv-avatar" style="background:#7c3aed;">AF</div><div class="inv-item-info"><div class="inv-item-name">Al Futtaim Construction</div><div class="inv-item-meta">INV-2288 · 12 Jul</div></div><div class="inv-item-right"><div class="inv-item-amount">AED 148,000</div><div class="inv-item-status status-financed">Financed</div></div></div>
+                            <div class="inv-item"><div class="inv-avatar" style="background:#059669;">GC</div><div class="inv-item-info"><div class="inv-item-name">Gulf Cement Co.</div><div class="inv-item-meta">INV-2285 · 09 Jul</div></div><div class="inv-item-right"><div class="inv-item-amount">AED 72,400</div><div class="inv-item-status status-financed">Financed</div></div></div>
+                            <div class="inv-item"><div class="inv-avatar" style="background:#d97706;">DM</div><div class="inv-item-info"><div class="inv-item-name">Deyaar MEP</div><div class="inv-item-meta">INV-2284 · 08 Jul</div></div><div class="inv-item-right"><div class="inv-item-amount">AED 54,900</div><div class="inv-item-status status-pending">Pending</div></div></div>
+                            <div class="inv-item"><div class="inv-avatar" style="background:#dc2626;">RC</div><div class="inv-item-info"><div class="inv-item-name">RAK Ceramics</div><div class="inv-item-meta">INV-2279 · 02 Jul</div></div><div class="inv-item-right"><div class="inv-item-amount">AED 61,200</div><div class="inv-item-status status-repaid">Repaid</div></div></div>
+                        </div>
+                    </div>
+
+                    <!-- Receivable Invoices Card -->
+                    <div class="inv-card hidden" id="invReceivable">
+                        <div class="inv-card-header">
+                            <div class="inv-card-title">Receivable Invoices</div>
+                            <div class="inv-card-actions">
+                                <button class="inv-card-btn primary">+ Create</button>
+                            </div>
+                        </div>
+                        <div class="inv-card-stats">82 invoices · 18 pending · 64 approved</div>
+                        <div class="inv-list">
+                            <div class="inv-item"><div class="inv-avatar" style="background:#2563eb;">ES</div><div class="inv-item-info"><div class="inv-item-name">Emirates Steel</div><div class="inv-item-meta">INV-2291 · 21 Jun</div></div><div class="inv-item-right"><div class="inv-item-amount">AED 96,150</div><div class="inv-item-status status-overdue">Overdue 3d</div></div></div>
+                            <div class="inv-item"><div class="inv-avatar" style="background:#7c3aed;">AF</div><div class="inv-item-info"><div class="inv-item-name">Al Futtaim Construction</div><div class="inv-item-meta">INV-2288 · 12 Jul</div></div><div class="inv-item-right"><div class="inv-item-amount">AED 148,000</div><div class="inv-item-status status-financed">Financed</div></div></div>
+                            <div class="inv-item"><div class="inv-avatar" style="background:#059669;">GC</div><div class="inv-item-info"><div class="inv-item-name">Gulf Cement Co.</div><div class="inv-item-meta">INV-2285 · 09 Jul</div></div><div class="inv-item-right"><div class="inv-item-amount">AED 72,400</div><div class="inv-item-status status-financed">Financed</div></div></div>
+                            <div class="inv-item"><div class="inv-avatar" style="background:#d97706;">DM</div><div class="inv-item-info"><div class="inv-item-name">Deyaar MEP</div><div class="inv-item-meta">INV-2284 · 08 Jul</div></div><div class="inv-item-right"><div class="inv-item-amount">AED 54,900</div><div class="inv-item-status status-pending">Pending</div></div></div>
+                            <div class="inv-item"><div class="inv-avatar" style="background:#dc2626;">RC</div><div class="inv-item-info"><div class="inv-item-name">RAK Ceramics</div><div class="inv-item-meta">INV-2279 · 02 Jul</div></div><div class="inv-item-right"><div class="inv-item-amount">AED 61,200</div><div class="inv-item-status status-repaid">Repaid</div></div></div>
+                        </div>
+                    </div>
+
+                    <!-- Suppliers Card -->
+                    <div class="inv-card" id="invSuppliers">
+                        <div class="inv-card-header">
+                            <div class="inv-card-title">Suppliers</div>
+                            <div class="inv-card-actions">
+                                <button class="inv-card-btn primary">+ Add new</button>
+                            </div>
+                        </div>
+                        <div class="inv-card-stats">6 suppliers · 4 active · 0 pending</div>
+                        <div class="suppliers-donut-container">
+                            <div class="suppliers-donut-wrapper">
+                                <div class="suppliers-donut"></div>
+                                <div class="suppliers-donut-inner"></div>
+                                <div class="suppliers-donut-text">
+                                    <div class="suppliers-donut-value">AED 1.93M</div>
+                                    <div class="suppliers-donut-label">Financed</div>
+                                </div>
+                            </div>
+                            <div class="suppliers-legend">
+                                <div class="legend-item"><div class="legend-left"><div class="legend-dot" style="background:#3b82f6;"></div> Al Futtaim Construction</div><div class="legend-amount">AED 561K</div></div>
+                                <div class="legend-item"><div class="legend-left"><div class="legend-dot" style="background:#4ade80;"></div> Emirates Steel</div><div class="legend-amount">AED 402K</div></div>
+                                <div class="legend-item"><div class="legend-left"><div class="legend-dot" style="background:#22c55e;"></div> Gulf Cement Co.</div><div class="legend-amount">AED 361K</div></div>
+                                <div class="legend-item"><div class="legend-left"><div class="legend-dot" style="background:#f59e0b;"></div> Deyaar MEP</div><div class="legend-amount">AED 309K</div></div>
+                                <div class="legend-item"><div class="legend-left"><div class="legend-dot" style="background:#ec4899;"></div> 2 others</div><div class="legend-amount">AED 300K</div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function setScenario(scenario) {
+            // Update buttons
+            document.querySelectorAll('.scenario-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+
+            const navPayable = document.getElementById('navPayable');
+            const navReceivable = document.getElementById('navReceivable');
+            const limitPayable = document.getElementById('limitPayable');
+            const limitReceivable = document.getElementById('limitReceivable');
+            const invPayable = document.getElementById('invPayable');
+            const invReceivable = document.getElementById('invReceivable');
+            const invSuppliers = document.getElementById('invSuppliers');
+            const invGrid = document.getElementById('invGrid');
+
+            if (scenario === 'payable') {
+                navPayable.classList.remove('hidden');
+                navReceivable.classList.add('hidden');
+                limitPayable.classList.remove('hidden');
+                limitReceivable.classList.add('hidden');
+                invPayable.classList.remove('hidden');
+                invReceivable.classList.add('hidden');
+                invSuppliers.classList.remove('hidden');
+                invGrid.className = 'inv-grid cols-2';
+                document.getElementById('ptSingle').classList.remove('hidden');
+                document.getElementById('ptBoth').classList.add('hidden');
+            } else if (scenario === 'receivable') {
+                navPayable.classList.add('hidden');
+                navReceivable.classList.remove('hidden');
+                limitPayable.classList.add('hidden');
+                limitReceivable.classList.remove('hidden');
+                invPayable.classList.add('hidden');
+                invReceivable.classList.remove('hidden');
+                invSuppliers.classList.add('hidden');
+                invGrid.className = 'inv-grid cols-2';
+                document.getElementById('ptSingle').classList.remove('hidden');
+                document.getElementById('ptBoth').classList.add('hidden');
+            } else if (scenario === 'both') {
+                navPayable.classList.remove('hidden');
+                navReceivable.classList.remove('hidden');
+                limitPayable.classList.remove('hidden');
+                limitReceivable.classList.remove('hidden');
+                invPayable.classList.remove('hidden');
+                invReceivable.classList.remove('hidden');
+                invSuppliers.classList.remove('hidden');
+                invGrid.className = 'inv-grid cols-3';
+                document.getElementById('ptSingle').classList.add('hidden');
+                document.getElementById('ptBoth').classList.remove('hidden');
+            }
+        }
+        // Payment Schedule Modal
+        function openPsModal() {
+            const isBoth = !document.getElementById('limitReceivable').classList.contains('hidden') && !document.getElementById('limitPayable').classList.contains('hidden');
+            document.getElementById('psSingle').classList.toggle('hidden', isBoth);
+            document.getElementById('psBoth').classList.toggle('hidden', !isBoth);
+            document.getElementById('psModal').classList.add('show');
+        }
+        function closePsModal() { document.getElementById('psModal').classList.remove('show'); }
+        document.getElementById('psModal').addEventListener('click', function(e) { if (e.target === this) closePsModal(); });
+
+        // Repayments History Modal
+        function openRhModal() {
+            const isBoth = !document.getElementById('limitReceivable').classList.contains('hidden') && !document.getElementById('limitPayable').classList.contains('hidden');
+            document.getElementById('rhSingle').classList.toggle('hidden', isBoth);
+            document.getElementById('rhBoth').classList.toggle('hidden', !isBoth);
+            document.getElementById('rhModal').classList.add('show');
+        }
+        function closeRhModal() { document.getElementById('rhModal').classList.remove('show'); }
+        document.getElementById('rhModal').addEventListener('click', function(e) { if (e.target === this) closeRhModal(); });
+
+        function switchRhTab(tab) {
+            const tabs = document.querySelectorAll('#rhBoth .ps-tab');
+            tabs.forEach(t => t.classList.remove('active'));
+            if (tab === 'payable') {
+                tabs[0].classList.add('active');
+                document.getElementById('rhTabPayable').classList.remove('hidden');
+                document.getElementById('rhTabReceivable').classList.add('hidden');
+            } else {
+                tabs[1].classList.add('active');
+                document.getElementById('rhTabPayable').classList.add('hidden');
+                document.getElementById('rhTabReceivable').classList.remove('hidden');
+            }
+        }
+
+        function switchPsTab(tab) {
+            document.querySelectorAll('.ps-tab').forEach(t => t.classList.remove('active'));
+            if (tab === 'payable') {
+                document.querySelectorAll('.ps-tab')[0].classList.add('active');
+                document.getElementById('psTabPayable').classList.remove('hidden');
+                document.getElementById('psTabReceivable').classList.add('hidden');
+            } else {
+                document.querySelectorAll('.ps-tab')[1].classList.add('active');
+                document.getElementById('psTabPayable').classList.add('hidden');
+                document.getElementById('psTabReceivable').classList.remove('hidden');
+            }
+        }
+
+        // Wire up Payment Schedule buttons
+        document.querySelectorAll('.pt-schedule').forEach(btn => btn.addEventListener('click', openPsModal));
+        // Wire up Repayments History buttons
+        document.querySelectorAll('.pt-history').forEach(btn => btn.addEventListener('click', openRhModal));
+
+        // Initialize
+        document.querySelectorAll('.scenario-btn')[0].classList.add('active');
+        // Set payable scenario manually without relying on event
+        (function() {
+            document.getElementById('navPayable').classList.remove('hidden');
+            document.getElementById('navReceivable').classList.add('hidden');
+            document.getElementById('limitPayable').classList.remove('hidden');
+            document.getElementById('limitReceivable').classList.add('hidden');
+            document.getElementById('invPayable').classList.remove('hidden');
+            document.getElementById('invReceivable').classList.add('hidden');
+            document.getElementById('invSuppliers').classList.remove('hidden');
+            document.getElementById('invGrid').className = 'inv-grid cols-2';
+        })();
+    </script>
+</body>
+</html>
